@@ -1,0 +1,8 @@
+{
+  "name": "Ailve - Güvenli Aile Bütçe & Finans Yönetimi",
+  "description": "Uçtan uca şifreli bulut senkronizasyonu, bütçe limit uyarıları, tasarruf hedefleri ve görsel analiz raporları sunan akıllı aile bütçe yönetim platformu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

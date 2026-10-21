@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="ailveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded squircle with safe padding -->
+  <rect width="512" height="512" rx="128" fill="url(#ailveGrad)"/>
+  <!-- Shield and wallet vault shape -->
+  <path d="M256 100 L380 155 C380 270 256 365 256 365 C256 365 132 270 132 155 Z" fill="#ffffff" opacity="0.95"/>
+  <circle cx="256" cy="225" r="45" fill="#047857"/>
+  <path d="M256 195 L256 255 M226 225 L286 225" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+</svg>
