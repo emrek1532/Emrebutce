@@ -28,7 +28,7 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_r-RVHM4n_fEKQ5pX-L_kvQ_Cg2CDu5r
    - **Deploy command:** `npx wrangler deploy`
 3. **Settings → Build → Variables and secrets** bölümüne yukarıdaki iki
    `VITE_SUPABASE_*` değişkenini ekleyin (derleme sırasında koda gömülürler).
-4. **Deploy**. Site `https://ailve-butce.<hesabınız>.workers.dev` adresinde
+4. **Deploy**. Site `https://emrebutce.<hesabınız>.workers.dev` adresinde
    açılır. Kendi alan adınızı **Settings → Domains & Routes** bölümünden
    bağlayabilirsiniz.
 

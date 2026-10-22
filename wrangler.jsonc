@@ -1,5 +1,5 @@
 {
-  "name": "ailve-butce",
+  "name": "emrebutce",
   "compatibility_date": "2026-10-01",
   // Vite çıktısı (dist) statik olarak sunulur; SPA rotaları index.html'e düşer.
   "assets": {
