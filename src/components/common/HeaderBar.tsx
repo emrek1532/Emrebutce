@@ -47,7 +47,7 @@ export const HeaderBar: React.FC<Props> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Zone 1: Wordmark */}
         <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setActiveTab('overview')}>
           <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
@@ -64,7 +64,7 @@ export const HeaderBar: React.FC<Props> = ({
         </div>
 
         {/* Zone 2: Navigation Links (Desktop/Tablet) */}
-        <nav className="hidden xl:flex items-center gap-5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+        <nav className="hidden xl:flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] items-center gap-5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
           <button
             onClick={() => setActiveTab('overview')}
             className={`whitespace-nowrap transition-colors py-1 ${
