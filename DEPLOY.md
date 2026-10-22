@@ -7,7 +7,7 @@ Supabase üzerinde çalışır. Veriler tarayıcıda şifrelenir, Supabase yaln�
 ## 1. Supabase (kuruldu)
 
 `supabase/migrations/20261022000000_encrypted_vaults.sql` dosyası
-**business development** projesine uygulandı:
+Ailve'ye özel **ailve-butce** projesine (Frankfurt) uygulandı; diğer projelerden tamamen ayrıdır:
 
 - `encrypted_vaults` tablosu (RLS açık, doğrudan erişim kapalı)
 - `get_vault` ve `upsert_vault` RPC fonksiyonları (anonim çağrılabilir)
@@ -15,8 +15,8 @@ Supabase üzerinde çalışır. Veriler tarayıcıda şifrelenir, Supabase yaln�
 Bağlantı bilgileri (herkese açık olması güvenli olan publishable anahtar):
 
 ```
-VITE_SUPABASE_URL=https://aaduhhdwemnyqhnttcat.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_r-RVHM4n_fEKQ5pX-L_kvQ_Cg2CDu5r
+VITE_SUPABASE_URL=https://ssrurizfftncqgwqiijk.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_xxI8Tu9BPMu0a1kVZgFUYA_mUwhiDet
 ```
 
 ## 2. Cloudflare
