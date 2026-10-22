@@ -405,6 +405,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
       if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
       if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
+      if (decrypted.installments) setInstallments(decrypted.installments);
       if (decrypted.currency) setCurrencyState(decrypted.currency);
 
       remoteUpdatedAtRef.current = data.updatedAt;
@@ -462,6 +463,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         categoryLimits,
         savingsGoals,
         familyMembers,
+        installments,
         currency
       };
 
@@ -502,6 +504,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     categoryLimits,
     savingsGoals,
     familyMembers,
+    installments,
     currency,
     effectiveDevice
   ]);
@@ -596,7 +599,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       syncToCloud();
     }, PUSH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [transactions, categoryLimits, savingsGoals, familyMembers, currency, syncConfig.autoSync, syncToCloud]);
+  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, currency, syncConfig.autoSync, syncToCloud]);
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
@@ -647,6 +650,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       categoryLimits,
       savingsGoals,
       familyMembers,
+      installments,
       currency
     };
     const encrypted = await encryptData(payload, syncConfig.passphrase);
@@ -705,6 +709,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
           if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
           if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
+          if (decrypted.installments) setInstallments(decrypted.installments);
           if (decrypted.currency) setCurrencyState(decrypted.currency);
 
           setNotifications((prev) => [
