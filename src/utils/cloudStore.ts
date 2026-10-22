@@ -11,12 +11,19 @@ export interface EncryptedVaultRecord {
   clientInfo?: string;
 }
 
+import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
+
 export class VaultNotFoundError extends Error {}
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/+$/, '');
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
+
+// Yalnızca Realtime (anlık "kasa güncellendi" sinyali) için kullanılır; veri RPC ile taşınır.
+const realtimeClient = isSupabaseConfigured
+  ? createClient(SUPABASE_URL!, SUPABASE_KEY!, { auth: { persistSession: false, autoRefreshToken: false } })
+  : null;
 
 const NOT_CONFIGURED_MESSAGE =
   'Bulut sunucusu yapılandırılmamış (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY eksik).';
@@ -93,4 +100,49 @@ export async function loadVault(vaultId: string): Promise<EncryptedVaultRecord> 
     throw new Error(NOT_CONFIGURED_MESSAGE);
   }
   return response.json();
+}
+
+// Kanal adı kasa kimliğinden türetilir; kasa kimliği ağda düz metin olarak görünmez.
+async function vaultChannelName(vaultId: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`ailve-vault:${vaultId}`));
+  const hex = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+  return `ailve-${hex.slice(0, 32)}`;
+}
+
+export interface VaultLiveLink {
+  notifyUpdated: (updatedAt?: string) => void;
+  close: () => void;
+}
+
+// Aynı kasayı kullanan diğer cihazlardan gelen "güncellendi" sinyallerini dinler.
+// onUpdate, sinyal geldiğinde ve bağlantı (yeniden) kurulduğunda çağrılır (kaçırılan güncellemeler için).
+export function connectVaultLive(vaultId: string, onUpdate: () => void): VaultLiveLink {
+  if (!realtimeClient) {
+    return { notifyUpdated: () => {}, close: () => {} };
+  }
+  const client = realtimeClient;
+  let channel: RealtimeChannel | null = null;
+  let closed = false;
+
+  vaultChannelName(vaultId).then((name) => {
+    if (closed) return;
+    channel = client.channel(name, { config: { broadcast: { self: false } } });
+    channel
+      .on('broadcast', { event: 'vault-updated' }, () => onUpdate())
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onUpdate();
+      });
+  });
+
+  return {
+    notifyUpdated: (updatedAt) => {
+      channel
+        ?.send({ type: 'broadcast', event: 'vault-updated', payload: { updatedAt } })
+        .catch((err) => console.warn('Anlık eşitleme sinyali gönderilemedi:', err));
+    },
+    close: () => {
+      closed = true;
+      if (channel) client.removeChannel(channel);
+    }
+  };
 }

@@ -24,7 +24,14 @@ import {
   decryptData
 } from '../utils/crypto';
 import { convertCurrency, formatCurrency } from '../utils/currencies';
-import { saveVault, loadVault, VaultNotFoundError, EncryptedVaultRecord } from '../utils/cloudStore';
+import {
+  saveVault,
+  loadVault,
+  VaultNotFoundError,
+  EncryptedVaultRecord,
+  connectVaultLive,
+  VaultLiveLink
+} from '../utils/cloudStore';
 
 interface SyncConfig {
   vaultId: string;
@@ -37,7 +44,10 @@ interface SyncConfig {
   remoteUpdatedAt?: string;
 }
 
-const PULL_INTERVAL_MS = 30000;
+// Anlık sinyal kaçarsa diye yedek kontrol aralığı
+const PULL_INTERVAL_MS = 60000;
+// Son değişiklikten sonra buluta gönderme gecikmesi
+const PUSH_DEBOUNCE_MS = 1500;
 
 function isNewer(remote?: string, known?: string): boolean {
   if (!remote) return false;
@@ -374,6 +384,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Buluttan çekilen veri state'e yazılınca tetiklenen otomatik gönderimi atla (ping-pong olmasın).
   // Açılışta da true: cihaz önce buluttakini çeker, kendi eski verisini körlemesine göndermez.
   const skipNextAutoPushRef = useRef(true);
+  const liveLinkRef = useRef<VaultLiveLink | null>(null);
 
   const applyRemoteVault = useCallback(
     async (data: EncryptedVaultRecord, pass: string): Promise<CloudVaultPayload> => {
@@ -464,6 +475,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         clientInfo: `Ailve-${effectiveDevice}`
       });
       remoteUpdatedAtRef.current = serverUpdatedAt ?? payload.updatedAt;
+      liveLinkRef.current?.notifyUpdated(remoteUpdatedAtRef.current);
 
       setSyncConfig((prev) => ({
         ...prev,
@@ -582,16 +594,27 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     const timer = setTimeout(() => {
       syncToCloud();
-    }, 4000);
+    }, PUSH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [transactions, categoryLimits, savingsGoals, familyMembers, currency, syncConfig.autoSync, syncToCloud]);
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
     if (!syncConfig.autoSync) return;
+    let pulling = false;
     const pull = () => {
-      pullIfNewer().catch((err) => console.warn('Buluttan otomatik çekme başarısız:', err));
+      if (pulling) return;
+      pulling = true;
+      pullIfNewer()
+        .catch((err) => console.warn('Buluttan otomatik çekme başarısız:', err))
+        .finally(() => {
+          pulling = false;
+        });
     };
+    // Diğer cihaz kaydettiği anda Supabase Realtime sinyaliyle haber verir
+    const live = syncConfig.vaultId ? connectVaultLive(syncConfig.vaultId, pull) : null;
+    liveLinkRef.current = live;
+
     pull();
     const interval = setInterval(pull, PULL_INTERVAL_MS);
     const onVisible = () => {
@@ -601,8 +624,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
+      live?.close();
+      if (liveLinkRef.current === live) liveLinkRef.current = null;
     };
-  }, [syncConfig.autoSync, pullIfNewer]);
+  }, [syncConfig.autoSync, syncConfig.vaultId, pullIfNewer]);
 
   const updateSyncCredentials = (vaultId: string, passphrase: string, autoSync: boolean) => {
     setSyncConfig((prev) => ({
