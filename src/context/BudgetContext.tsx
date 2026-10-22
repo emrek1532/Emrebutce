@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
   Transaction,
   CategoryLimit,
@@ -24,7 +24,7 @@ import {
   decryptData
 } from '../utils/crypto';
 import { convertCurrency, formatCurrency } from '../utils/currencies';
-import { saveVault, loadVault } from '../utils/cloudStore';
+import { saveVault, loadVault, VaultNotFoundError, EncryptedVaultRecord } from '../utils/cloudStore';
 
 interface SyncConfig {
   vaultId: string;
@@ -33,6 +33,16 @@ interface SyncConfig {
   status: 'synced' | 'syncing' | 'offline' | 'error' | 'pending';
   lastSyncedAt?: string;
   errorMessage?: string;
+  // Bu cihazın bildiği son bulut sürümünün sunucu zamanı
+  remoteUpdatedAt?: string;
+}
+
+const PULL_INTERVAL_MS = 30000;
+
+function isNewer(remote?: string, known?: string): boolean {
+  if (!remote) return false;
+  if (!known) return true;
+  return Date.parse(remote) > Date.parse(known);
 }
 
 interface BudgetContextValue {
@@ -360,6 +370,61 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     evaluateLimits(transactions, categoryLimits);
   }, [transactions, categoryLimits, evaluateLimits]);
 
+  const remoteUpdatedAtRef = useRef<string | undefined>(syncConfig.remoteUpdatedAt);
+  // Buluttan çekilen veri state'e yazılınca tetiklenen otomatik gönderimi atla (ping-pong olmasın).
+  // Açılışta da true: cihaz önce buluttakini çeker, kendi eski verisini körlemesine göndermez.
+  const skipNextAutoPushRef = useRef(true);
+
+  const applyRemoteVault = useCallback(
+    async (data: EncryptedVaultRecord, pass: string): Promise<CloudVaultPayload> => {
+      const decrypted: CloudVaultPayload = await decryptData(
+        {
+          ciphertext: data.ciphertext,
+          iv: data.iv,
+          salt: data.salt
+        },
+        pass
+      );
+      if (!decrypted || !decrypted.transactions) {
+        throw new Error('Geçersiz kasa veri yapısı.');
+      }
+
+      skipNextAutoPushRef.current = true;
+      setTransactions(decrypted.transactions);
+      if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
+      if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
+      if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
+      if (decrypted.currency) setCurrencyState(decrypted.currency);
+
+      remoteUpdatedAtRef.current = data.updatedAt;
+      return decrypted;
+    },
+    []
+  );
+
+  // Bulutta bu cihazın bildiğinden daha yeni bir sürüm varsa sessizce çek
+  const pullIfNewer = useCallback(async (): Promise<boolean> => {
+    if (!syncConfig.vaultId || !syncConfig.passphrase) return false;
+    let remote: EncryptedVaultRecord;
+    try {
+      remote = await loadVault(syncConfig.vaultId);
+    } catch (err) {
+      if (err instanceof VaultNotFoundError) return false;
+      throw err;
+    }
+    if (!isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) return false;
+
+    await applyRemoteVault(remote, syncConfig.passphrase);
+    setSyncConfig((prev) => ({
+      ...prev,
+      status: 'synced',
+      lastSyncedAt: new Date().toISOString(),
+      remoteUpdatedAt: remoteUpdatedAtRef.current,
+      errorMessage: undefined
+    }));
+    return true;
+  }, [syncConfig.vaultId, syncConfig.passphrase, applyRemoteVault]);
+
   // Synchronize to cloud backend
   const syncToCloud = useCallback(async (): Promise<boolean> => {
     if (!syncConfig.vaultId || !syncConfig.passphrase) {
@@ -374,6 +439,11 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSyncConfig((prev) => ({ ...prev, status: 'syncing', errorMessage: undefined }));
 
     try {
+      // Başka bir cihaz daha yeni veri yüklediyse üzerine yazma; önce onu çek.
+      if (await pullIfNewer()) {
+        return true;
+      }
+
       const payload: CloudVaultPayload = {
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -387,17 +457,19 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Perform End-to-End Encryption
       const encrypted = await encryptData(payload, syncConfig.passphrase);
 
-      await saveVault(syncConfig.vaultId, {
+      const serverUpdatedAt = await saveVault(syncConfig.vaultId, {
         ...encrypted,
         version: payload.version,
         updatedAt: payload.updatedAt,
         clientInfo: `Ailve-${effectiveDevice}`
       });
+      remoteUpdatedAtRef.current = serverUpdatedAt ?? payload.updatedAt;
 
       setSyncConfig((prev) => ({
         ...prev,
         status: 'synced',
-        lastSyncedAt: new Date().toISOString()
+        lastSyncedAt: new Date().toISOString(),
+        remoteUpdatedAt: remoteUpdatedAtRef.current
       }));
 
       return true;
@@ -413,6 +485,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [
     syncConfig.vaultId,
     syncConfig.passphrase,
+    pullIfNewer,
     transactions,
     categoryLimits,
     savingsGoals,
@@ -441,28 +514,16 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       try {
         const data = await loadVault(vId);
         // Decrypt payload with passphrase
-        const decrypted: CloudVaultPayload = await decryptData(
-          {
-            ciphertext: data.ciphertext,
-            iv: data.iv,
-            salt: data.salt
-          },
-          pass
-        );
+        const decrypted = await applyRemoteVault(data, pass);
 
-        if (decrypted && decrypted.transactions) {
-          setTransactions(decrypted.transactions);
-          if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
-          if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
-          if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
-          if (decrypted.currency) setCurrencyState(decrypted.currency);
-
+        if (decrypted) {
           setSyncConfig((prev) => ({
             ...prev,
             vaultId: vId,
             passphrase: pass,
             status: 'synced',
             lastSyncedAt: new Date().toISOString(),
+            remoteUpdatedAt: remoteUpdatedAtRef.current,
             errorMessage: undefined
           }));
 
@@ -493,7 +554,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return false;
       }
     },
-    [syncConfig.vaultId, syncConfig.passphrase]
+    [syncConfig.vaultId, syncConfig.passphrase, applyRemoteVault]
   );
 
   // Auto-connect when opened via QR code or shared link with ?vault=...&key=...
@@ -515,11 +576,33 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Auto-sync debounce
   useEffect(() => {
     if (!syncConfig.autoSync) return;
+    if (skipNextAutoPushRef.current) {
+      skipNextAutoPushRef.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       syncToCloud();
     }, 4000);
     return () => clearTimeout(timer);
   }, [transactions, categoryLimits, savingsGoals, familyMembers, currency, syncConfig.autoSync, syncToCloud]);
+
+  // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
+  useEffect(() => {
+    if (!syncConfig.autoSync) return;
+    const pull = () => {
+      pullIfNewer().catch((err) => console.warn('Buluttan otomatik çekme başarısız:', err));
+    };
+    pull();
+    const interval = setInterval(pull, PULL_INTERVAL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') pull();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [syncConfig.autoSync, pullIfNewer]);
 
   const updateSyncCredentials = (vaultId: string, passphrase: string, autoSync: boolean) => {
     setSyncConfig((prev) => ({

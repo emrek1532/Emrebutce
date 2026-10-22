@@ -33,7 +33,8 @@ async function callRpc(fn: string, args: Record<string, unknown>): Promise<Respo
   });
 }
 
-export async function saveVault(vaultId: string, record: EncryptedVaultRecord): Promise<void> {
+// Sunucunun kaydettiği zaman damgasını döndürür (cihazlar arası "hangisi daha yeni" karşılaştırması için).
+export async function saveVault(vaultId: string, record: EncryptedVaultRecord): Promise<string | undefined> {
   const response = isSupabaseConfigured
     ? await callRpc('upsert_vault', {
         p_vault_id: vaultId,
@@ -56,6 +57,8 @@ export async function saveVault(vaultId: string, record: EncryptedVaultRecord): 
   if (!response.headers.get('content-type')?.includes('json')) {
     throw new Error(NOT_CONFIGURED_MESSAGE);
   }
+  const data = await response.json();
+  return typeof data === 'string' ? data : data?.updatedAt;
 }
 
 export async function loadVault(vaultId: string): Promise<EncryptedVaultRecord> {
