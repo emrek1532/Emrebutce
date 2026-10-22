@@ -185,6 +185,12 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {syncConfig.status === 'error' && syncConfig.errorMessage && (
+            <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-300">
+              {syncConfig.errorMessage}
+            </div>
+          )}
+
           {/* Credentials Info */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">

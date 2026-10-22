@@ -18,6 +18,9 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefine
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
 
+const NOT_CONFIGURED_MESSAGE =
+  'Bulut sunucusu yapılandırılmamış (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY eksik).';
+
 async function callRpc(fn: string, args: Record<string, unknown>): Promise<Response> {
   return fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
@@ -49,6 +52,10 @@ export async function saveVault(vaultId: string, record: EncryptedVaultRecord): 
   if (!response.ok) {
     throw new Error(`Bulut sunucu yanıtı başarısız (${response.status})`);
   }
+  // Statik barındırmada (/api/sync yokken) SPA index.html'i 200 ile döner; bunu başarı sayma.
+  if (!response.headers.get('content-type')?.includes('json')) {
+    throw new Error(NOT_CONFIGURED_MESSAGE);
+  }
 }
 
 export async function loadVault(vaultId: string): Promise<EncryptedVaultRecord> {
@@ -78,6 +85,9 @@ export async function loadVault(vaultId: string): Promise<EncryptedVaultRecord> 
       throw new VaultNotFoundError('Bu Kasa Kodu ile kayıtlı bulut yedeği bulunamadı.');
     }
     throw new Error(`Bulut bağlantı hatası: ${response.status}`);
+  }
+  if (!response.headers.get('content-type')?.includes('json')) {
+    throw new Error(NOT_CONFIGURED_MESSAGE);
   }
   return response.json();
 }
