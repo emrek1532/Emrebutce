@@ -24,6 +24,7 @@ import {
   decryptData
 } from '../utils/crypto';
 import { convertCurrency, formatCurrency } from '../utils/currencies';
+import { saveVault, loadVault } from '../utils/cloudStore';
 
 interface SyncConfig {
   vaultId: string;
@@ -386,20 +387,12 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Perform End-to-End Encryption
       const encrypted = await encryptData(payload, syncConfig.passphrase);
 
-      const response = await fetch(`/api/sync/${encodeURIComponent(syncConfig.vaultId)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...encrypted,
-          version: payload.version,
-          updatedAt: payload.updatedAt,
-          clientInfo: `Ailve-${effectiveDevice}`
-        })
+      await saveVault(syncConfig.vaultId, {
+        ...encrypted,
+        version: payload.version,
+        updatedAt: payload.updatedAt,
+        clientInfo: `Ailve-${effectiveDevice}`
       });
-
-      if (!response.ok) {
-        throw new Error(`Bulut sunucu yanıtı başarısız (${response.status})`);
-      }
 
       setSyncConfig((prev) => ({
         ...prev,
@@ -446,15 +439,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setSyncConfig((prev) => ({ ...prev, status: 'syncing', errorMessage: undefined }));
 
       try {
-        const res = await fetch(`/api/sync/${encodeURIComponent(vId)}`);
-        if (!res.ok) {
-          if (res.status === 404) {
-            throw new Error('Bu Kasa Kodu ile kayıtlı bulut yedeği bulunamadı.');
-          }
-          throw new Error(`Bulut bağlantı hatası: ${res.status}`);
-        }
-
-        const data = await res.json();
+        const data = await loadVault(vId);
         // Decrypt payload with passphrase
         const decrypted: CloudVaultPayload = await decryptData(
           {
