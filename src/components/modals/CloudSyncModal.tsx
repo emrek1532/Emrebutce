@@ -17,7 +17,8 @@ import {
   Smartphone,
   Tablet,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 interface Props {
@@ -33,7 +34,8 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
     updateSyncCredentials,
     exportEncryptedVault,
     exportCsv,
-    importVaultBackup
+    importVaultBackup,
+    resetAllData
   } = useBudget();
 
   const [copiedVault, setCopiedVault] = useState(false);
@@ -354,6 +356,33 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 </button>
               </div>
             </div>
+          </div>
+          {/* Reset all data */}
+          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-rose-500 mb-2">
+              Verileri Sıfırla
+            </h4>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+              Tüm harcama/gelir kayıtları, taksitler, tasarruf hedefleri ve bütçe limitleri silinir. Aile üyeleri ve
+              kasa bağlantısı korunur. Bu kasaya bağlı tüm cihazlar da sıfırlanır.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Tüm harcama, gelir, taksit, hedef ve limit kayıtları bu kasaya bağlı TÜM cihazlardan silinecek. Bu işlem geri alınamaz.\n\nÖnce "Şifreli Yedek" indirmeniz önerilir. Devam edilsin mi?'
+                  )
+                ) {
+                  resetAllData();
+                  setSyncFeedback('Tüm veriler sıfırlandı. Boş hali diğer cihazlara da gönderiliyor.');
+                }
+              }}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Tüm Verileri Sıfırla</span>
+            </button>
           </div>
         </div>
 
