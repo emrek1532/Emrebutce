@@ -101,6 +101,7 @@ interface BudgetContextValue {
   toggleDarkMode: () => void;
   dismissNotification: (id: string) => void;
   clearAllNotifications: () => void;
+  resetAllData: () => void;
 
   // Cloud & Encryption
   syncToCloud: () => Promise<boolean>;
@@ -855,6 +856,16 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setNotifications([]);
   };
 
+  // İşlemleri, taksitleri, hedefleri ve limitleri boşaltır. Aile üyeleri, para birimi ve
+  // kasa bağlantısı korunur; boş hal otomatik eşitlemeyle diğer cihazlara da gider.
+  const resetAllData = () => {
+    setTransactions([]);
+    setInstallments([]);
+    setSavingsGoals([]);
+    setCategoryLimits([]);
+    setNotifications([]);
+  };
+
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
@@ -939,6 +950,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     toggleDarkMode,
     dismissNotification,
     clearAllNotifications,
+    resetAllData,
     syncToCloud,
     syncFromCloud,
     updateSyncCredentials,
