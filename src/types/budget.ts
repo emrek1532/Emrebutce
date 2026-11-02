@@ -1,6 +1,7 @@
 export type Currency = 'TRY' | 'USD' | 'EUR' | 'GBP';
 
-export type TransactionType = 'income' | 'expense';
+// 'saving': birikime ayrılan para (harcama sayılmaz, isteğe bağlı bir hedefe eklenir)
+export type TransactionType = 'income' | 'expense' | 'saving';
 
 export type PaymentMethod = 'Nakit' | 'Kredi Kartı' | 'Banka Kartı' | 'Havale/EFT';
 
@@ -15,6 +16,7 @@ export interface Transaction {
   description: string;
   paymentMethod: PaymentMethod;
   isRecurring?: boolean;
+  goalId?: string;
   installmentInfo?: {
     current: number;
     total: number;

@@ -34,9 +34,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [installSuccess, setInstallSuccess] = useState(false);
 
   // Dynamic Base URL
-  const baseUrl = typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null'
-    ? window.location.origin
-    : 'https://ais-dev-7r6w72xjgbpyvy2nzmofu5-680801047878.europe-west1.run.app';
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   // Construct target link
   const shareUrl = includeSyncKey
@@ -151,49 +149,6 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <span>Uygulama başarıyla cihazınıza yüklendi!</span>
             </div>
           )}
-
-          {/* Chrome "Yüklenemez" Çözüm Rehberi Kutusu */}
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 text-xs text-amber-950 dark:text-amber-200 space-y-3 shadow-sm">
-            <div className="flex items-start gap-2.5">
-              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1.5 flex-1">
-                <strong className="block text-sm font-bold text-amber-950 dark:text-amber-100">
-                  Chrome'da "Bu uygulama yüklenemez" Görüyorsanız:
-                </strong>
-                <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-                  Android Chrome'da sağ üstteki <strong>üç nokta (⋮)</strong> menüsünden <strong>"Yükle ve kısayol oluştur"</strong>a bastığınızda açılan pencerede 2 seçenek bulunur:
-                </p>
-
-                {/* Visual Representation of Chrome Dialog */}
-                <div className="my-2 p-2.5 rounded-lg bg-neutral-900 text-white dark:bg-black/80 space-y-2 border border-neutral-700">
-                  <div className="flex items-center justify-between p-2 rounded bg-neutral-800/80 border border-neutral-700/80 opacity-60">
-                    <div>
-                      <div className="text-neutral-400 text-xs font-semibold">1. Yükle</div>
-                      <div className="text-[10px] text-amber-400 font-medium">⚠️ Bu uygulama yüklenemez (Önizleme koruması)</div>
-                    </div>
-                    <span className="text-[10px] text-neutral-400">Geçiniz</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-2.5 rounded bg-sky-700/90 border-2 border-sky-400 text-white animate-pulse">
-                    <div>
-                      <div className="text-white text-xs font-bold flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-sky-300" />
-                        <span>2. Kısayol oluştur</span>
-                      </div>
-                      <div className="text-[10px] text-sky-200 font-semibold">👉 BUNA DOKUNUN! Yeşil logolu tam uygulama eklenir</div>
-                    </div>
-                    <span className="text-[11px] font-bold bg-white text-sky-800 px-2 py-0.5 rounded shadow">SEÇİNİZ</span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-lg bg-sky-100 dark:bg-sky-950/80 border border-sky-300 dark:border-sky-800 text-sky-950 dark:text-sky-200">
-                  <p className="text-xs text-sky-900 dark:text-sky-100 font-medium leading-relaxed">
-                    <strong>Neden böyle?</strong> AI Studio geliştirme ortamı şifreli oturum korumalıdır. Google'ın dış Play Store WebAPK mint robotu içeri giremediği için 1. butona "yüklenemez" der; ancak hemen altındaki <strong>"Kısayol oluştur"</strong> butonuna dokunduğunuzda Chrome anında mavi Cebim logosunu ana ekranınıza bağımsız, reklamsız ve tam ekran çalışan bir mobil uygulama olarak yükler.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* QR Code Section */}
           <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700">

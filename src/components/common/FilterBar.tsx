@@ -103,9 +103,10 @@ export const FilterBar: React.FC = () => {
             onChange={(e) => setFilterType(e.target.value as any)}
             className="w-full px-2 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none"
           >
-            <option value="all">Tümü (Gelir + Gider)</option>
-            <option value="expense">Yalnızca Giderler</option>
-            <option value="income">Yalnızca Gelirler</option>
+            <option value="all">Tümü</option>
+            <option value="expense">Giderler</option>
+            <option value="income">Gelirler</option>
+            <option value="saving">Birikimler</option>
           </select>
         </div>
 

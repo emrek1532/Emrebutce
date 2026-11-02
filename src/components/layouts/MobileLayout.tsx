@@ -1,3 +1,4 @@
+import { txTone } from '../../utils/txStyle';
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { ActiveTab, Transaction } from '../../types/budget';
@@ -5,13 +6,10 @@ import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
-import { BudgetProgressCard } from '../charts/BudgetProgressCard';
 import { SavingsGoalCard } from '../charts/SavingsGoalCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
-import { SetLimitModal } from '../modals/SetLimitModal';
 import { AddGoalModal } from '../modals/AddGoalModal';
 import { InstallmentsView } from '../views/InstallmentsView';
-import { SimulatorView } from '../views/SimulatorView';
 import {
   LayoutGrid,
   Receipt,
@@ -57,6 +55,7 @@ export const MobileLayout: React.FC<Props> = ({
     toggleDarkMode,
     monthlyIncome,
     monthlyExpense,
+    monthlySavings,
     monthlyBalance,
     savingsRate,
     filteredTransactions,
@@ -71,14 +70,7 @@ export const MobileLayout: React.FC<Props> = ({
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
   const [voiceStart, setVoiceStart] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-  const [isSetLimitOpen, setIsSetLimitOpen] = useState(false);
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
-  const [showInstallBanner, setShowInstallBanner] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
-    return !isStandalone;
-  });
 
   // Check critical limit alerts
   const criticalAlerts = categoryLimits.filter((l) => {
@@ -198,37 +190,6 @@ export const MobileLayout: React.FC<Props> = ({
           <span>Taksitler & Borçlar</span>
         </button>
         <button
-          onClick={() => setActiveTab('simulator')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
-            activeTab === 'simulator'
-              ? 'bg-amber-600 text-white shadow-xs'
-              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-          }`}
-        >
-          <Sparkles className="w-3 h-3" />
-          <span>Simülatör</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'analytics'
-              ? 'bg-sky-600 text-white shadow-xs'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          Analiz
-        </button>
-        <button
-          onClick={() => setActiveTab('limits')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'limits'
-              ? 'bg-sky-600 text-white shadow-xs'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          Limitler
-        </button>
-        <button
           onClick={() => setActiveTab('goals')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'goals'
@@ -236,69 +197,12 @@ export const MobileLayout: React.FC<Props> = ({
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
-          Hedefler
+          Birikim
         </button>
       </div>
 
       {/* Main Scrollable Content */}
       <main className="flex-1 p-4 space-y-4 max-w-lg mx-auto w-full">
-        {/* Mobile PWA Install Guidance Banner */}
-        {showInstallBanner && (
-          <div className="p-3 rounded-xl bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-950/50 dark:to-cyan-950/40 border-2 border-sky-400 dark:border-sky-600 text-xs text-sky-950 dark:text-sky-100 flex items-start justify-between gap-2.5 shadow-sm">
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0 mt-0.5">
-                <Smartphone className="w-4 h-4" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-sky-950 dark:text-sky-100">
-                  <span>📱 Telefon Ana Ekranına Yükleme İpucu</span>
-                </div>
-                <p className="text-[11px] text-sky-800 dark:text-sky-200 leading-tight">
-                  Chrome'da <strong>(⋮) menüsüne</strong> basın. Açılan kutuda <strong>"Bu uygulama yüklenemez"</strong> uyarısının hemen altındaki <strong>"Kısayol oluştur"</strong> butonuna dokunun.
-                </p>
-                <div className="pt-0.5 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={onOpenShare}
-                    className="inline-flex items-center gap-1 font-bold text-[11px] text-sky-700 dark:text-sky-300 underline"
-                  >
-                    <span>Detaylı Resimli Çözüm</span>
-                  </button>
-                  <span className="text-neutral-400">·</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowInstallBanner(false)}
-                    className="text-[11px] text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-                  >
-                    Anladım, Gizle
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowInstallBanner(false)}
-              className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 shrink-0"
-              title="Kapat"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-        {/* Critical Alerts Banner (Mobile Friendly) */}
-        {criticalAlerts.length > 0 && (
-          <div
-            onClick={() => setActiveTab('limits')}
-            className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>
-                <strong>{criticalAlerts.length} Kategori</strong> harcama sınırına yaklaştı veya aştı!
-              </span>
-            </div>
-            <span className="text-[10px] font-bold underline shrink-0">İncele</span>
-          </div>
-        )}
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
@@ -315,7 +219,7 @@ export const MobileLayout: React.FC<Props> = ({
                   {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
                 </span>
                 <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400">
-                  %{savingsRate} Tasarruf
+                  %{savingsRate} Birikim
                 </span>
               </div>
 
@@ -345,6 +249,12 @@ export const MobileLayout: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
+              {monthlySavings > 0 && (
+                <div className="mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs">
+                  <span className="text-neutral-400">Bu ay birikime ayrılan</span>
+                  <span className="font-bold font-mono text-amber-600 dark:text-amber-400">{formatCurrency(monthlySavings, currency)}</span>
+                </div>
+              )}
             </div>
 
             {/* Quick Category Donut Preview */}
@@ -353,12 +263,6 @@ export const MobileLayout: React.FC<Props> = ({
                 <h3 className="text-xs font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">
                   Harcama Dağılımı (Bu Ay)
                 </h3>
-                <button
-                  onClick={() => setActiveTab('analytics')}
-                  className="text-xs text-sky-600 dark:text-sky-400 font-medium"
-                >
-                  Detaylar
-                </button>
               </div>
               <CategoryDonutChart compact={true} />
             </div>
@@ -380,6 +284,7 @@ export const MobileLayout: React.FC<Props> = ({
               <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
                 {filteredTransactions.slice(0, 5).map((tx) => {
                   const isInc = tx.type === 'income';
+                  const tone = txTone(tx.type);
                   const converted = convertCurrency(tx.amount, tx.currency, currency);
 
                   return (
@@ -393,11 +298,7 @@ export const MobileLayout: React.FC<Props> = ({
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                            isInc
-                              ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400'
-                              : 'bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400'
-                          }`}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${tone.badge}`}
                         >
                           {isInc ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                         </div>
@@ -413,13 +314,9 @@ export const MobileLayout: React.FC<Props> = ({
 
                       <div className="text-right shrink-0 font-mono tabular-nums">
                         <span
-                          className={`text-xs font-bold ${
-                            isInc
-                              ? 'text-sky-600 dark:text-sky-400'
-                              : 'text-rose-600 dark:text-rose-400'
-                          }`}
+                          className={`text-xs font-bold ${tone.text}`}
                         >
-                          {isInc ? '+' : '-'}
+                          {tone.sign}
                           {formatCurrency(converted, currency)}
                         </span>
                       </div>
@@ -446,33 +343,13 @@ export const MobileLayout: React.FC<Props> = ({
           </div>
         )}
 
-        {/* TAB 3: ANALYTICS */}
-        {activeTab === 'analytics' && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-              <h3 className="text-xs font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-3">
-                Kategori Dağılımı
-              </h3>
-              <CategoryDonutChart compact={true} />
-            </div>
-
-            <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-              <h3 className="text-xs font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-3">
-                Nakit Akış Trendi
-              </h3>
-              <div className="h-60">
-                <CategoryDonutChart compact={true} />
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* TAB 4: GOALS */}
         {activeTab === 'goals' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
-                Tasarruf Hedefleri
+                Birikim Hedefleri
               </h3>
               <button
                 onClick={() => setIsAddGoalOpen(true)}
@@ -491,39 +368,11 @@ export const MobileLayout: React.FC<Props> = ({
           </div>
         )}
 
-        {/* TAB 5: LIMITS */}
-        {activeTab === 'limits' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
-                Bütçe Limitleri
-              </h3>
-              <button
-                onClick={() => setIsSetLimitOpen(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-white"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Limit Ekle</span>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {categoryLimits.map((lim) => (
-                <BudgetProgressCard
-                  key={lim.id}
-                  limit={lim}
-                  onEdit={() => setIsSetLimitOpen(true)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* TAB: INSTALLMENTS & DEBTS */}
         {activeTab === 'installments' && <InstallmentsView />}
 
         {/* TAB: SIMULATOR */}
-        {activeTab === 'simulator' && <SimulatorView />}
       </main>
 
       {/* Floating Bottom Quick Action Buttons */}
@@ -559,10 +408,6 @@ export const MobileLayout: React.FC<Props> = ({
         onClose={() => setIsAddTxOpen(false)}
         editTransaction={editingTx}
         startWithVoice={voiceStart}
-      />
-      <SetLimitModal
-        isOpen={isSetLimitOpen}
-        onClose={() => setIsSetLimitOpen(false)}
       />
       <AddGoalModal
         isOpen={isAddGoalOpen}

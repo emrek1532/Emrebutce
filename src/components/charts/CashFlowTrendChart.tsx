@@ -38,7 +38,7 @@ export const CashFlowTrendChart: React.FC = () => {
         if (tx.date.startsWith(key)) {
           const val = convertCurrency(tx.amount, tx.currency, currency);
           if (tx.type === 'income') income += val;
-          else expense += val;
+          else if (tx.type === 'expense') expense += val;
         }
       });
 

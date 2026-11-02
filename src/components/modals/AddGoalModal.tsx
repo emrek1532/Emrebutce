@@ -64,7 +64,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-              Yeni Tasarruf Hedefi Belirle
+              Yeni Birikim Hedefi
             </h3>
           </div>
           <button

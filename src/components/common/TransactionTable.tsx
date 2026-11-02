@@ -1,3 +1,4 @@
+import { txTone } from '../../utils/txStyle';
 import React from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { Transaction } from '../../types/budget';
@@ -57,6 +58,7 @@ export const TransactionTable: React.FC<Props> = ({
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
             {transactions.map((tx) => {
               const isIncome = tx.type === 'income';
+              const tone = txTone(tx.type);
               const convertedAmount = convertCurrency(tx.amount, tx.currency, currency);
 
               return (
@@ -73,11 +75,7 @@ export const TransactionTable: React.FC<Props> = ({
                   <td className="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100 max-w-xs truncate">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                          isIncome
-                            ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400'
-                            : 'bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400'
-                        }`}
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${tone.badge}`}
                       >
                         {isIncome ? (
                           <ArrowUpRight className="w-3 h-3" />
@@ -106,18 +104,14 @@ export const TransactionTable: React.FC<Props> = ({
 
                   {/* Ödeme Şekli */}
                   <td className="py-3 px-4 text-neutral-500 dark:text-neutral-400 hidden md:table-cell whitespace-nowrap">
-                    {tx.paymentMethod}
+                    {tx.type === 'expense' ? tx.paymentMethod : '—'}
                   </td>
 
                   {/* Tutar */}
                   <td
-                    className={`py-3 px-4 text-right font-mono font-bold whitespace-nowrap tabular-nums ${
-                      isIncome
-                        ? 'text-sky-600 dark:text-sky-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    }`}
+                    className={`py-3 px-4 text-right font-mono font-bold whitespace-nowrap tabular-nums ${tone.text}`}
                   >
-                    {isIncome ? '+' : '-'}
+                    {tone.sign}
                     {formatCurrency(convertedAmount, currency)}
                   </td>
 

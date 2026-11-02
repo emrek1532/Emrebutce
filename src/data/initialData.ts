@@ -514,6 +514,8 @@ export const EXPENSE_CATEGORIES = [
   'Diğer Harcamalar'
 ];
 
+export const SAVING_CATEGORIES = ['Birikim', 'Altın', 'Döviz', 'Yatırım'];
+
 export const INCOME_CATEGORIES = [
   'Maaş & Ücret',
   'Ek Gelir & Prim',
