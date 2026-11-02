@@ -32,6 +32,7 @@ import {
   connectVaultLive,
   VaultLiveLink
 } from '../utils/cloudStore';
+import { readShareLinkFromLocation } from '../utils/shareLink';
 
 interface SyncConfig {
   vaultId: string;
@@ -471,7 +472,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       decrypted = await decryptData({ ciphertext: data.ciphertext, iv: data.iv, salt: data.salt }, pass);
     } catch {
       throw new Error(
-        'Buluttaki kasa bu cihazdaki anahtarla açılamadı. Anahtar başka bir cihazda değiştirilmiş olabilir; yeni anahtarı "Bu Kasaya Bağlan" ile girin.'
+        'Buluttaki kasa bu cihazdaki anahtarla açılamadı. Anahtar başka bir cihazda değiştirilmiş olabilir; diğer cihazdan "Linki Paylaş" ile yeni linki alıp açın.'
       );
     }
     if (!decrypted || !decrypted.transactions) throw new Error('Geçersiz kasa veri yapısı.');
@@ -641,7 +642,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setSyncConfig((prev) => ({
           ...prev,
           status: 'error',
-          errorMessage: 'Geçerli bir Kasa Kodu ve Şifreleme Anahtarı giriniz.'
+          errorMessage: 'Paylaşım linki geçersiz.'
         }));
         return false;
       }
@@ -694,21 +695,21 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     [syncConfig.vaultId, syncConfig.passphrase, applyRemoteVault]
   );
 
-  // Auto-connect when opened via QR code or shared link with ?vault=...&key=...
+  // Aile paylaşım linkiyle açıldıysa o verilere bağlan (bu cihaz başka verilere bağlı olsa bile linktekine geçer)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const urlVault = params.get('vault');
-    const urlKey = params.get('key');
-
-    if (urlVault && urlKey) {
-      console.log('🔗 Link üzerinden kasa algılandı, bağlanılıyor:', urlVault);
-      syncFromCloud(urlVault, urlKey).then(() => {
-        // Clean URL to protect passphrase in address bar
-        window.history.replaceState({}, document.title, window.location.pathname);
-      });
-    }
-  }, [syncFromCloud]);
+    const connectFromLocation = () => {
+      const creds = readShareLinkFromLocation();
+      if (!creds) return;
+      // Gizli kısım adres çubuğunda ve geçmişte kalmasın
+      window.history.replaceState({}, document.title, window.location.pathname);
+      if (creds.vaultId === syncConfigRef.current.vaultId && creds.passphrase === syncConfigRef.current.passphrase) return;
+      syncFromCloudRef.current(creds.vaultId, creds.passphrase);
+    };
+    connectFromLocation();
+    window.addEventListener('hashchange', connectFromLocation);
+    return () => window.removeEventListener('hashchange', connectFromLocation);
+  }, []);
 
   // Düzenli gelir/giderler: bu ayın günü geldiyse işlemi bir kez oluşturur. İşlem kimliği
   // (kalem + ay) sabit olduğu için iki cihaz aynı ayı oluştursa da kopya oluşmaz.
@@ -763,6 +764,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Zamanlayıcılar ve olay dinleyicileri her zaman en güncel veriyle gönderebilsin
   const syncToCloudRef = useRef(syncToCloud);
   syncToCloudRef.current = syncToCloud;
+  const syncFromCloudRef = useRef(syncFromCloud);
+  syncFromCloudRef.current = syncFromCloud;
+  const syncConfigRef = useRef(syncConfig);
+  syncConfigRef.current = syncConfig;
 
   // Auto-sync debounce
   useEffect(() => {
