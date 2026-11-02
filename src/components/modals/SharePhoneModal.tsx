@@ -37,7 +37,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   // Construct target link
-  const shareUrl = includeSyncKey
+  const shareUrl = includeSyncKey && syncConfig.vaultId
     ? `${baseUrl}?vault=${encodeURIComponent(syncConfig.vaultId)}&key=${encodeURIComponent(syncConfig.passphrase)}`
     : baseUrl;
 
