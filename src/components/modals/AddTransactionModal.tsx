@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { Currency, PaymentMethod, Transaction, TransactionType } from '../../types/budget';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../data/initialData';
-import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle, Mic, Square } from 'lucide-react';
+import { isVoiceSupported, listenOnce, parseVoiceTransaction, VoiceSession } from '../../utils/voiceTransaction';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   editTransaction?: Transaction | null;
+  // Pencere açılır açılmaz dinlemeye başla (mikrofon kısayolu)
+  startWithVoice?: boolean;
 }
 
 export const AddTransactionModal: React.FC<Props> = ({
   isOpen,
   onClose,
-  editTransaction
+  editTransaction,
+  startWithVoice
 }) => {
   const { addTransaction, updateTransaction, familyMembers, currency: activeCurrency } = useBudget();
 
@@ -34,6 +38,47 @@ export const AddTransactionModal: React.FC<Props> = ({
     editTransaction?.paymentMethod || 'Kredi Kartı'
   );
   const [isRecurring, setIsRecurring] = useState<boolean>(editTransaction?.isRecurring || false);
+
+  const [isListening, setIsListening] = useState(false);
+  const [voiceText, setVoiceText] = useState<string | null>(null);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const voiceSessionRef = useRef<VoiceSession | null>(null);
+
+  const startVoice = () => {
+    if (isListening) {
+      voiceSessionRef.current?.stop();
+      return;
+    }
+    setVoiceError(null);
+    setVoiceText(null);
+    setIsListening(true);
+    voiceSessionRef.current = listenOnce(
+      (text) => {
+        setVoiceText(text);
+        const draft = parseVoiceTransaction(text, familyMembers.map((m) => m.name));
+        setType(draft.type);
+        setCategory(draft.category);
+        if (draft.amount !== null) setAmount(String(draft.amount));
+        if (draft.paymentMethod) setPaymentMethod(draft.paymentMethod);
+        if (draft.member) setMember(draft.member);
+        setDate(draft.date);
+        setDescription(draft.description);
+        if (draft.amount === null) setVoiceError('Tutar anlaşılamadı, lütfen tutarı elle girin.');
+      },
+      (message) => setVoiceError(message),
+      () => setIsListening(false)
+    );
+  };
+
+  useEffect(() => {
+    if (isOpen && startWithVoice && !editTransaction) startVoice();
+    if (!isOpen) {
+      voiceSessionRef.current?.stop();
+      setVoiceText(null);
+      setVoiceError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, startWithVoice]);
 
   if (!isOpen) return null;
 
@@ -102,6 +147,37 @@ export const AddTransactionModal: React.FC<Props> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+          {/* Sesli giriş */}
+          {isVoiceSupported() && (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={startVoice}
+                className={`w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-xl transition-colors ${
+                  isListening
+                    ? 'bg-rose-600 text-white animate-pulse'
+                    : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                }`}
+              >
+                {isListening ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                <span>{isListening ? 'Dinliyorum… (durdurmak için dokunun)' : 'Sesle Doldur'}</span>
+              </button>
+              {!voiceText && !voiceError && !isListening && (
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 text-center">
+                  Örn: "Markette 250 lira harcadım", "Maaş yattı 45 bin lira", "Dün benzine 2 bin lira nakit"
+                </p>
+              )}
+              {voiceText && (
+                <p className="text-[11px] text-neutral-600 dark:text-neutral-300 text-center">
+                  Duyulan: <strong>"{voiceText}"</strong> — kontrol edip kaydedin.
+                </p>
+              )}
+              {voiceError && (
+                <p className="text-[11px] text-rose-600 dark:text-rose-400 text-center">{voiceError}</p>
+              )}
+            </div>
+          )}
+
           {/* Type Toggle: Gider / Gelir */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-100 dark:bg-neutral-800/80 rounded-xl">
             <button

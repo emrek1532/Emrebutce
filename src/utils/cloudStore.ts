@@ -29,14 +29,17 @@ const NOT_CONFIGURED_MESSAGE =
   'Bulut sunucusu yapılandırılmamış (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY eksik).';
 
 async function callRpc(fn: string, args: Record<string, unknown>): Promise<Response> {
+  const body = JSON.stringify(args);
   return fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
+    // Uygulama arka plana geçerken/kapanırken de istek tamamlansın (tarayıcı sınırı ~64 KB)
+    keepalive: body.length < 60000,
     headers: {
       'Content-Type': 'application/json',
       apikey: SUPABASE_KEY!,
       Authorization: `Bearer ${SUPABASE_KEY}`
     },
-    body: JSON.stringify(args)
+    body
   });
 }
 

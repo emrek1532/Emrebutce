@@ -128,6 +128,8 @@ const LS_MEMBERS = 'ailve_members_v5';
 const LS_INSTALLMENTS = 'ailve_installments_v5';
 const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
+// Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
+const LS_SYNC_DIRTY = 'ailve_sync_dirty_v5';
 const LS_THEME = 'ailve_theme_v5';
 const LS_NOTIFICATIONS = 'ailve_notifications_v5';
 const LS_DEVICE = 'ailve_device_mode_v5';
@@ -194,10 +196,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  const [deviceMode, setDeviceModeState] = useState<DeviceMode>(() => {
-    const saved = localStorage.getItem(LS_DEVICE) as DeviceMode;
-    return saved || 'auto';
-  });
+  // Görünüm her zaman ekran genişliğine göre otomatik seçilir
+  const [deviceMode, setDeviceModeState] = useState<DeviceMode>('auto');
 
   const [windowWidth, setWindowWidth] = useState<number>(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1200
@@ -386,6 +386,16 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Açılışta da true: cihaz önce buluttakini çeker, kendi eski verisini körlemesine göndermez.
   const skipNextAutoPushRef = useRef(true);
   const liveLinkRef = useRef<VaultLiveLink | null>(null);
+  const dirtyRef = useRef<boolean>(localStorage.getItem(LS_SYNC_DIRTY) === '1');
+  const setDirty = (value: boolean) => {
+    dirtyRef.current = value;
+    try {
+      if (value) localStorage.setItem(LS_SYNC_DIRTY, '1');
+      else localStorage.removeItem(LS_SYNC_DIRTY);
+    } catch {
+      // depolama erişilemezse yalnızca bellekte tut
+    }
+  };
 
   const applyRemoteVault = useCallback(
     async (data: EncryptedVaultRecord, pass: string): Promise<CloudVaultPayload> => {
@@ -454,6 +464,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       // Başka bir cihaz daha yeni veri yüklediyse üzerine yazma; önce onu çek.
       if (await pullIfNewer()) {
+        setDirty(false);
         return true;
       }
 
@@ -478,6 +489,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         clientInfo: `Ailve-${effectiveDevice}`
       });
       remoteUpdatedAtRef.current = serverUpdatedAt ?? payload.updatedAt;
+      setDirty(false);
       liveLinkRef.current?.notifyUpdated(remoteUpdatedAtRef.current);
 
       setSyncConfig((prev) => ({
@@ -589,13 +601,19 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [syncFromCloud]);
 
+  // Zamanlayıcılar ve olay dinleyicileri her zaman en güncel veriyle gönderebilsin
+  const syncToCloudRef = useRef(syncToCloud);
+  syncToCloudRef.current = syncToCloud;
+
   // Auto-sync debounce
   useEffect(() => {
-    if (!syncConfig.autoSync) return;
     if (skipNextAutoPushRef.current) {
       skipNextAutoPushRef.current = false;
       return;
     }
+    // Yerel değişiklik: gönderilene kadar işaretli kalır, uygulama kapansa bile sonra yeniden denenir
+    setDirty(true);
+    if (!syncConfig.autoSync) return;
     const timer = setTimeout(() => {
       syncToCloud();
     }, PUSH_DEBOUNCE_MS);
@@ -606,11 +624,14 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!syncConfig.autoSync) return;
     let pulling = false;
+    // Gönderilmemiş yerel değişiklik varsa önce onu gönder (gönderim zaten önce bulutu kontrol eder),
+    // yoksa yalnızca buluttaki yeni sürümü çek.
     const pull = () => {
       if (pulling) return;
       pulling = true;
-      pullIfNewer()
-        .catch((err) => console.warn('Buluttan otomatik çekme başarısız:', err))
+      const run = dirtyRef.current ? syncToCloudRef.current() : pullIfNewer();
+      run
+        .catch((err) => console.warn('Otomatik eşitleme başarısız:', err))
         .finally(() => {
           pulling = false;
         });
@@ -621,13 +642,16 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     pull();
     const interval = setInterval(pull, PULL_INTERVAL_MS);
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') pull();
+    const onVisibility = () => {
+      // Arka plana geçerken bekleyen değişikliği hemen gönder; öne gelince eşitle
+      if (document.visibilityState === 'visible' || dirtyRef.current) pull();
     };
-    document.addEventListener('visibilitychange', onVisible);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('online', pull);
     return () => {
       clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisible);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('online', pull);
       live?.close();
       if (liveLinkRef.current === live) liveLinkRef.current = null;
     };

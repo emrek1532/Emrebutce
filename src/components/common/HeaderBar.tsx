@@ -8,8 +8,6 @@ import {
   Sun,
   Moon,
   Smartphone,
-  Tablet,
-  Monitor,
   Sparkles,
   Cloud,
   CheckCircle2
@@ -37,8 +35,6 @@ export const HeaderBar: React.FC<Props> = ({
     setCurrency,
     darkMode,
     toggleDarkMode,
-    deviceMode,
-    setDeviceMode,
     syncConfig,
     notifications
   } = useBudget();
@@ -153,54 +149,6 @@ export const HeaderBar: React.FC<Props> = ({
             </button>
           )}
 
-          {/* Device UI Mode Switcher (Required feature: phone, tablet, desktop UIs) */}
-          <div className="hidden sm:flex items-center bg-neutral-100 dark:bg-neutral-800 p-0.5 rounded-lg border border-neutral-200 dark:border-neutral-700">
-            <button
-              onClick={() => setDeviceMode('auto')}
-              title="Otomatik Cihaz Algılama"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
-                deviceMode === 'auto'
-                  ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-xs font-medium'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
-              }`}
-            >
-              Oto
-            </button>
-            <button
-              onClick={() => setDeviceMode('mobile')}
-              title="Telefon Arayüzü Modu"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
-                deviceMode === 'mobile'
-                  ? 'bg-white dark:bg-neutral-700 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setDeviceMode('tablet')}
-              title="Tablet Arayüzü Modu"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
-                deviceMode === 'tablet'
-                  ? 'bg-white dark:bg-neutral-700 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
-              }`}
-            >
-              <Tablet className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setDeviceMode('desktop')}
-              title="Masaüstü Kokpit Modu"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
-                deviceMode === 'desktop'
-                  ? 'bg-white dark:bg-neutral-700 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
-              }`}
-            >
-              <Monitor className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
           {/* Currency Switcher */}
           <select
             value={currency}
@@ -231,7 +179,15 @@ export const HeaderBar: React.FC<Props> = ({
             title="Bulut & Şifreli Kasa Ayarları"
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <ShieldCheck
+              className={`w-3.5 h-3.5 ${
+                syncConfig.status === 'error'
+                  ? 'text-rose-500'
+                  : syncConfig.status === 'syncing'
+                  ? 'text-amber-500 animate-pulse'
+                  : 'text-emerald-600 dark:text-emerald-400'
+              }`}
+            />
             <span className="hidden md:inline font-mono text-[11px]">
               {syncConfig.vaultId}
             </span>

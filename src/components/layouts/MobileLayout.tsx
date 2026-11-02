@@ -31,7 +31,7 @@ import {
   Smartphone,
   CreditCard,
   Sparkles,
-  Camera,
+  Mic,
   X,
   Download
 } from 'lucide-react';
@@ -68,6 +68,7 @@ export const MobileLayout: React.FC<Props> = ({
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
+  const [voiceStart, setVoiceStart] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [isSetLimitOpen, setIsSetLimitOpen] = useState(false);
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
@@ -93,14 +94,9 @@ export const MobileLayout: React.FC<Props> = ({
           <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
             A
           </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Ailve
-            </h1>
-            <span className="text-[10px] text-neutral-400 font-mono">
-              📱 Mobil Bütçe
-            </span>
-          </div>
+          <h1 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+            Ailve
+          </h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -132,7 +128,15 @@ export const MobileLayout: React.FC<Props> = ({
             title="Şifreli Bulut Kasası"
           >
             <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500" />
+            <span
+              className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${
+                syncConfig.status === 'error'
+                  ? 'bg-rose-500'
+                  : syncConfig.status === 'syncing'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-emerald-500'
+              }`}
+            />
           </button>
 
           {/* Notifications */}
@@ -522,20 +526,23 @@ export const MobileLayout: React.FC<Props> = ({
       </main>
 
       {/* Floating Bottom Quick Action Buttons */}
-      <div className="fixed bottom-20 right-4 z-40 flex flex-col items-center gap-2.5">
-        {onOpenReceiptScanner && (
-          <button
-            onClick={onOpenReceiptScanner}
-            className="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-            title="Fiş / Fatura Tara (OCR)"
-          >
-            <Camera className="w-5 h-5" />
-          </button>
-        )}
+      <div className="fixed bottom-6 right-4 z-40 flex flex-col items-center gap-3">
+        <button
+          onClick={() => {
+            setEditingTx(null);
+            setVoiceStart(true);
+            setIsAddTxOpen(true);
+          }}
+          className="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+          title="Sesle İşlem Ekle"
+        >
+          <Mic className="w-5 h-5" />
+        </button>
 
         <button
           onClick={() => {
             setEditingTx(null);
+            setVoiceStart(false);
             setIsAddTxOpen(true);
           }}
           className="w-13 h-13 rounded-full bg-slate-900 dark:bg-emerald-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
@@ -545,74 +552,12 @@ export const MobileLayout: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* Mobile Ergonomic Bottom Tab Bar (thumb-zone compliant, <= 15% sticky height) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 h-16 px-2 grid grid-cols-5 items-center">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
-            activeTab === 'overview'
-              ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-              : 'text-neutral-500 dark:text-neutral-400'
-          }`}
-        >
-          <LayoutGrid className="w-5 h-5" />
-          <span className="text-[10px] mt-1">Özet</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('transactions')}
-          className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
-            activeTab === 'transactions'
-              ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-              : 'text-neutral-500 dark:text-neutral-400'
-          }`}
-        >
-          <Receipt className="w-5 h-5" />
-          <span className="text-[10px] mt-1">İşlemler</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('installments')}
-          className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
-            activeTab === 'installments'
-              ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-              : 'text-neutral-500 dark:text-neutral-400'
-          }`}
-        >
-          <CreditCard className="w-5 h-5" />
-          <span className="text-[10px] mt-1">Taksitler</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('simulator')}
-          className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
-            activeTab === 'simulator'
-              ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-              : 'text-neutral-500 dark:text-neutral-400'
-          }`}
-        >
-          <Sparkles className="w-5 h-5" />
-          <span className="text-[10px] mt-1">Simülatör</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('limits')}
-          className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
-            activeTab === 'limits'
-              ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-              : 'text-neutral-500 dark:text-neutral-400'
-          }`}
-        >
-          <Sliders className="w-5 h-5" />
-          <span className="text-[10px] mt-1">Limitler</span>
-        </button>
-      </nav>
-
       {/* Modals */}
       <AddTransactionModal
         isOpen={isAddTxOpen}
         onClose={() => setIsAddTxOpen(false)}
         editTransaction={editingTx}
+        startWithVoice={voiceStart}
       />
       <SetLimitModal
         isOpen={isSetLimitOpen}
