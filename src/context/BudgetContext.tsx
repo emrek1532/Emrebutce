@@ -33,6 +33,8 @@ import {
   VaultLiveLink
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
+import { readXlsx } from '../utils/xlsxReader';
+import { buildImportFromSheets } from '../utils/excelImport';
 
 interface SyncConfig {
   vaultId: string;
@@ -125,6 +127,7 @@ interface BudgetContextValue {
   exportEncryptedVault: () => Promise<void>;
   exportCsv: () => void;
   importVaultBackup: (file: File) => Promise<void>;
+  importExcel: (file: File) => Promise<string>;
 
   // Calculated Metrics
   monthlyIncome: number;
@@ -919,6 +922,44 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   // Import backup
+  // Doldurulmuş Excel şablonunu yükler. Aynı adlı kayıtlar güncellenir, diğerleri eklenir.
+  // Kart borcu Excel'deki "Güncel Toplam Borç" ile gelir; kartlı tek seferlik harcamalar borca ayrıca eklenmez.
+  const importExcel = async (file: File): Promise<string> => {
+    const sheets = await readXlsx(file);
+    const result = buildImportFromSheets(sheets, {
+      members: familyMembers.map((m) => m.name),
+      existingCards: creditCards
+    });
+    const upsert = <T extends { id: string }>(prev: T[], incoming: T[]) =>
+      incoming.length ? [...prev.filter((p) => !incoming.some((n) => n.id === p.id)), ...incoming] : prev;
+    setCreditCards((prev) => upsert(prev, result.creditCards));
+    setInstallments((prev) => upsert(prev, result.installments));
+    setRecurring((prev) => upsert(prev, result.recurring));
+    setTransactions((prev) => upsert(prev, result.transactions).sort((a, b) => b.date.localeCompare(a.date)));
+    const summary = [
+      result.recurring.filter((r) => r.type === 'income').length && `${result.recurring.filter((r) => r.type === 'income').length} gelir`,
+      result.recurring.filter((r) => r.type !== 'income').length && `${result.recurring.filter((r) => r.type !== 'income').length} sabit gider`,
+      result.creditCards.length && `${result.creditCards.length} kart`,
+      result.installments.length && `${result.installments.length} taksitli borç`,
+      result.transactions.length && `${result.transactions.length} işlem`
+    ]
+      .filter(Boolean)
+      .join(', ');
+    const message = `${summary || 'Hiç kayıt bulunamadı'} yüklendi.${result.warnings.length ? `\n\nUyarılar:\n- ${result.warnings.join('\n- ')}` : ''}`;
+    setNotifications((prev) => [
+      {
+        id: `excel-ok-${Date.now()}`,
+        type: 'sync_success',
+        title: "Excel'den Yüklendi",
+        message: `${summary || 'Hiç kayıt bulunamadı'} yüklendi.`,
+        timestamp: new Date().toISOString(),
+        read: false
+      },
+      ...prev
+    ]);
+    return message;
+  };
+
   const importVaultBackup = async (file: File) => {
     try {
       const text = await file.text();
@@ -1365,6 +1406,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     exportEncryptedVault,
     exportCsv,
     importVaultBackup,
+    importExcel,
     monthlyIncome,
     monthlyExpense,
     monthlySavings,
