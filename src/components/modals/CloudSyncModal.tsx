@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { parseShareLink } from '../../utils/shareLink';
+import { ExcelImportBar } from '../common/ExcelImportBar';
 import {
   X,
   ShieldCheck,
@@ -39,6 +40,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [linkError, setLinkError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   if (!isOpen) return null;
 
@@ -224,6 +226,10 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
             >
               {rotating ? 'Yenileniyor…' : 'Linki Yenile (eski link çalışmaz olur)'}
             </button>
+          </div>
+
+          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <ExcelImportBar />
           </div>
 
           {/* Backup & Export Options */}

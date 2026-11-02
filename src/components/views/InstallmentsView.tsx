@@ -3,6 +3,7 @@ import { useBudget } from '../../context/BudgetContext';
 import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/budget';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
+import { ExcelImportBar } from '../common/ExcelImportBar';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -114,6 +115,8 @@ export const InstallmentsView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ExcelImportBar />
 
       {/* Düzenli gelir & giderler */}
       <section className="space-y-3">
