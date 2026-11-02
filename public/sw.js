@@ -1,5 +1,5 @@
-// Ailve Family Budget PWA Service Worker
-const CACHE_NAME = 'ailve-budget-v1';
+// Cebim PWA Service Worker
+const CACHE_NAME = 'cebim-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

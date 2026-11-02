@@ -94,7 +94,7 @@ export const ReceiptScannerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -119,9 +119,9 @@ export const ReceiptScannerModal: React.FC<Props> = ({ isOpen, onClose }) => {
           {!previewImage ? (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-2xl p-8 text-center hover:border-emerald-500 dark:hover:border-emerald-500 cursor-pointer transition-colors flex flex-col items-center justify-center space-y-3 bg-neutral-50 dark:bg-neutral-800/40"
+              className="border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-2xl p-8 text-center hover:border-sky-500 dark:hover:border-sky-500 cursor-pointer transition-colors flex flex-col items-center justify-center space-y-3 bg-neutral-50 dark:bg-neutral-800/40"
             >
-              <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center">
                 <Camera className="w-7 h-7" />
               </div>
               <div>
@@ -151,8 +151,8 @@ export const ReceiptScannerModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   className="max-h-56 object-contain"
                 />
                 {isScanning && (
-                  <div className="absolute inset-0 bg-emerald-500/20 backdrop-blur-xs flex flex-col items-center justify-center text-white">
-                    <Sparkles className="w-8 h-8 animate-spin mb-2 text-emerald-400" />
+                  <div className="absolute inset-0 bg-sky-500/20 backdrop-blur-xs flex flex-col items-center justify-center text-white">
+                    <Sparkles className="w-8 h-8 animate-spin mb-2 text-sky-400" />
                     <span className="text-xs font-bold tracking-wider uppercase">
                       Fiş Taranıyor & Kalemler Okunuyor...
                     </span>
@@ -163,7 +163,7 @@ export const ReceiptScannerModal: React.FC<Props> = ({ isOpen, onClose }) => {
               {/* Scanned Result Fields */}
               {scannedResult && (
                 <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 space-y-3 animate-in fade-in">
-                  <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                  <div className="flex items-center justify-between text-xs font-bold text-sky-700 dark:text-sky-400">
                     <span className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Fiş Başarıyla Okundu</span>
@@ -269,7 +269,7 @@ export const ReceiptScannerModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={handleSaveScannedTransaction}
-              className="px-5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-1.5 shadow-xs"
+              className="px-5 py-2 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors flex items-center gap-1.5 shadow-xs"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Harcama Olarak Kaydet</span>

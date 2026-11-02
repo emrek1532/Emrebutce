@@ -94,9 +94,9 @@ export const DesktopLayout: React.FC<Props> = ({
             {onOpenReceiptScanner && (
               <button
                 onClick={onOpenReceiptScanner}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors shadow-xs"
               >
-                <Camera className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <Camera className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                 <span>Fiş / Fatura Tara (OCR)</span>
               </button>
             )}
@@ -114,7 +114,7 @@ export const DesktopLayout: React.FC<Props> = ({
                 setEditingTx(null);
                 setIsAddTxOpen(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors shadow-xs"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-sky-600 dark:hover:bg-sky-700 transition-colors shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Yeni İşlem Ekle</span>
@@ -134,7 +134,7 @@ export const DesktopLayout: React.FC<Props> = ({
             </div>
             <div className="flex items-baseline gap-2">
               <span className={`text-2xl font-bold font-mono tabular-nums ${
-                monthlyBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                monthlyBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'
               }`}>
                 {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
               </span>
@@ -150,10 +150,10 @@ export const DesktopLayout: React.FC<Props> = ({
               <span className="text-[11px] font-semibold uppercase tracking-wider">
                 Toplam Gelir
               </span>
-              <ArrowUpRight className="w-4 h-4 text-emerald-600" />
+              <ArrowUpRight className="w-4 h-4 text-sky-600" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono tabular-nums text-emerald-600 dark:text-emerald-400">
+              <span className="text-2xl font-bold font-mono tabular-nums text-sky-600 dark:text-sky-400">
                 +{formatCurrency(monthlyIncome, currency)}
               </span>
             </div>
@@ -186,7 +186,7 @@ export const DesktopLayout: React.FC<Props> = ({
               <span className="text-[11px] font-semibold uppercase tracking-wider">
                 Aylık Tasarruf Oranı
               </span>
-              <PiggyBank className="w-4 h-4 text-emerald-600" />
+              <PiggyBank className="w-4 h-4 text-sky-600" />
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
@@ -235,7 +235,7 @@ export const DesktopLayout: React.FC<Props> = ({
                   </h3>
                   <button
                     onClick={() => setActiveTab('analytics')}
-                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                    className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
                   >
                     Detaylı Rapor
                   </button>
@@ -265,7 +265,7 @@ export const DesktopLayout: React.FC<Props> = ({
                 </h3>
                 <button
                   onClick={() => setActiveTab('transactions')}
-                  className="text-xs text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                  className="text-xs text-sky-600 dark:text-sky-400 font-medium hover:underline"
                 >
                   Tüm İşlemleri Gör ({filteredTransactions.length})
                 </button>

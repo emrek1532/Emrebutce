@@ -108,7 +108,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -132,7 +132,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           {/* Security Banner */}
           <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-600 dark:text-neutral-300 flex items-start gap-3">
-            <Key className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <Key className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold text-neutral-900 dark:text-neutral-100">
                 Verileriniz Cihazınızda Şifrelenir
@@ -149,7 +149,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${
                   syncConfig.status === 'synced'
-                    ? 'bg-emerald-500'
+                    ? 'bg-sky-500'
                     : syncConfig.status === 'syncing'
                     ? 'bg-amber-500 animate-spin'
                     : 'bg-rose-500'
@@ -172,7 +172,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 type="button"
                 onClick={handleManualSyncNow}
                 disabled={isSyncing}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                 <span>{isSyncing ? 'Eşitleniyor' : 'Şimdi Eşitle'}</span>
@@ -181,8 +181,8 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
 
           {syncFeedback && (
-            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-sky-600 shrink-0" />
               <span>{syncFeedback}</span>
             </div>
           )}
@@ -216,7 +216,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   onClick={() => copyToClipboard(syncConfig.vaultId, 'vault')}
                   className="px-3 py-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 text-neutral-700 dark:text-neutral-300 transition-colors"
                 >
-                  {copiedVault ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedVault ? <Check className="w-3.5 h-3.5 text-sky-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedVault ? 'Kopyalandı' : 'Kopyala'}</span>
                 </button>
               </div>
@@ -247,7 +247,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   onClick={() => copyToClipboard(syncConfig.passphrase, 'key')}
                   className="px-3 py-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 text-neutral-700 dark:text-neutral-300 transition-colors"
                 >
-                  {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedKey ? <Check className="w-3.5 h-3.5 text-sky-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedKey ? 'Kopyalandı' : 'Kopyala'}</span>
                 </button>
               </div>
@@ -264,7 +264,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 onChange={(e) =>
                   updateSyncCredentials(syncConfig.vaultId, syncConfig.passphrase, e.target.checked)
                 }
-                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
               />
             </div>
           </div>
@@ -276,7 +276,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <span>Telefon veya Tableti Bağla</span>
             </h4>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-              Telefon veya tabletinizdeki Ailve uygulamasına bu Kasa Kimliği ve Şifreleme Anahtarını girerek tüm aile bütçenizi anında senkronize edebilirsiniz.
+              Telefon veya tabletinizdeki Cebim uygulamasına bu Kasa Kimliği ve Şifreleme Anahtarını girerek tüm aile bütçenizi anında senkronize edebilirsiniz.
             </p>
 
             <form onSubmit={handleLinkDevice} className="p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-3">
@@ -325,7 +325,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 onClick={exportEncryptedVault}
                 className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 transition-colors"
               >
-                <Download className="w-3.5 h-3.5 text-emerald-600" />
+                <Download className="w-3.5 h-3.5 text-sky-600" />
                 <span>Şifreli Yedek (.enc)</span>
               </button>
 

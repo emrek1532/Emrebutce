@@ -8,7 +8,7 @@ interface Props {
   onClose: () => void;
 }
 
-const PRESET_COLORS = ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#06B6D4'];
+const PRESET_COLORS = ['#0EA5E9', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#06B6D4'];
 
 export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { addSavingsGoal, currency: activeCurrency } = useBudget();
@@ -62,7 +62,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <Target className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
               Yeni Tasarruf Hedefi Belirle
             </h3>
@@ -87,7 +87,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
               placeholder="Örn: Ev Peşinatı, Yaz Tatili, Acil Durum Fonu"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
 
@@ -103,7 +103,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 placeholder="50000"
                 value={targetAmount}
                 onChange={(e) => setTargetAmount(e.target.value)}
-                className="w-full px-3 py-2 text-base font-mono font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-base font-mono font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
             <div>
@@ -113,7 +113,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value as Currency)}
-                className="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               >
                 <option value="TRY">₺ TRY</option>
                 <option value="USD">$ USD</option>
@@ -134,7 +134,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 placeholder="0"
                 value={currentAmount}
                 onChange={(e) => setCurrentAmount(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
             <div>
@@ -146,7 +146,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 required
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
               placeholder="Örn: Tatil, Gayrimenkul, Güvence, Araç"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
 
@@ -193,7 +193,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
               placeholder="Her ay maaşın %15'i bu hesaba aktarılacak..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
             />
           </div>
 
@@ -207,7 +207,7 @@ export const AddGoalModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg transition-colors"
             >
               Hedefi Oluştur
             </button>

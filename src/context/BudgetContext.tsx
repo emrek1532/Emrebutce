@@ -137,7 +137,7 @@ const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
 // Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
 const LS_SYNC_DIRTY = 'ailve_sync_dirty_v5';
-const LS_THEME = 'ailve_theme_v5';
+const LS_THEME = 'cebim_theme_v6';
 const LS_NOTIFICATIONS = 'ailve_notifications_v5';
 const LS_DEVICE = 'ailve_device_mode_v5';
 
@@ -202,10 +202,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem(LS_THEME);
-    if (saved !== null) {
-      return saved === 'dark';
-    }
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // Varsayılan açık tema; kullanıcı isterse koyu temaya geçebilir
+    return saved === 'dark';
   });
 
   // Görünüm her zaman ekran genişliğine göre otomatik seçilir

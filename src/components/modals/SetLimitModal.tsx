@@ -10,7 +10,7 @@ interface Props {
   editLimit?: CategoryLimit | null;
 }
 
-const PRESET_COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#EF4444', '#06B6D4'];
+const PRESET_COLORS = ['#0EA5E9', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#EF4444', '#06B6D4'];
 
 export const SetLimitModal: React.FC<Props> = ({
   isOpen,

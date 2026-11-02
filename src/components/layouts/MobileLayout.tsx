@@ -33,7 +33,8 @@ import {
   Sparkles,
   Mic,
   X,
-  Download
+  Download,
+  Wallet
 } from 'lucide-react';
 
 interface Props {
@@ -91,11 +92,11 @@ export const MobileLayout: React.FC<Props> = ({
       {/* Mobile Sticky Top Header */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('overview')}>
-          <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
-            A
+          <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-sm">
+            <Wallet className="w-4 h-4" />
           </div>
           <h1 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Ailve
+            Cebim
           </h1>
         </div>
 
@@ -115,7 +116,7 @@ export const MobileLayout: React.FC<Props> = ({
           {/* Share / Install on Phone */}
           <button
             onClick={onOpenShare}
-            className="p-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50"
+            className="p-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50"
             title="Telefona Yükle & QR Paylaş"
           >
             <Smartphone className="w-4 h-4" />
@@ -127,14 +128,14 @@ export const MobileLayout: React.FC<Props> = ({
             className="p-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 relative"
             title="Şifreli Bulut Kasası"
           >
-            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <ShieldCheck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             <span
               className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${
                 syncConfig.status === 'error'
                   ? 'bg-rose-500'
                   : syncConfig.status === 'syncing'
                   ? 'bg-amber-400 animate-pulse'
-                  : 'bg-emerald-500'
+                  : 'bg-sky-500'
               }`}
             />
           </button>
@@ -169,7 +170,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('overview')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'overview'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -179,7 +180,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('transactions')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'transactions'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -189,8 +190,8 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('installments')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
             activeTab === 'installments'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
           }`}
         >
           <CreditCard className="w-3 h-3" />
@@ -211,7 +212,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('analytics')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'analytics'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -221,7 +222,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('limits')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'limits'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -231,7 +232,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('goals')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'goals'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-xs'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -243,23 +244,23 @@ export const MobileLayout: React.FC<Props> = ({
       <main className="flex-1 p-4 space-y-4 max-w-lg mx-auto w-full">
         {/* Mobile PWA Install Guidance Banner */}
         {showInstallBanner && (
-          <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/40 border-2 border-emerald-400 dark:border-emerald-600 text-xs text-emerald-950 dark:text-emerald-100 flex items-start justify-between gap-2.5 shadow-sm">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-950/50 dark:to-cyan-950/40 border-2 border-sky-400 dark:border-sky-600 text-xs text-sky-950 dark:text-sky-100 flex items-start justify-between gap-2.5 shadow-sm">
             <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0 mt-0.5">
                 <Smartphone className="w-4 h-4" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-emerald-950 dark:text-emerald-100">
+                <div className="flex items-center gap-1.5 font-bold text-sky-950 dark:text-sky-100">
                   <span>📱 Telefon Ana Ekranına Yükleme İpucu</span>
                 </div>
-                <p className="text-[11px] text-emerald-800 dark:text-emerald-200 leading-tight">
+                <p className="text-[11px] text-sky-800 dark:text-sky-200 leading-tight">
                   Chrome'da <strong>(⋮) menüsüne</strong> basın. Açılan kutuda <strong>"Bu uygulama yüklenemez"</strong> uyarısının hemen altındaki <strong>"Kısayol oluştur"</strong> butonuna dokunun.
                 </p>
                 <div className="pt-0.5 flex items-center gap-3">
                   <button
                     type="button"
                     onClick={onOpenShare}
-                    className="inline-flex items-center gap-1 font-bold text-[11px] text-emerald-700 dark:text-emerald-300 underline"
+                    className="inline-flex items-center gap-1 font-bold text-[11px] text-sky-700 dark:text-sky-300 underline"
                   >
                     <span>Detaylı Resimli Çözüm</span>
                   </button>
@@ -309,11 +310,11 @@ export const MobileLayout: React.FC<Props> = ({
               </span>
               <div className="flex items-baseline justify-between mb-3">
                 <span className={`text-2xl font-bold font-mono tabular-nums ${
-                  monthlyBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                  monthlyBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'
                 }`}>
                   {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
                 </span>
-                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400">
                   %{savingsRate} Tasarruf
                 </span>
               </div>
@@ -321,12 +322,12 @@ export const MobileLayout: React.FC<Props> = ({
               {/* Income / Expense dual row */}
               <div className="grid grid-cols-2 gap-2 pt-3 border-t border-neutral-100 dark:border-neutral-800">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 flex items-center justify-center shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-950/80 text-sky-600 flex items-center justify-center shrink-0">
                     <ArrowUpRight className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-[10px] text-neutral-400 block">Gelir</span>
-                    <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                    <span className="text-xs font-bold font-mono text-sky-600 dark:text-sky-400">
                       +{formatCurrency(monthlyIncome, currency)}
                     </span>
                   </div>
@@ -354,7 +355,7 @@ export const MobileLayout: React.FC<Props> = ({
                 </h3>
                 <button
                   onClick={() => setActiveTab('analytics')}
-                  className="text-xs text-emerald-600 dark:text-emerald-400 font-medium"
+                  className="text-xs text-sky-600 dark:text-sky-400 font-medium"
                 >
                   Detaylar
                 </button>
@@ -370,7 +371,7 @@ export const MobileLayout: React.FC<Props> = ({
                 </h3>
                 <button
                   onClick={() => setActiveTab('transactions')}
-                  className="text-xs text-emerald-600 dark:text-emerald-400 font-medium"
+                  className="text-xs text-sky-600 dark:text-sky-400 font-medium"
                 >
                   Tümünü Gör ({filteredTransactions.length})
                 </button>
@@ -394,7 +395,7 @@ export const MobileLayout: React.FC<Props> = ({
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                             isInc
-                              ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400'
+                              ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400'
                               : 'bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400'
                           }`}
                         >
@@ -414,7 +415,7 @@ export const MobileLayout: React.FC<Props> = ({
                         <span
                           className={`text-xs font-bold ${
                             isInc
-                              ? 'text-emerald-600 dark:text-emerald-400'
+                              ? 'text-sky-600 dark:text-sky-400'
                               : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
@@ -475,7 +476,7 @@ export const MobileLayout: React.FC<Props> = ({
               </h3>
               <button
                 onClick={() => setIsAddGoalOpen(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 text-white"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Hedef Ekle</span>
@@ -533,7 +534,7 @@ export const MobileLayout: React.FC<Props> = ({
             setVoiceStart(true);
             setIsAddTxOpen(true);
           }}
-          className="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+          className="w-12 h-12 rounded-full bg-sky-600 hover:bg-sky-700 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
           title="Sesle İşlem Ekle"
         >
           <Mic className="w-5 h-5" />
@@ -545,7 +546,7 @@ export const MobileLayout: React.FC<Props> = ({
             setVoiceStart(false);
             setIsAddTxOpen(true);
           }}
-          className="w-13 h-13 rounded-full bg-slate-900 dark:bg-emerald-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+          className="w-13 h-13 rounded-full bg-slate-900 dark:bg-sky-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
           title="Yeni İşlem Ekle"
         >
           <Plus className="w-6 h-6" />

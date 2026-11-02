@@ -1,14 +1,14 @@
 {
   "id": "/",
-  "name": "Ailve - Güvenli Aile Bütçesi",
-  "short_name": "Ailve Bütçe",
+  "name": "Cebim - Aile Bütçesi",
+  "short_name": "Cebim",
   "description": "Uçtan uca şifreli bulut senkronizasyonu ve limit uyarıları sunan akıllı aile bütçe yönetim platformu.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#10b981",
-  "background_color": "#0a0a0a",
+  "theme_color": "#0ea5e9",
+  "background_color": "#f0f9ff",
   "icons": [
     {
       "src": "/pwa-192x192.png",

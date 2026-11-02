@@ -7,7 +7,7 @@ import {
 } from '../types/budget';
 
 export const DEFAULT_FAMILY_MEMBERS: FamilyMember[] = [
-  { id: 'm1', name: 'Şakir (Ben)', role: 'Maaşlı / Hane Reisi', color: '#10B981' },
+  { id: 'm1', name: 'Şakir (Ben)', role: 'Maaşlı / Hane Reisi', color: '#0EA5E9' },
   { id: 'm2', name: 'Eşim', role: 'Maaşlı / Ebeveyn', color: '#EC4899' },
   { id: 'm3', name: 'Ortak', role: 'Tüm Hane', color: '#3B82F6' }
 ];
@@ -431,7 +431,7 @@ export const DEFAULT_CATEGORY_LIMITS: CategoryLimit[] = [
     category: 'Konut & Birikim',
     monthlyLimit: 25000,
     currency: 'TRY',
-    color: '#10B981',
+    color: '#0EA5E9',
     iconName: 'Building',
     alertThresholdPercent: 95
   },
@@ -458,7 +458,7 @@ export const DEFAULT_CATEGORY_LIMITS: CategoryLimit[] = [
     category: 'Market & Gıda',
     monthlyLimit: 12000,
     currency: 'TRY',
-    color: '#10B981',
+    color: '#0EA5E9',
     iconName: 'ShoppingCart',
     alertThresholdPercent: 80
   },
@@ -482,7 +482,7 @@ export const DEFAULT_SAVINGS_GOALS: SavingsGoal[] = [
     currency: 'TRY',
     targetDate: '2028-08-12',
     category: 'Konut/Araç',
-    color: '#10B981',
+    color: '#0EA5E9',
     notes: 'Toplam Kalan: 555.599,40 TL. Teslimatla birlikte hane varlığına dönüşecek.',
     createdAt: '2026-08-12'
   },

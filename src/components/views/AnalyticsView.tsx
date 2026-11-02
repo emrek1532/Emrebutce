@@ -61,7 +61,7 @@ export const AnalyticsView: React.FC = () => {
             Aylık Tasarruf Oranı
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono tabular-nums text-emerald-600 dark:text-emerald-400">
+            <span className="text-2xl font-bold font-mono tabular-nums text-sky-600 dark:text-sky-400">
               %{savingsRate}
             </span>
             <span className="text-xs text-neutral-500">hedef %25</span>
@@ -108,7 +108,7 @@ export const AnalyticsView: React.FC = () => {
           </span>
           <div className="flex items-baseline gap-2">
             <span className={`text-xl sm:text-2xl font-bold font-mono tabular-nums ${
-              monthlyBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+              monthlyBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'
             }`}>
               {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
             </span>
@@ -125,7 +125,7 @@ export const AnalyticsView: React.FC = () => {
         <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-emerald-600" />
+              <PieChart className="w-4 h-4 text-sky-600" />
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                 Kategori Bazlı Harcama Dağılımı
               </h3>

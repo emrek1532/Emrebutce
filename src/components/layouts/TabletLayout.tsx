@@ -110,7 +110,7 @@ export const TabletLayout: React.FC<Props> = ({
                 : 'text-neutral-600 dark:text-neutral-400'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5 text-emerald-500" />
+            <CreditCard className="w-3.5 h-3.5 text-sky-500" />
             <span>Taksitler & Borçlar</span>
           </button>
           <button
@@ -163,9 +163,9 @@ export const TabletLayout: React.FC<Props> = ({
           {onOpenReceiptScanner && (
             <button
               onClick={onOpenReceiptScanner}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
             >
-              <Camera className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <Camera className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
               <span>Fiş Tara</span>
             </button>
           )}
@@ -175,7 +175,7 @@ export const TabletLayout: React.FC<Props> = ({
               setEditingTx(null);
               setIsAddTxOpen(true);
             }}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-sky-600 dark:hover:bg-sky-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>İşlem Ekle</span>
@@ -194,11 +194,11 @@ export const TabletLayout: React.FC<Props> = ({
             </span>
             <div className="flex items-baseline justify-between mb-3">
               <span className={`text-2xl font-bold font-mono ${
-                monthlyBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                monthlyBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'
               }`}>
                 {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
               </span>
-              <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+              <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400">
                 %{savingsRate} Tasarruf
               </span>
             </div>
@@ -206,7 +206,7 @@ export const TabletLayout: React.FC<Props> = ({
             <div className="grid grid-cols-2 gap-2 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs">
               <div>
                 <span className="text-neutral-400 text-[10px] block">Aylık Gelir</span>
-                <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                <span className="font-bold font-mono text-sky-600 dark:text-sky-400">
                   +{formatCurrency(monthlyIncome, currency)}
                 </span>
               </div>
@@ -273,7 +273,7 @@ export const TabletLayout: React.FC<Props> = ({
                   </h3>
                   <button
                     onClick={() => setActiveTab('transactions')}
-                    className="text-xs text-emerald-600 dark:text-emerald-400 font-medium"
+                    className="text-xs text-sky-600 dark:text-sky-400 font-medium"
                   >
                     Tümünü Gör
                   </button>

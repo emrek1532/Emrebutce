@@ -10,7 +10,8 @@ import {
   Smartphone,
   Sparkles,
   Cloud,
-  CheckCircle2
+  CheckCircle2,
+  Wallet
 } from 'lucide-react';
 
 interface Props {
@@ -46,12 +47,12 @@ export const HeaderBar: React.FC<Props> = ({
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Zone 1: Wordmark */}
         <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setActiveTab('overview')}>
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
-            A
+          <div className="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
+            <Wallet className="w-4.5 h-4.5" />
           </div>
           <div>
             <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
-              Ailve
+              Cebim
             </span>
             <span className="hidden sm:inline-block text-[11px] text-neutral-400 font-medium ml-2">
               Aile Finans & Bütçe
@@ -65,7 +66,7 @@ export const HeaderBar: React.FC<Props> = ({
             onClick={() => setActiveTab('overview')}
             className={`whitespace-nowrap transition-colors py-1 ${
               activeTab === 'overview'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
@@ -75,7 +76,7 @@ export const HeaderBar: React.FC<Props> = ({
             onClick={() => setActiveTab('transactions')}
             className={`whitespace-nowrap transition-colors py-1 ${
               activeTab === 'transactions'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
@@ -85,18 +86,18 @@ export const HeaderBar: React.FC<Props> = ({
             onClick={() => setActiveTab('installments')}
             className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
               activeTab === 'installments'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
             <span>Taksitler & Borçlar</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">Yeni</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">Yeni</span>
           </button>
           <button
             onClick={() => setActiveTab('simulator')}
             className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
               activeTab === 'simulator'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
@@ -107,7 +108,7 @@ export const HeaderBar: React.FC<Props> = ({
             onClick={() => setActiveTab('analytics')}
             className={`whitespace-nowrap transition-colors py-1 ${
               activeTab === 'analytics'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
@@ -117,7 +118,7 @@ export const HeaderBar: React.FC<Props> = ({
             onClick={() => setActiveTab('limits')}
             className={`whitespace-nowrap transition-colors py-1 ${
               activeTab === 'limits'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
@@ -127,7 +128,7 @@ export const HeaderBar: React.FC<Props> = ({
             onClick={() => setActiveTab('goals')}
             className={`whitespace-nowrap transition-colors py-1 ${
               activeTab === 'goals'
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold border-b-2 border-emerald-500'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
@@ -142,7 +143,7 @@ export const HeaderBar: React.FC<Props> = ({
             <button
               onClick={onOpenReceiptScanner}
               title="Fiş / Fatura Tara & Otomatik Ekle"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Fiş Tara</span>
@@ -167,9 +168,9 @@ export const HeaderBar: React.FC<Props> = ({
           <button
             onClick={onOpenShare}
             title="Telefona Yükle & QR ile Paylaş"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
           >
-            <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <Smartphone className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
             <span className="hidden sm:inline">Telefona Yükle</span>
           </button>
 
@@ -185,7 +186,7 @@ export const HeaderBar: React.FC<Props> = ({
                   ? 'text-rose-500'
                   : syncConfig.status === 'syncing'
                   ? 'text-amber-500 animate-pulse'
-                  : 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-sky-600 dark:text-sky-400'
               }`}
             />
             <span className="hidden md:inline font-mono text-[11px]">

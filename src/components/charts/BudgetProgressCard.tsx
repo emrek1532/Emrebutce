@@ -23,8 +23,8 @@ export const BudgetProgressCard: React.FC<Props> = ({ limit, onEdit }) => {
   const remaining = limitConverted - spent;
 
   // Determine progress color
-  let barColor = 'bg-emerald-500';
-  let badgeColor = 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800';
+  let barColor = 'bg-sky-500';
+  let badgeColor = 'text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800';
   let statusText = 'Güvenli Bölge';
   let StatusIcon = CheckCircle2;
 
