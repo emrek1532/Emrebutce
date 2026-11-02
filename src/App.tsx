@@ -6,6 +6,7 @@ import { DesktopLayout } from './components/layouts/DesktopLayout';
 import { CloudSyncModal } from './components/modals/CloudSyncModal';
 import { NotificationsDrawer } from './components/modals/NotificationsDrawer';
 import { SharePhoneModal } from './components/modals/SharePhoneModal';
+import { VaultSetupModal } from './components/modals/VaultSetupModal';
 
 const AppContent: React.FC = () => {
   const { effectiveDevice } = useBudget();
@@ -51,6 +52,8 @@ const AppContent: React.FC = () => {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />
+
+      <VaultSetupModal />
 
     </div>
   );

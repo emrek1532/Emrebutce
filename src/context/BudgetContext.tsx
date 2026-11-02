@@ -119,6 +119,7 @@ interface BudgetContextValue {
   syncToCloud: () => Promise<boolean>;
   rotatePassphrase: () => Promise<string>;
   syncFromCloud: (customVaultId?: string, customPassphrase?: string) => Promise<boolean>;
+  createNewVault: () => void;
   updateSyncCredentials: (vaultId: string, passphrase: string, autoSync: boolean) => void;
   exportEncryptedVault: () => Promise<void>;
   exportCsv: () => void;
@@ -208,9 +209,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         // ignore
       }
     }
+    // Yeni cihaz kendiliğinden kasa açmaz: önce mevcut kasaya bağlanması ya da yeni kasa açması istenir
     return {
-      vaultId: generateVaultId(),
-      passphrase: generateMasterPassphrase(),
+      vaultId: '',
+      passphrase: '',
       autoSync: true,
       status: 'synced',
       lastSyncedAt: new Date().toISOString()
@@ -561,14 +563,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Synchronize to cloud backend
   const syncToCloud = useCallback(async (): Promise<boolean> => {
-    if (!syncConfig.vaultId || !syncConfig.passphrase) {
-      setSyncConfig((prev) => ({
-        ...prev,
-        status: 'error',
-        errorMessage: 'Kasa kimliği ve şifreleme anahtarı eksik.'
-      }));
-      return false;
-    }
+    // Kasa seçilmeden gönderim yok; değişiklik işaretli kalır, kasa açılınca/bağlanınca gider
+    if (!syncConfig.vaultId || !syncConfig.passphrase) return false;
 
     setSyncConfig((prev) => ({ ...prev, status: 'syncing', errorMessage: undefined }));
 
@@ -785,7 +781,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
-    if (!syncConfig.autoSync) return;
+    if (!syncConfig.autoSync || !syncConfig.vaultId) return;
     let pulling = false;
     // Gönderilmemiş yerel değişiklik varsa önce onu gönder (gönderim zaten önce bulutu kontrol eder),
     // yoksa yalnızca buluttaki yeni sürümü çek.
@@ -837,6 +833,19 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       errorMessage: undefined
     }));
     return newPassphrase;
+  };
+
+  // Bu cihaz için yeni boş kasa açar; cihazdaki veriler ilk gönderimle kasaya yazılır
+  const createNewVault = () => {
+    setDirty(true);
+    setSyncConfig((prev) => ({
+      ...prev,
+      vaultId: generateVaultId(),
+      passphrase: generateMasterPassphrase(),
+      status: 'synced',
+      errorMessage: undefined,
+      remoteUpdatedAt: undefined
+    }));
   };
 
   const updateSyncCredentials = (vaultId: string, passphrase: string, autoSync: boolean) => {
@@ -1347,6 +1356,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     rotatePassphrase,
     syncFromCloud,
     updateSyncCredentials,
+    createNewVault,
     exportEncryptedVault,
     exportCsv,
     importVaultBackup,
