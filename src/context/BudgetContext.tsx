@@ -102,6 +102,8 @@ interface BudgetContextValue {
   deleteCreditCard: (id: string) => void;
   deleteInstallment: (id: string) => void;
   markInstallmentPaid: (id: string, period?: number) => void;
+  undoInstallmentPayment: (id: string) => void;
+  isInstallmentPaidThisMonth: (id: string) => boolean;
   setCurrency: (c: Currency) => void;
   setDeviceMode: (m: DeviceMode) => void;
   toggleDarkMode: () => void;
@@ -805,7 +807,23 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const deleteTransaction = (id: string) => {
+    const tx = transactions.find((t) => t.id === id);
     setTransactions((prev) => prev.filter((t) => t.id !== id));
+    // Taksit ödemesi silinirse taksit sayacı da geri alınır
+    const instId = tx?.installmentInfo?.installmentId;
+    if (instId) {
+      setInstallments((prev) =>
+        prev.map((i) => {
+          if (i.id !== instId) return i;
+          const paid = Math.max(0, (i.paidInstallments || 0) - 1);
+          return {
+            ...i,
+            paidInstallments: paid,
+            remainingInstallments: i.totalInstallments ? i.totalInstallments - paid : i.remainingInstallments
+          };
+        })
+      );
+    }
   };
 
   // Savings Goal mutations
@@ -903,21 +921,62 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setInstallments((prev) => prev.filter((i) => i.id !== id));
   };
 
+  const currentMonthKey = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  // Bu ay için kaydedilmiş taksit ödemesi (harcama kaydı)
+  const getInstallmentPaymentThisMonth = (id: string): Transaction | undefined =>
+    transactions.find((t) => t.installmentInfo?.installmentId === id && t.date.startsWith(currentMonthKey()));
+
+  // Taksiti öder: sayacı artırır ve özette/analizde görünmesi için bir harcama kaydı ekler
   const markInstallmentPaid = (id: string, periodNumber?: number) => {
+    const inst = installments.find((i) => i.id === id);
+    if (!inst) return;
+    if (inst.schedule && periodNumber !== undefined) {
+      setInstallments((prev) =>
+        prev.map((i) =>
+          i.id === id ? { ...i, schedule: i.schedule!.map((s) => (s.period === periodNumber ? { ...s, paid: true } : s)) } : i
+        )
+      );
+      return;
+    }
+    if (getInstallmentPaymentThisMonth(id)) return;
+
+    const paid = (inst.paidInstallments || 0) + 1;
     setInstallments((prev) =>
-      prev.map((i) => {
-        if (i.id !== id) return i;
-        if (i.schedule && periodNumber !== undefined) {
-          const updatedSchedule = i.schedule.map((s) =>
-            s.period === periodNumber ? { ...s, paid: true } : s
-          );
-          return { ...i, schedule: updatedSchedule };
-        }
-        const paid = (i.paidInstallments || 0) + 1;
-        const rem = Math.max(0, (i.remainingInstallments || 1) - 1);
-        return { ...i, paidInstallments: paid, remainingInstallments: rem };
-      })
+      prev.map((i) =>
+        i.id === id
+          ? {
+              ...i,
+              paidInstallments: paid,
+              remainingInstallments: i.totalInstallments ? Math.max(0, i.totalInstallments - paid) : i.remainingInstallments
+            }
+          : i
+      )
     );
+
+    const creditor = inst.creditor.toLocaleLowerCase('tr-TR');
+    const paidByCard = creditCards.some((c) => creditor.includes(c.bank.toLocaleLowerCase('tr-TR')));
+    const today = new Date();
+    const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    addTransaction({
+      type: 'expense',
+      amount: inst.monthlyAmount,
+      currency: 'TRY',
+      category: 'Borç & Kredi',
+      member: inst.member,
+      date: localDate,
+      description: `${inst.title} taksiti${inst.totalInstallments ? ` (${paid}/${inst.totalInstallments})` : ''}`,
+      paymentMethod: paidByCard ? 'Kredi Kartı' : 'Havale/EFT',
+      installmentInfo: { current: paid, total: inst.totalInstallments || 0, installmentId: id }
+    });
+  };
+
+  const undoInstallmentPayment = (id: string) => {
+    const tx = getInstallmentPaymentThisMonth(id);
+    if (tx) deleteTransaction(tx.id);
   };
 
   const dismissNotification = (id: string) => {
@@ -1023,6 +1082,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     deleteCreditCard,
     deleteInstallment,
     markInstallmentPaid,
+    undoInstallmentPayment,
+    isInstallmentPaidThisMonth: (id: string) => Boolean(getInstallmentPaymentThisMonth(id)),
     setCurrency,
     setDeviceMode,
     toggleDarkMode,
