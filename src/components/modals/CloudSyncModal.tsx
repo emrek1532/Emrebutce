@@ -35,8 +35,10 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
     exportEncryptedVault,
     exportCsv,
     importVaultBackup,
-    resetAllData
+    resetAllData,
+    rotatePassphrase
   } = useBudget();
+  const [rotating, setRotating] = useState(false);
 
   const [copiedVault, setCopiedVault] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
@@ -251,6 +253,36 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <span>{copiedKey ? 'Kopyalandı' : 'Kopyala'}</span>
                 </button>
               </div>
+              {syncConfig.passphrase.length < 20 && (
+                <p className="mt-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+                  Bu anahtar kısa ve tahmin edilebilir. Aşağıdaki "Anahtarı Yenile" ile güçlü bir anahtara geçmeniz önerilir.
+                </p>
+              )}
+              <button
+                type="button"
+                disabled={rotating}
+                onClick={async () => {
+                  if (
+                    !window.confirm(
+                      'Kasa yeni, güçlü bir anahtarla yeniden şifrelenecek. Eski anahtar artık çalışmayacak; diğer cihazları (telefon, eşinizin telefonu) yeni anahtarla tekrar bağlamanız gerekecek. Devam edilsin mi?'
+                    )
+                  )
+                    return;
+                  setRotating(true);
+                  try {
+                    await rotatePassphrase();
+                    setShowPassphrase(true);
+                    setSyncFeedback('Anahtar yenilendi. Yeni anahtarı güvenli bir yere kaydedin ve diğer cihazları "Telefona Yükle" QR koduyla yeniden bağlayın.');
+                  } catch (err: any) {
+                    alert(err.message || 'Anahtar yenilenemedi.');
+                  } finally {
+                    setRotating(false);
+                  }
+                }}
+                className="mt-2 w-full px-3 py-2 text-xs font-semibold rounded-lg border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 disabled:opacity-50"
+              >
+                {rotating ? 'Yenileniyor…' : 'Anahtarı Yenile (güçlü anahtara geç)'}
+              </button>
             </div>
 
             {/* Auto sync switch */}

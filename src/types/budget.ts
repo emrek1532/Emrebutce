@@ -17,6 +17,8 @@ export interface Transaction {
   paymentMethod: PaymentMethod;
   isRecurring?: boolean;
   goalId?: string;
+  // Kredi kartıyla yapılan harcamada hangi kart (borcu bu karta eklenir)
+  cardId?: string;
   installmentInfo?: {
     current: number;
     total: number;
@@ -114,6 +116,7 @@ export interface RecurringItem {
   dayOfMonth: number;
   paymentMethod: PaymentMethod;
   active: boolean;
+  cardId?: string;
   // Kullanıcının o ay için sildiği (yeniden oluşturulmayacak) aylar, YYYY-MM
   skipMonths?: string[];
 }

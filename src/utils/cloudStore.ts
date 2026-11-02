@@ -44,15 +44,25 @@ async function callRpc(fn: string, args: Record<string, unknown>): Promise<Respo
 }
 
 // Sunucunun kaydettiği zaman damgasını döndürür (cihazlar arası "hangisi daha yeni" karşılaştırması için).
-export async function saveVault(vaultId: string, record: EncryptedVaultRecord): Promise<string | undefined> {
+export class VaultWriteDeniedError extends Error {}
+
+// writeToken: anahtardan türetilen yazma belirteci. newWriteToken yalnızca anahtar değiştirilirken verilir.
+export async function saveVault(
+  vaultId: string,
+  record: EncryptedVaultRecord,
+  writeToken: string,
+  newWriteToken?: string
+): Promise<string | undefined> {
   const response = isSupabaseConfigured
-    ? await callRpc('upsert_vault', {
+    ? await callRpc('upsert_vault_v2', {
         p_vault_id: vaultId,
         p_ciphertext: record.ciphertext,
         p_iv: record.iv,
         p_salt: record.salt,
         p_version: record.version ?? 1,
-        p_client_info: record.clientInfo ?? null
+        p_client_info: record.clientInfo ?? null,
+        p_write_token: writeToken,
+        p_new_write_token: newWriteToken ?? null
       })
     : await fetch(`/api/sync/${encodeURIComponent(vaultId)}`, {
         method: 'POST',
@@ -61,6 +71,12 @@ export async function saveVault(vaultId: string, record: EncryptedVaultRecord): 
       });
 
   if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    if (body.includes('write_token')) {
+      throw new VaultWriteDeniedError(
+        'Bu cihazdaki şifreleme anahtarı kasayla eşleşmiyor (anahtar başka cihazda değiştirilmiş olabilir). Yeni anahtarı "Bu Kasaya Bağlan" ile girin.'
+      );
+    }
     throw new Error(`Bulut sunucu yanıtı başarısız (${response.status})`);
   }
   // Statik barındırmada (/api/sync yokken) SPA index.html'i 200 ile döner; bunu başarı sayma.

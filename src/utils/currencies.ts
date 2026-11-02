@@ -51,3 +51,67 @@ export function convertCurrency(
   const amountInTRY = amount * fromRate;
   return amountInTRY / toRate;
 }
+
+// --- Güncel kurlar ---
+// Kurlar Avrupa Merkez Bankası verisini sunan Frankfurter'dan günde bir kez alınır ve cihazda saklanır.
+// İnternet yoksa son alınan kur, o da yoksa yukarıdaki sabit değerler kullanılır.
+const RATES_KEY = 'cebim_rates_v1';
+const RATE_SOURCES = [
+  'https://api.frankfurter.dev/v1/latest?base=TRY&symbols=USD,EUR,GBP',
+  'https://api.frankfurter.app/latest?from=TRY&to=USD,EUR,GBP'
+];
+
+export interface RatesInfo {
+  date: string;
+  fetchedAt: string;
+  live: boolean;
+}
+
+let ratesInfo: RatesInfo = { date: '', fetchedAt: '', live: false };
+
+function applyRates(rates: Partial<Record<Currency, number>>) {
+  (['USD', 'EUR', 'GBP'] as Currency[]).forEach((c) => {
+    const perTRY = rates[c];
+    if (perTRY && perTRY > 0) CURRENCY_CONFIG[c].rateToTRY = Math.round((1 / perTRY) * 10000) / 10000;
+  });
+}
+
+// Kayıtlı kurları hemen uygula (uygulama açılırken)
+try {
+  const cached = typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem(RATES_KEY) || 'null') : null;
+  if (cached?.rates) {
+    applyRates(cached.rates);
+    ratesInfo = { date: cached.date, fetchedAt: cached.fetchedAt, live: true };
+  }
+} catch {
+  // bozuk önbellek: sabit kurlarla devam
+}
+
+export function getRatesInfo(): RatesInfo {
+  return ratesInfo;
+}
+
+// Kurlar bugün alınmadıysa yeniler; kurlar değiştiyse true döner
+export async function refreshRates(): Promise<boolean> {
+  const today = new Date().toISOString().split('T')[0];
+  if (ratesInfo.fetchedAt.startsWith(today)) return false;
+  for (const url of RATE_SOURCES) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (!data?.rates) continue;
+      applyRates(data.rates);
+      ratesInfo = { date: data.date, fetchedAt: new Date().toISOString(), live: true };
+      try {
+        localStorage.setItem(RATES_KEY, JSON.stringify({ rates: data.rates, date: data.date, fetchedAt: ratesInfo.fetchedAt }));
+      } catch {
+        // depolama yoksa yalnızca bu oturumda kullan
+      }
+      return true;
+    } catch {
+      // sıradaki kaynağı dene
+    }
+  }
+  return false;
+}

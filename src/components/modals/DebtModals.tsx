@@ -337,7 +337,7 @@ interface RecurringModalProps {
 }
 
 export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose, editItem }) => {
-  const { addRecurring, updateRecurring, familyMembers } = useBudget();
+  const { addRecurring, updateRecurring, familyMembers, creditCards } = useBudget();
   const [type, setType] = useState<TransactionType>('expense');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -346,6 +346,7 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Havale/EFT');
   const [active, setActive] = useState(true);
+  const [cardId, setCardId] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -357,6 +358,7 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
     setDayOfMonth(String(editItem?.dayOfMonth ?? 1));
     setPaymentMethod(editItem?.paymentMethod ?? 'Havale/EFT');
     setActive(editItem?.active ?? true);
+    setCardId(editItem?.cardId ?? '');
   }, [isOpen, editItem, familyMembers]);
 
   if (!isOpen) return null;
@@ -378,7 +380,8 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
       member,
       dayOfMonth: clampDay(dayOfMonth),
       paymentMethod,
-      active
+      active,
+      cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined
     };
     if (editItem) updateRecurring({ ...editItem, ...item });
     else addRecurring(item);
@@ -454,6 +457,19 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
             </select>
           </div>
         </div>
+        {type === 'expense' && paymentMethod === 'Kredi Kartı' && creditCards.length > 0 && (
+          <div>
+            <label className={labelClass}>Hangi kart? (her ay borcuna eklenir)</label>
+            <select className={inputClass} value={cardId} onChange={(e) => setCardId(e.target.value)}>
+              <option value="">Kart belirtme</option>
+              {creditCards.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.bank} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <label className="flex items-center gap-2 text-xs text-neutral-700 dark:text-neutral-300">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="w-4 h-4" />
           Aktif (günü gelince kendiliğinden işlem olarak eklensin)

@@ -47,6 +47,7 @@ export const InstallmentsView: React.FC = () => {
     isInstallmentPaidThisMonth,
     deleteInstallment,
     deleteCreditCard,
+    payCardDebt,
     recurring,
     deleteRecurring,
     transactions
@@ -237,6 +238,26 @@ export const InstallmentsView: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {card.currentDebt > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const raw = window.prompt(`${card.bank} ${card.name} için ödediğiniz tutar (₺):`, String(card.currentDebt));
+                        if (!raw) return;
+                        const s = raw.trim().replace(/\s/g, '');
+                        const amount = s.includes(',') ? Number(s.replace(/\./g, '').replace(',', '.')) : /^\d{1,3}(\.\d{3})+$/.test(s) ? Number(s.replace(/\./g, '')) : Number(s);
+                        if (!(amount > 0)) return alert('Geçerli bir tutar girin.');
+                        const record = window.confirm(
+                          'Bu ödeme gider olarak da kaydedilsin mi?\n\nKartla yaptığınız harcamaları uygulamaya tek tek girmediyseniz "Tamam" deyin. Girdiyseniz "İptal" deyin; aksi halde aynı harcama iki kez sayılır.'
+                        );
+                        payCardDebt(card.id, amount, record);
+                      }}
+                      className="w-full py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
+                    >
+                      Borç Öde
+                    </button>
+                  )}
 
                   <div className="flex items-center justify-between text-[11px] pt-2 border-t border-neutral-100 dark:border-neutral-800">
                     <span className="text-neutral-500">Ekstre: her ayın {card.statementDay}'i</span>

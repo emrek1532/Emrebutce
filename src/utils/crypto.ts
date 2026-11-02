@@ -30,13 +30,19 @@ export function generateVaultId(): string {
   return `AILE-${randomChars}`;
 }
 
+// Güçlü anahtar: 4 grup x 5 karakter, karışabilecek harfler (0/O, 1/l/I) yok (~100 bit)
 export function generateMasterPassphrase(): string {
-  const adjectives = ['guvenli', 'huzurlu', 'akilli', 'bereketli', 'saglam', 'modern'];
-  const nouns = ['aile', 'butce', 'tasarruf', 'yuva', 'kasa', 'gelecek'];
-  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const num = Math.floor(1000 + Math.random() * 9000);
-  return `${adj}-${noun}-${num}`;
+  const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(20));
+  const chars = Array.from(bytes, (b) => alphabet[b % alphabet.length]);
+  return [0, 5, 10, 15].map((i) => chars.slice(i, i + 5).join('')).join('-');
+}
+
+// Kasaya yazma izni için anahtardan türetilen belirteç. Sunucu yalnızca bunun özetini saklar;
+// belirteçten anahtar elde edilemez.
+export async function deriveWriteToken(vaultId: string, passphrase: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`cebim-write:${vaultId}:${passphrase}`));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 async function deriveAesKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
