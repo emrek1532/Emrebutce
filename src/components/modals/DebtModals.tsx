@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { CreditCardAccount, InstallmentDebt } from '../../types/budget';
+import { CreditCardAccount, InstallmentDebt, PaymentMethod, RecurringItem, TransactionType } from '../../types/budget';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../data/initialData';
 import { X } from 'lucide-react';
 
 const inputClass =
@@ -219,7 +220,7 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = toNumber(monthlyAmount);
-    if (!title.trim() || !(amount > 0)) {
+    if (!title.trim() || (!(amount > 0) && !editInstallment?.schedule)) {
       alert('Lütfen ad ve geçerli bir aylık tutar girin.');
       return;
     }
@@ -240,7 +241,17 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
       category: 'Borç & Kredi',
       notes: notes.trim() || undefined
     };
-    if (editInstallment) updateInstallment({ ...editInstallment, ...inst, schedule: undefined, isVariableSchedule: false });
+    if (editInstallment?.schedule) {
+      // Değişken ödeme planında tutarlar ve dönemler plandan gelir; yalnızca bilgileri güncelle
+      updateInstallment({
+        ...editInstallment,
+        title: inst.title,
+        creditor: inst.creditor,
+        member: inst.member,
+        paymentDayOfMonth: inst.paymentDayOfMonth,
+        notes: inst.notes
+      });
+    } else if (editInstallment) updateInstallment({ ...editInstallment, ...inst });
     else addInstallment(inst);
     onClose();
   };
@@ -312,6 +323,142 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
           Toplam taksit boş bırakılırsa süresiz (her ay devam eden) ödeme olarak kaydedilir.
         </p>
         <ModalFooter onClose={onClose} submitLabel={editInstallment ? 'Kaydet' : 'Taksiti Ekle'} />
+      </form>
+    </ModalShell>
+  );
+};
+
+// --- Düzenli gelir / gider ---
+
+interface RecurringModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editItem?: RecurringItem | null;
+}
+
+export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose, editItem }) => {
+  const { addRecurring, updateRecurring, familyMembers } = useBudget();
+  const [type, setType] = useState<TransactionType>('expense');
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
+  const [member, setMember] = useState('');
+  const [dayOfMonth, setDayOfMonth] = useState('1');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Havale/EFT');
+  const [active, setActive] = useState(true);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setType(editItem?.type ?? 'expense');
+    setTitle(editItem?.title ?? '');
+    setAmount(editItem ? String(editItem.amount) : '');
+    setCategory(editItem?.category ?? EXPENSE_CATEGORIES[0]);
+    setMember(editItem?.member ?? familyMembers[0]?.name ?? 'Ortak');
+    setDayOfMonth(String(editItem?.dayOfMonth ?? 1));
+    setPaymentMethod(editItem?.paymentMethod ?? 'Havale/EFT');
+    setActive(editItem?.active ?? true);
+  }, [isOpen, editItem, familyMembers]);
+
+  if (!isOpen) return null;
+
+  const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = toNumber(amount);
+    if (!title.trim() || !(value > 0)) {
+      alert('Lütfen ad ve geçerli bir tutar girin.');
+      return;
+    }
+    const item = {
+      title: title.trim(),
+      type,
+      amount: value,
+      category,
+      member,
+      dayOfMonth: clampDay(dayOfMonth),
+      paymentMethod,
+      active
+    };
+    if (editItem) updateRecurring({ ...editItem, ...item });
+    else addRecurring(item);
+    onClose();
+  };
+
+  return (
+    <ModalShell title={editItem ? 'Düzenli Kalemi Düzenle' : 'Düzenli Gelir / Gider Ekle'} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+        <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-100 dark:bg-neutral-800/80 rounded-xl">
+          {(['expense', 'income'] as TransactionType[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => {
+                setType(t);
+                setCategory(t === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
+              }}
+              className={`py-2 text-xs font-semibold rounded-lg ${
+                type === t ? (t === 'income' ? 'bg-sky-600 text-white' : 'bg-rose-500 text-white') : 'text-neutral-600 dark:text-neutral-400'
+              }`}
+            >
+              {t === 'income' ? 'Gelir (Maaş vb.)' : 'Gider (Kira vb.)'}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Ad *</label>
+            <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Örn: Maaş, Kira" required />
+          </div>
+          <div>
+            <label className={labelClass}>Tutar (₺) *</label>
+            <input className={inputClass} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" required />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Kategori</label>
+            <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value)}>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Her ayın kaçı?</label>
+            <input className={inputClass} type="number" min={1} max={31} value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Kimin</label>
+            <select className={inputClass} value={member} onChange={(e) => setMember(e.target.value)}>
+              {familyMembers.map((m) => (
+                <option key={m.id} value={m.name}>
+                  {m.name}
+                </option>
+              ))}
+              <option value="Ortak">Ortak</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Ödeme yöntemi</label>
+            <select className={inputClass} value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}>
+              {(['Havale/EFT', 'Nakit', 'Kredi Kartı', 'Banka Kartı'] as PaymentMethod[]).map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-xs text-neutral-700 dark:text-neutral-300">
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="w-4 h-4" />
+          Aktif (günü gelince kendiliğinden işlem olarak eklensin)
+        </label>
+        <ModalFooter onClose={onClose} submitLabel={editItem ? 'Kaydet' : 'Ekle'} />
       </form>
     </ModalShell>
   );

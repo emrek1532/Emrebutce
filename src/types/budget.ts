@@ -101,6 +101,21 @@ export interface CreditCardAccount {
   notes?: string;
 }
 
+// Her ay belirli günde kendiliğinden işleme dönüşen gelir/gider (maaş, kira vb.)
+export interface RecurringItem {
+  id: string;
+  title: string;
+  type: TransactionType;
+  amount: number;
+  category: string;
+  member: string;
+  dayOfMonth: number;
+  paymentMethod: PaymentMethod;
+  active: boolean;
+  // Kullanıcının o ay için sildiği (yeniden oluşturulmayacak) aylar, YYYY-MM
+  skipMonths?: string[];
+}
+
 export interface CloudVaultPayload {
   version: number;
   updatedAt: string;
@@ -110,6 +125,7 @@ export interface CloudVaultPayload {
   familyMembers: FamilyMember[];
   installments?: InstallmentDebt[];
   creditCards?: CreditCardAccount[];
+  recurring?: RecurringItem[];
   currency: Currency;
 }
 
