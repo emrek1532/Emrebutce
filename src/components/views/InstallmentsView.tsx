@@ -64,6 +64,8 @@ export const InstallmentsView: React.FC = () => {
 
   const activeInstallments = installments.filter(isActive);
   const monthlyLoad = activeInstallments.reduce((sum, i) => sum + currentAmount(i), 0);
+  // Kira, abonelik gibi her ay tekrarlayan giderler (taksitler hariç)
+  const monthlyFixed = recurring.filter((r) => r.active && r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
 
@@ -101,12 +103,24 @@ export const InstallmentsView: React.FC = () => {
             Kartlarınızı ve taksitli borçlarınızı ekleyin; ödeme günleri ve bitiş tarihleri otomatik takip edilir.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full sm:w-auto">
           <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">
               Aylık Taksit Yükü
             </span>
             <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(monthlyLoad)}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">
+              Aylık Sabit Gider
+            </span>
+            <span className="text-lg font-bold font-mono text-amber-800 dark:text-amber-300">{money(monthlyFixed)}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-neutral-900 dark:bg-neutral-100 border border-neutral-900 dark:border-neutral-100">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-300 dark:text-neutral-600 block">
+              Aylık Toplam Yük
+            </span>
+            <span className="text-lg font-bold font-mono text-white dark:text-neutral-900">{money(monthlyLoad + monthlyFixed)}</span>
           </div>
           <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">
