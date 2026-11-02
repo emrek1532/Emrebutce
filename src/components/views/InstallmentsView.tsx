@@ -6,6 +6,7 @@ import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/Deb
 import { ExcelImportBar } from '../common/ExcelImportBar';
 import { UpcomingPayments } from '../common/UpcomingPayments';
 import { budgetMonthOf } from '../../utils/budgetMonth';
+import { minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -226,7 +227,10 @@ export const InstallmentsView: React.FC = () => {
             {creditCards.map((card) => {
               const usage = card.limit > 0 ? Math.min(100, (card.currentDebt / card.limit) * 100) : 0;
               const due = nextDayOfMonth(card.dueDay);
-              const urgent = card.currentDebt > 0 && due.daysLeft <= 3;
+              const stmt = statementDebtOf(card);
+              const minimum = minimumPaymentOf(card);
+              const period = periodSpendOf(card);
+              const urgent = stmt > 0 && due.daysLeft <= 3;
               return (
                 <div key={card.id} className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
                   <div className="flex items-start justify-between gap-2">
@@ -267,11 +271,29 @@ export const InstallmentsView: React.FC = () => {
                     )}
                   </div>
 
+                  <div className="grid grid-cols-3 gap-2 text-[11px]">
+                    <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40">
+                      <span className="text-rose-700 dark:text-rose-300 block">Ekstre borcu</span>
+                      <span className="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{money(stmt)}</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40">
+                      <span className="text-amber-700 dark:text-amber-300 block">Asgari (%{Math.round(minimumRateOf(card) * 100)})</span>
+                      <span className="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{money(minimum)}</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-neutral-50 dark:bg-neutral-800/60">
+                      <span className="text-neutral-500 block">Dönem içi</span>
+                      <span className="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{money(period)}</span>
+                    </div>
+                  </div>
+
                   {card.currentDebt > 0 && (
                     <button
                       type="button"
                       onClick={() => {
-                        const raw = window.prompt(`${card.bank} ${card.name} için ödediğiniz tutar (₺):`, String(card.currentDebt));
+                        const raw = window.prompt(
+                          `${card.bank} ${card.name} için ödediğiniz tutar (₺):\nEkstre: ${money(stmt)} · Asgari: ${money(minimum)}`,
+                          String(stmt || card.currentDebt)
+                        );
                         if (!raw) return;
                         const s = raw.trim().replace(/\s/g, '');
                         const amount = s.includes(',') ? Number(s.replace(/\./g, '').replace(',', '.')) : /^\d{1,3}(\.\d{3})+$/.test(s) ? Number(s.replace(/\./g, '')) : Number(s);

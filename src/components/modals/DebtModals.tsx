@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
+import { lastStatementKey } from '../../utils/cardStatement';
 import { CARRY_DEFAULT_FROM_DAY } from '../../utils/budgetMonth';
 import { CreditCardAccount, InstallmentDebt, PaymentMethod, RecurringItem, TransactionType } from '../../types/budget';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../data/initialData';
@@ -73,6 +74,7 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
   const [member, setMember] = useState('');
   const [limit, setLimit] = useState('');
   const [currentDebt, setCurrentDebt] = useState('');
+  const [statementDebt, setStatementDebt] = useState('');
   const [statementDay, setStatementDay] = useState('1');
   const [dueDay, setDueDay] = useState('10');
   const [notes, setNotes] = useState('');
@@ -84,6 +86,7 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
     setMember(editCard?.member ?? familyMembers[0]?.name ?? 'Ortak');
     setLimit(editCard ? String(editCard.limit) : '');
     setCurrentDebt(editCard ? String(editCard.currentDebt) : '');
+    setStatementDebt(editCard ? String(editCard.statementDebt ?? editCard.currentDebt) : '');
     setStatementDay(String(editCard?.statementDay ?? 1));
     setDueDay(String(editCard?.dueDay ?? 10));
     setNotes(editCard?.notes ?? '');
@@ -99,6 +102,10 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
       member,
       limit: toNumber(limit) || 0,
       currentDebt: toNumber(currentDebt) || 0,
+      // Boş bırakılırsa ekstre borcu güncel borç kabul edilir
+      statementDebt: statementDebt.trim() ? Math.min(toNumber(statementDebt) || 0, toNumber(currentDebt) || 0) : toNumber(currentDebt) || 0,
+      statementKey: editCard?.statementKey ?? lastStatementKey({ statementDay: clampDay(statementDay) }),
+      statementTotal: undefined as number | undefined,
       statementDay: clampDay(statementDay),
       dueDay: clampDay(dueDay),
       notes: notes.trim() || undefined
@@ -107,6 +114,9 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
       alert('Lütfen bankayı yazın.');
       return;
     }
+    // Ekstre borcu elle değiştiyse asgari hesabı yeni tutardan başlar
+    card.statementTotal =
+      editCard && editCard.statementDebt === card.statementDebt ? editCard.statementTotal ?? card.statementDebt : card.statementDebt;
     if (editCard) updateCreditCard({ ...editCard, ...card });
     else addCreditCard(card);
     onClose();
@@ -131,9 +141,14 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
             <input className={inputClass} inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="0" />
           </div>
           <div>
-            <label className={labelClass}>Güncel borç (₺)</label>
+            <label className={labelClass}>Güncel toplam borç (₺)</label>
             <input className={inputClass} inputMode="decimal" value={currentDebt} onChange={(e) => setCurrentDebt(e.target.value)} placeholder="0" />
           </div>
+        </div>
+        <div>
+          <label className={labelClass}>Son ekstre borcu (₺) — son ödeme gününe kadar ödenecek</label>
+          <input className={inputClass} inputMode="decimal" value={statementDebt} onChange={(e) => setStatementDebt(e.target.value)} placeholder="Boşsa güncel borç" />
+          <p className="mt-1 text-[11px] text-neutral-500">Kesim günü gelince güncel borç kendiliğinden yeni ekstre borcu olur.</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
