@@ -19,7 +19,7 @@ export const AddTransactionModal: React.FC<Props> = ({
   editTransaction,
   startWithVoice
 }) => {
-  const { addTransaction, updateTransaction, familyMembers, savingsGoals, currency: activeCurrency } = useBudget();
+  const { addTransaction, updateTransaction, familyMembers, savingsGoals, creditCards, currency: activeCurrency } = useBudget();
 
   const [type, setType] = useState<TransactionType>(editTransaction?.type || 'expense');
   const [amount, setAmount] = useState<string>(editTransaction ? String(editTransaction.amount) : '');
@@ -39,6 +39,7 @@ export const AddTransactionModal: React.FC<Props> = ({
   );
   const [isRecurring, setIsRecurring] = useState<boolean>(editTransaction?.isRecurring || false);
   const [goalId, setGoalId] = useState<string>(editTransaction?.goalId || '');
+  const [cardId, setCardId] = useState<string>(editTransaction?.cardId || '');
 
   const categoriesFor = (t: TransactionType) =>
     t === 'income' ? INCOME_CATEGORIES : t === 'saving' ? SAVING_CATEGORIES : EXPENSE_CATEGORIES;
@@ -57,6 +58,7 @@ export const AddTransactionModal: React.FC<Props> = ({
     setPaymentMethod(editTransaction?.paymentMethod || 'Kredi Kartı');
     setIsRecurring(editTransaction?.isRecurring || false);
     setGoalId(editTransaction?.goalId || '');
+    setCardId(editTransaction ? editTransaction.cardId || '' : creditCards[0]?.id || '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, editTransaction]);
 
@@ -133,7 +135,8 @@ export const AddTransactionModal: React.FC<Props> = ({
         description: description.trim(),
         paymentMethod: type === 'expense' ? paymentMethod : 'Havale/EFT',
         isRecurring,
-        goalId: type === 'saving' && goalId ? goalId : undefined
+        goalId: type === 'saving' && goalId ? goalId : undefined,
+        cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined
       });
     } else {
       addTransaction({
@@ -146,7 +149,8 @@ export const AddTransactionModal: React.FC<Props> = ({
         description: description.trim(),
         paymentMethod: type === 'expense' ? paymentMethod : 'Havale/EFT',
         isRecurring,
-        goalId: type === 'saving' && goalId ? goalId : undefined
+        goalId: type === 'saving' && goalId ? goalId : undefined,
+        cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined
       });
     }
 
@@ -367,6 +371,26 @@ export const AddTransactionModal: React.FC<Props> = ({
             </div>
             )}
           </div>
+
+          {type === 'expense' && paymentMethod === 'Kredi Kartı' && creditCards.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                Hangi kart? (borcu bu karta eklenir)
+              </label>
+              <select
+                value={cardId}
+                onChange={(e) => setCardId(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              >
+                {creditCards.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.bank} {c.name}
+                  </option>
+                ))}
+                <option value="">Kart belirtme (borca ekleme)</option>
+              </select>
+            </div>
+          )}
 
           {/* Submit */}
           <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-3">

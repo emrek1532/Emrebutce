@@ -19,9 +19,11 @@ import {
   generateVaultId,
   generateMasterPassphrase,
   encryptData,
-  decryptData
+  decryptData,
+  deriveWriteToken
 } from '../utils/crypto';
-import { convertCurrency, formatCurrency } from '../utils/currencies';
+import { mergeVault } from '../utils/vaultMerge';
+import { convertCurrency, formatCurrency, refreshRates } from '../utils/currencies';
 import {
   saveVault,
   loadVault,
@@ -97,6 +99,7 @@ interface BudgetContextValue {
   addCreditCard: (card: Omit<CreditCardAccount, 'id'>) => void;
   updateCreditCard: (card: CreditCardAccount) => void;
   deleteCreditCard: (id: string) => void;
+  payCardDebt: (cardId: string, amount: number, recordAsExpense: boolean) => void;
   recurring: RecurringItem[];
   addRecurring: (item: Omit<RecurringItem, 'id'>) => void;
   updateRecurring: (item: RecurringItem) => void;
@@ -114,6 +117,7 @@ interface BudgetContextValue {
 
   // Cloud & Encryption
   syncToCloud: () => Promise<boolean>;
+  rotatePassphrase: () => Promise<string>;
   syncFromCloud: (customVaultId?: string, customPassphrase?: string) => Promise<boolean>;
   updateSyncCredentials: (vaultId: string, passphrase: string, autoSync: boolean) => void;
   exportEncryptedVault: () => Promise<void>;
@@ -124,6 +128,7 @@ interface BudgetContextValue {
   monthlyIncome: number;
   monthlyExpense: number;
   monthlySavings: number;
+  ratesVersion: number;
   monthlyBalance: number;
   savingsRate: number;
   categorySpendingMap: Record<string, number>;
@@ -142,6 +147,8 @@ const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
 // Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
 const LS_SYNC_DIRTY = 'ailve_sync_dirty_v5';
+// Bulutla en son anlaşılan kasa içeriği (birleştirme tabanı)
+const LS_SYNC_BASE = 'ailve_sync_base_v5';
 const LS_THEME = 'cebim_theme_v6';
 const LS_NOTIFICATIONS = 'ailve_notifications_v5';
 const LS_DEVICE = 'ailve_device_mode_v5';
@@ -309,6 +316,14 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const setCurrency = (c: Currency) => setCurrencyState(c);
   const setDeviceMode = (m: DeviceMode) => setDeviceModeState(m);
 
+  // Güncel döviz kurları: değişince tutarlar yeniden hesaplansın
+  const [ratesVersion, setRatesVersion] = useState(0);
+  useEffect(() => {
+    refreshRates().then((changed) => {
+      if (changed) setRatesVersion((v) => v + 1);
+    });
+  }, []);
+
   // Spend calculations for current month (or selected currency)
   const currentMonthPrefix = useMemo(() => {
     const now = new Date();
@@ -326,7 +341,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
     return map;
-  }, [transactions, currentMonthPrefix, currency]);
+  }, [transactions, currentMonthPrefix, currency, ratesVersion]);
 
   // Monthly totals
   const { monthlyIncome, monthlyExpense, monthlySavings } = useMemo(() => {
@@ -342,7 +357,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
     return { monthlyIncome: inc, monthlyExpense: exp, monthlySavings: sav };
-  }, [transactions, currentMonthPrefix, currency]);
+  }, [transactions, currentMonthPrefix, currency, ratesVersion]);
 
   // Elde kalan: gelir - gider - birikime ayrılan
   const monthlyBalance = monthlyIncome - monthlyExpense - monthlySavings;
@@ -429,31 +444,59 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  // Bulutla en son anlaşılan sürüm (üç yollu birleştirmenin ortak tabanı)
+  const baseRef = useRef<CloudVaultPayload | null>(
+    (() => {
+      try {
+        return JSON.parse(localStorage.getItem(LS_SYNC_BASE) || 'null');
+      } catch {
+        return null;
+      }
+    })()
+  );
+  const setBase = (payload: CloudVaultPayload) => {
+    baseRef.current = payload;
+    try {
+      localStorage.setItem(LS_SYNC_BASE, JSON.stringify(payload));
+    } catch {
+      // depolama doluysa yalnızca bellekte tut
+    }
+  };
+
+  const decryptRecord = async (data: EncryptedVaultRecord, pass: string): Promise<CloudVaultPayload> => {
+    let decrypted: CloudVaultPayload;
+    try {
+      decrypted = await decryptData({ ciphertext: data.ciphertext, iv: data.iv, salt: data.salt }, pass);
+    } catch {
+      throw new Error(
+        'Buluttaki kasa bu cihazdaki anahtarla açılamadı. Anahtar başka bir cihazda değiştirilmiş olabilir; yeni anahtarı "Bu Kasaya Bağlan" ile girin.'
+      );
+    }
+    if (!decrypted || !decrypted.transactions) throw new Error('Geçersiz kasa veri yapısı.');
+    return decrypted;
+  };
+
+  const applyPayload = (payload: CloudVaultPayload) => {
+    skipNextAutoPushRef.current = true;
+    setTransactions(payload.transactions);
+    if (payload.categoryLimits) setCategoryLimits(payload.categoryLimits);
+    if (payload.savingsGoals) setSavingsGoals(payload.savingsGoals);
+    if (payload.familyMembers) setFamilyMembers(payload.familyMembers);
+    if (payload.installments) setInstallments(payload.installments);
+    if (payload.creditCards) setCreditCards(payload.creditCards);
+    if (payload.recurring) setRecurring(payload.recurring);
+    if (payload.currency) setCurrencyState(payload.currency);
+  };
+
   const applyRemoteVault = useCallback(
     async (data: EncryptedVaultRecord, pass: string): Promise<CloudVaultPayload> => {
-      const decrypted: CloudVaultPayload = await decryptData(
-        {
-          ciphertext: data.ciphertext,
-          iv: data.iv,
-          salt: data.salt
-        },
-        pass
-      );
-      if (!decrypted || !decrypted.transactions) {
-        throw new Error('Geçersiz kasa veri yapısı.');
-      }
-
-      skipNextAutoPushRef.current = true;
-      setTransactions(decrypted.transactions);
-      if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
-      if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
-      if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
-      if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards); if (decrypted.recurring) setRecurring(decrypted.recurring);
-      if (decrypted.currency) setCurrencyState(decrypted.currency);
-
+      const decrypted = await decryptRecord(data, pass);
+      applyPayload(decrypted);
+      setBase(decrypted);
       remoteUpdatedAtRef.current = data.updatedAt;
       return decrypted;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -469,7 +512,12 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     if (!isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) return false;
 
-    await applyRemoteVault(remote, syncConfig.passphrase);
+    try {
+      await applyRemoteVault(remote, syncConfig.passphrase);
+    } catch (err: any) {
+      setSyncConfig((prev) => ({ ...prev, status: 'error', errorMessage: err.message }));
+      throw err;
+    }
     setSyncConfig((prev) => ({
       ...prev,
       status: 'synced',
@@ -479,6 +527,37 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
     return true;
   }, [syncConfig.vaultId, syncConfig.passphrase, applyRemoteVault]);
+
+  const currentPayload = (): CloudVaultPayload => ({
+    version: 2,
+    updatedAt: new Date().toISOString(),
+    transactions,
+    categoryLimits,
+    savingsGoals,
+    familyMembers,
+    installments,
+    creditCards,
+    recurring,
+    currency
+  });
+
+  // Şifreleyip buluta yazar; newPassphrase verilirse kasa yeni anahtarla şifrelenir ve yazma izni ona devredilir
+  const pushPayload = async (payload: CloudVaultPayload, newPassphrase?: string) => {
+    const pass = newPassphrase ?? syncConfig.passphrase;
+    const encrypted = await encryptData(payload, pass);
+    const writeToken = await deriveWriteToken(syncConfig.vaultId, syncConfig.passphrase);
+    const newWriteToken = newPassphrase ? await deriveWriteToken(syncConfig.vaultId, newPassphrase) : undefined;
+    const serverUpdatedAt = await saveVault(
+      syncConfig.vaultId,
+      { ...encrypted, version: payload.version, updatedAt: payload.updatedAt, clientInfo: `Cebim-${effectiveDevice}` },
+      writeToken,
+      newWriteToken
+    );
+    remoteUpdatedAtRef.current = serverUpdatedAt ?? payload.updatedAt;
+    setBase(payload);
+    setDirty(false);
+    liveLinkRef.current?.notifyUpdated(remoteUpdatedAtRef.current);
+  };
 
   // Synchronize to cloud backend
   const syncToCloud = useCallback(async (): Promise<boolean> => {
@@ -494,37 +573,35 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSyncConfig((prev) => ({ ...prev, status: 'syncing', errorMessage: undefined }));
 
     try {
-      // Başka bir cihaz daha yeni veri yüklediyse üzerine yazma; önce onu çek.
-      if (await pullIfNewer()) {
-        setDirty(false);
-        return true;
+      let payload = currentPayload();
+
+      // Başka bir cihaz daha yeni sürüm yüklediyse: bu cihazda bekleyen değişiklik yoksa onu al,
+      // varsa iki tarafı kayıt bazında birleştirip öyle gönder (kimsenin değişikliği kaybolmaz).
+      let remote: EncryptedVaultRecord | null = null;
+      try {
+        remote = await loadVault(syncConfig.vaultId);
+      } catch (err) {
+        if (!(err instanceof VaultNotFoundError)) throw err;
+      }
+      if (remote && isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) {
+        const remotePayload = await decryptRecord(remote, syncConfig.passphrase);
+        if (!dirtyRef.current) {
+          applyPayload(remotePayload);
+          setBase(remotePayload);
+          remoteUpdatedAtRef.current = remote.updatedAt;
+          setSyncConfig((prev) => ({
+            ...prev,
+            status: 'synced',
+            lastSyncedAt: new Date().toISOString(),
+            remoteUpdatedAt: remoteUpdatedAtRef.current
+          }));
+          return true;
+        }
+        payload = mergeVault(baseRef.current, payload, remotePayload);
+        applyPayload(payload);
       }
 
-      const payload: CloudVaultPayload = {
-        version: 2,
-        updatedAt: new Date().toISOString(),
-        transactions,
-        categoryLimits,
-        savingsGoals,
-        familyMembers,
-        installments,
-        creditCards,
-        recurring,
-        currency
-      };
-
-      // Perform End-to-End Encryption
-      const encrypted = await encryptData(payload, syncConfig.passphrase);
-
-      const serverUpdatedAt = await saveVault(syncConfig.vaultId, {
-        ...encrypted,
-        version: payload.version,
-        updatedAt: payload.updatedAt,
-        clientInfo: `Ailve-${effectiveDevice}`
-      });
-      remoteUpdatedAtRef.current = serverUpdatedAt ?? payload.updatedAt;
-      setDirty(false);
-      liveLinkRef.current?.notifyUpdated(remoteUpdatedAtRef.current);
+      await pushPayload(payload);
 
       setSyncConfig((prev) => ({
         ...prev,
@@ -664,10 +741,12 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       date: `${monthKey}-${String(Math.min(r.dayOfMonth, lastDay)).padStart(2, '0')}`,
       description: r.title,
       paymentMethod: r.paymentMethod,
+      cardId: r.type === 'expense' && r.paymentMethod === 'Kredi Kartı' ? r.cardId : undefined,
       isRecurring: true,
       createdAt: new Date().toISOString()
     }));
     setTransactions((prev) => [...created, ...prev.filter((t) => !created.some((c) => c.id === t.id))]);
+    created.forEach((tx) => applyCardDebt(tx, 1));
   }, [recurring, transactions]);
 
   // Eski varsayılan isim "Şakir (Ben)" -> "Emre". Buluttan eski adla gelen veri de düzeltilir;
@@ -740,6 +819,25 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (liveLinkRef.current === live) liveLinkRef.current = null;
     };
   }, [syncConfig.autoSync, syncConfig.vaultId, pullIfNewer]);
+
+  // Kasayı yeni (güçlü) bir anahtarla yeniden şifreler; eski anahtar artık ne okuyabilir ne yazabilir.
+  // Diğer cihazların yeni anahtarla yeniden bağlanması gerekir.
+  const rotatePassphrase = async (): Promise<string> => {
+    if (!(await syncToCloud()) || !baseRef.current) {
+      throw new Error('Önce bulutla eşitleme yapılamadı; internet bağlantısını kontrol edip tekrar deneyin.');
+    }
+    const newPassphrase = generateMasterPassphrase();
+    await pushPayload({ ...baseRef.current, updatedAt: new Date().toISOString() }, newPassphrase);
+    setSyncConfig((prev) => ({
+      ...prev,
+      passphrase: newPassphrase,
+      status: 'synced',
+      lastSyncedAt: new Date().toISOString(),
+      remoteUpdatedAt: remoteUpdatedAtRef.current,
+      errorMessage: undefined
+    }));
+    return newPassphrase;
+  };
 
   const updateSyncCredentials = (vaultId: string, passphrase: string, autoSync: boolean) => {
     setSyncConfig((prev) => ({
@@ -876,6 +974,41 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     setTransactions((prev) => [newTx, ...prev]);
     applyGoalSaving(newTx, 1);
+    applyCardDebt(newTx, 1);
+  };
+
+  // Karta bağlı harcama kartın borcunu artırır/azaltır
+  const applyCardDebt = (tx: Transaction | undefined, sign: 1 | -1) => {
+    if (!tx || tx.type !== 'expense' || !tx.cardId) return;
+    const amount = convertCurrency(tx.amount, tx.currency, 'TRY');
+    setCreditCards((prev) =>
+      prev.map((c) =>
+        c.id === tx.cardId ? { ...c, currentDebt: Math.max(0, Math.round((c.currentDebt + sign * amount) * 100) / 100) } : c
+      )
+    );
+  };
+
+  // Kart borcu ödemesi: borcu düşürür; istenirse ödemeyi gider olarak da kaydeder
+  // (kartla yapılan harcamalar uygulamaya ayrıca girilmediyse gider ancak böyle görünür)
+  const payCardDebt = (cardId: string, amount: number, recordAsExpense: boolean) => {
+    const card = creditCards.find((c) => c.id === cardId);
+    if (!card || !(amount > 0)) return;
+    setCreditCards((prev) =>
+      prev.map((c) => (c.id === cardId ? { ...c, currentDebt: Math.max(0, Math.round((c.currentDebt - amount) * 100) / 100) } : c))
+    );
+    if (recordAsExpense) {
+      const today = new Date();
+      addTransaction({
+        type: 'expense',
+        amount,
+        currency: 'TRY',
+        category: 'Borç & Kredi',
+        member: card.member,
+        date: new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0],
+        description: `${card.bank} ${card.name} kart borcu ödemesi`,
+        paymentMethod: 'Havale/EFT'
+      });
+    }
   };
 
   // Hedefe bağlı birikim işlemi hedefin biriken tutarını artırır/azaltır
@@ -891,12 +1024,15 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTransactions((prev) => prev.map((t) => (t.id === updatedTx.id ? updatedTx : t)));
     applyGoalSaving(old, -1);
     applyGoalSaving(updatedTx, 1);
+    applyCardDebt(old, -1);
+    applyCardDebt(updatedTx, 1);
   };
 
   const deleteTransaction = (id: string) => {
     const tx = transactions.find((t) => t.id === id);
     setTransactions((prev) => prev.filter((t) => t.id !== id));
     applyGoalSaving(tx, -1);
+    applyCardDebt(tx, -1);
     // Düzenli işlem silinirse o ay için yeniden oluşturulmaz
     const recMatch = id.match(/^rec-(.+)-(\d{4}-\d{2})$/);
     if (recMatch) {
@@ -1192,6 +1328,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     addCreditCard,
     updateCreditCard,
     deleteCreditCard,
+    payCardDebt,
     recurring,
     addRecurring,
     updateRecurring,
@@ -1207,6 +1344,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     clearAllNotifications,
     resetAllData,
     syncToCloud,
+    rotatePassphrase,
     syncFromCloud,
     updateSyncCredentials,
     exportEncryptedVault,
@@ -1216,6 +1354,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     monthlyExpense,
     monthlySavings,
     monthlyBalance,
+    ratesVersion,
     savingsRate,
     categorySpendingMap
   };
