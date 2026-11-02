@@ -33,6 +33,7 @@ import {
   VaultLiveLink
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
+import { budgetMonthOf, monthKeyOf, shiftMonthKey } from '../utils/budgetMonth';
 import { readXlsx } from '../utils/xlsxReader';
 import { buildImportFromSheets } from '../utils/excelImport';
 
@@ -341,7 +342,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const categorySpendingMap = useMemo(() => {
     const map: Record<string, number> = {};
     transactions.forEach((tx) => {
-      if (tx.type === 'expense' && tx.date.startsWith(currentMonthPrefix)) {
+      if (tx.type === 'expense' && budgetMonthOf(tx) === currentMonthPrefix) {
         const converted = convertCurrency(tx.amount, tx.currency, currency);
         map[tx.category] = (map[tx.category] || 0) + converted;
       }
@@ -355,7 +356,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     let exp = 0;
     let sav = 0;
     transactions.forEach((tx) => {
-      if (tx.date.startsWith(currentMonthPrefix)) {
+      if (budgetMonthOf(tx) === currentMonthPrefix) {
         const val = convertCurrency(tx.amount, tx.currency, currency);
         if (tx.type === 'income') inc += val;
         else if (tx.type === 'saving') sav += val;
@@ -379,7 +380,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Calculate spending for each category in current month
       const spending: Record<string, number> = {};
       currentTxList.forEach((tx) => {
-        if (tx.type === 'expense' && tx.date.startsWith(currentYearMonth)) {
+        if (tx.type === 'expense' && budgetMonthOf(tx) === currentYearMonth) {
           const inTRY = convertCurrency(tx.amount, tx.currency, 'TRY');
           spending[tx.category] = (spending[tx.category] || 0) + inTRY;
         }
@@ -717,34 +718,49 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Düzenli gelir/giderler: bu ayın günü geldiyse işlemi bir kez oluşturur. İşlem kimliği
   // (kalem + ay) sabit olduğu için iki cihaz aynı ayı oluştursa da kopya oluşmaz.
   useEffect(() => {
+    // Sonraki aya devreden gelirde bu ayın bütçesini geçen ayın ödemesi oluşturur (30 Ekim maaşı → Kasım);
+    // bu ayki ödeme günü gelince o da oluşur ve sonraki aya sayılır.
     const today = new Date();
-    const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const todayStr = monthKeyOf(today) + '-' + String(today.getDate()).padStart(2, '0');
     const existing = new Set(transactions.map((t) => t.id));
-    const due = recurring.filter((r) => {
-      const day = Math.min(r.dayOfMonth, lastDay);
-      return (
-        r.active &&
-        today.getDate() >= day &&
-        !r.skipMonths?.includes(monthKey) &&
-        !existing.has(`rec-${r.id}-${monthKey}`)
-      );
-    });
-    if (due.length === 0) return;
-    const created: Transaction[] = due.map((r) => ({
-      id: `rec-${r.id}-${monthKey}`,
-      type: r.type,
-      amount: r.amount,
-      currency: 'TRY',
-      category: r.category,
-      member: r.member,
-      date: `${monthKey}-${String(Math.min(r.dayOfMonth, lastDay)).padStart(2, '0')}`,
-      description: r.title,
-      paymentMethod: r.paymentMethod,
-      cardId: r.type === 'expense' && r.paymentMethod === 'Kredi Kartı' ? r.cardId : undefined,
-      isRecurring: true,
-      createdAt: new Date().toISOString()
-    }));
+    // Bir kalem aynı bütçe ayına iki kez sayılmasın (ör. devretme sonradan açıldıysa)
+    const counted = new Set(
+      transactions.flatMap((t) => {
+        const m = t.id.match(/^rec-(.+)-\d{4}-\d{2}$/);
+        return m ? [`${m[1]}|${budgetMonthOf(t)}`] : [];
+      })
+    );
+    const created: Transaction[] = [];
+    for (const r of recurring) {
+      if (!r.active) continue;
+      const carry = r.type === 'income' && r.countForNextMonth;
+      const months = carry ? [shiftMonthKey(monthKeyOf(today), -1), monthKeyOf(today)] : [monthKeyOf(today)];
+      for (const mk of months) {
+        const [y, m] = mk.split('-').map(Number);
+        const lastDay = new Date(y, m, 0).getDate();
+        const date = `${mk}-${String(Math.min(r.dayOfMonth, lastDay)).padStart(2, '0')}`;
+        const id = `rec-${r.id}-${mk}`;
+        // Atlanan ay, kalemin sayıldığı bütçe ayına göre tutulur
+        const budgetMonth = carry ? shiftMonthKey(mk, 1) : mk;
+        if (date > todayStr || existing.has(id) || counted.has(`${r.id}|${budgetMonth}`) || r.skipMonths?.includes(budgetMonth)) continue;
+        created.push({
+          id,
+          type: r.type,
+          amount: r.amount,
+          currency: 'TRY',
+          category: r.category,
+          member: r.member,
+          date,
+          budgetMonth: carry ? budgetMonth : undefined,
+          description: r.title,
+          paymentMethod: r.paymentMethod,
+          cardId: r.type === 'expense' && r.paymentMethod === 'Kredi Kartı' ? r.cardId : undefined,
+          isRecurring: true,
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+    if (created.length === 0) return;
     setTransactions((prev) => [...created, ...prev.filter((t) => !created.some((c) => c.id === t.id))]);
     created.forEach((tx) => applyCardDebt(tx, 1));
   }, [recurring, transactions]);
@@ -1091,7 +1107,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Düzenli işlem silinirse o ay için yeniden oluşturulmaz
     const recMatch = id.match(/^rec-(.+)-(\d{4}-\d{2})$/);
     if (recMatch) {
-      const [, recId, month] = recMatch;
+      const recId = recMatch[1];
+      const month = tx ? budgetMonthOf(tx) : recMatch[2];
       setRecurring((prev) =>
         prev.map((r) => (r.id === recId ? { ...r, skipMonths: [...(r.skipMonths || []), month].slice(-24) } : r))
       );
@@ -1324,14 +1341,9 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const txDate = new Date(tx.date);
         const now = new Date();
         if (filterDateRange === 'this_month') {
-          if (txDate.getFullYear() !== now.getFullYear() || txDate.getMonth() !== now.getMonth()) {
-            return false;
-          }
+          if (budgetMonthOf(tx) !== monthKeyOf(now)) return false;
         } else if (filterDateRange === 'last_month') {
-          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          if (txDate.getFullYear() !== lastMonth.getFullYear() || txDate.getMonth() !== lastMonth.getMonth()) {
-            return false;
-          }
+          if (budgetMonthOf(tx) !== shiftMonthKey(monthKeyOf(now), -1)) return false;
         } else if (filterDateRange === 'last_3_months') {
           const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
           if (txDate < threeMonthsAgo) return false;

@@ -19,6 +19,8 @@ export interface Transaction {
   goalId?: string;
   // Kredi kartıyla yapılan harcamada hangi kart (borcu bu karta eklenir)
   cardId?: string;
+  // Sayıldığı bütçe ayı (YYYY-MM); boşsa tarihin ayı. Ay sonu maaşı sonraki aya sayılır.
+  budgetMonth?: string;
   installmentInfo?: {
     current: number;
     total: number;
@@ -117,6 +119,8 @@ export interface RecurringItem {
   paymentMethod: PaymentMethod;
   active: boolean;
   cardId?: string;
+  // Gelir ay sonunda yatıyorsa (ör. 30'unda) sonraki ayın bütçesine sayılır
+  countForNextMonth?: boolean;
   // Kullanıcının o ay için sildiği (yeniden oluşturulmayacak) aylar, YYYY-MM
   skipMonths?: string[];
 }

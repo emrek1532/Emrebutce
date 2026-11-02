@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
+import { budgetMonthOf } from '../../utils/budgetMonth';
 
 interface MonthData {
   key: string;
@@ -35,7 +36,7 @@ export const CashFlowTrendChart: React.FC = () => {
       let expense = 0;
 
       transactions.forEach((tx) => {
-        if (tx.date.startsWith(key)) {
+        if (budgetMonthOf(tx) === key) {
           const val = convertCurrency(tx.amount, tx.currency, currency);
           if (tx.type === 'income') income += val;
           else if (tx.type === 'expense') expense += val;
