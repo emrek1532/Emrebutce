@@ -7,6 +7,7 @@ import {
   InstallmentDebt,
   CreditCardAccount,
   RecurringItem,
+  AssetHolding,
   BudgetNotification,
   Currency,
   DeviceMode,
@@ -105,6 +106,9 @@ interface BudgetContextValue {
   deleteCreditCard: (id: string) => void;
   payCardDebt: (cardId: string, amount: number, recordAsExpense: boolean) => void;
   recurring: RecurringItem[];
+  assets: AssetHolding[];
+  saveAsset: (asset: Omit<AssetHolding, 'id' | 'updatedAt'> & { id?: string }) => void;
+  deleteAsset: (id: string) => void;
   addRecurring: (item: Omit<RecurringItem, 'id'>) => void;
   updateRecurring: (item: RecurringItem) => void;
   deleteRecurring: (id: string) => void;
@@ -149,6 +153,7 @@ const LS_MEMBERS = 'ailve_members_v5';
 const LS_INSTALLMENTS = 'ailve_installments_v5';
 const LS_CARDS = 'ailve_cards_v5';
 const LS_RECURRING = 'ailve_recurring_v5';
+const LS_ASSETS = 'cebim_assets_v1';
 const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
 // Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
@@ -193,6 +198,14 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [recurring, setRecurring] = useState<RecurringItem[]>(() => {
     const saved = localStorage.getItem(LS_RECURRING);
     return saved ? JSON.parse(saved) : [];
+  });
+
+  const [assets, setAssets] = useState<AssetHolding[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(LS_ASSETS) || '[]');
+    } catch {
+      return [];
+    }
   });
 
   const [currency, setCurrencyState] = useState<Currency>(() => {
@@ -301,6 +314,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     localStorage.setItem(LS_RECURRING, JSON.stringify(recurring));
   }, [recurring]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_ASSETS, JSON.stringify(assets));
+  }, [assets]);
 
   useEffect(() => {
     localStorage.setItem(LS_CURRENCY, currency);
@@ -492,6 +509,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (payload.installments) setInstallments(payload.installments);
     if (payload.creditCards) setCreditCards(payload.creditCards);
     if (payload.recurring) setRecurring(payload.recurring);
+    if (payload.assets) setAssets(payload.assets);
     if (payload.currency) setCurrencyState(payload.currency);
   };
 
@@ -545,6 +563,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     installments,
     creditCards,
     recurring,
+    assets,
     currency
   });
 
@@ -632,6 +651,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     installments,
     creditCards,
     recurring,
+    assets,
     currency,
     effectiveDevice
   ]);
@@ -801,7 +821,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       syncToCloud();
     }, PUSH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, recurring, currency, syncConfig.autoSync, syncToCloud]);
+  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, recurring, assets, currency, syncConfig.autoSync, syncToCloud]);
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
@@ -893,6 +913,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       installments,
       creditCards,
       recurring,
+      assets,
       currency
     };
     const encrypted = await encryptData(payload, syncConfig.passphrase);
@@ -1224,6 +1245,15 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCreditCards((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const saveAsset = (asset: Omit<AssetHolding, 'id' | 'updatedAt'> & { id?: string }) => {
+    const item: AssetHolding = { ...asset, id: asset.id || `asset-${Date.now()}`, updatedAt: new Date().toISOString() };
+    setAssets((prev) => (prev.some((a) => a.id === item.id) ? prev.map((a) => (a.id === item.id ? item : a)) : [...prev, item]));
+  };
+
+  const deleteAsset = (id: string) => {
+    setAssets((prev) => prev.filter((a) => a.id !== id));
+  };
+
   const addRecurring = (item: Omit<RecurringItem, 'id'>) => {
     setRecurring((prev) => [...prev, { ...item, id: `rec-${Date.now()}` }]);
   };
@@ -1313,6 +1343,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setInstallments([]);
     setCreditCards([]);
     setRecurring([]);
+    setAssets([]);
     setSavingsGoals([]);
     setCategoryLimits([]);
     setNotifications([]);
@@ -1397,6 +1428,9 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     deleteCreditCard,
     payCardDebt,
     recurring,
+    assets,
+    saveAsset,
+    deleteAsset,
     addRecurring,
     updateRecurring,
     deleteRecurring,

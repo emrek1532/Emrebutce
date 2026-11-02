@@ -4,6 +4,7 @@ import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/b
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
 import { ExcelImportBar } from '../common/ExcelImportBar';
+import { UpcomingPayments } from '../common/UpcomingPayments';
 import { budgetMonthOf } from '../../utils/budgetMonth';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat } from 'lucide-react';
 
@@ -130,6 +131,8 @@ export const InstallmentsView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <UpcomingPayments />
 
       <ExcelImportBar />
 

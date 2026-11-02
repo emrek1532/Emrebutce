@@ -1,5 +1,6 @@
 import React from 'react';
 import { useBudget } from '../../context/BudgetContext';
+import { UpcomingPayments } from '../common/UpcomingPayments';
 import { X, Bell, AlertTriangle, AlertOctagon, CheckCircle2, Cloud, Trash2 } from 'lucide-react';
 
 interface Props {
@@ -49,6 +50,7 @@ export const NotificationsDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
 
         {/* Notifications List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <UpcomingPayments compact />
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center text-neutral-400">
               <CheckCircle2 className="w-10 h-10 text-sky-500 mb-2 opacity-60" />

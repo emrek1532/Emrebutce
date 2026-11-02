@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { buildReminders, pushEnabled, syncRemindersIfChanged } from './utils/paymentReminders';
 import { BudgetProvider, useBudget } from './context/BudgetContext';
 import { MobileLayout } from './components/layouts/MobileLayout';
 import { TabletLayout } from './components/layouts/TabletLayout';
@@ -8,8 +9,23 @@ import { NotificationsDrawer } from './components/modals/NotificationsDrawer';
 import { SharePhoneModal } from './components/modals/SharePhoneModal';
 import { VaultSetupModal } from './components/modals/VaultSetupModal';
 
+// Telefon bildirimi açıksa ödeme listesi değiştikçe sunucudaki kopyayı günceller (değişmediyse istek atmaz)
+const useReminderSync = () => {
+  const { creditCards, installments, recurring, transactions, syncConfig } = useBudget();
+  useEffect(() => {
+    if (!pushEnabled()) return;
+    const timer = setTimeout(() => {
+      syncRemindersIfChanged(syncConfig.vaultId, buildReminders({ creditCards, installments, recurring, transactions })).catch((err) =>
+        console.warn('Hatırlatmalar güncellenemedi:', err)
+      );
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [creditCards, installments, recurring, transactions, syncConfig.vaultId]);
+};
+
 const AppContent: React.FC = () => {
   const { effectiveDevice } = useBudget();
+  useReminderSync();
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
