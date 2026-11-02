@@ -617,6 +617,21 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [syncFromCloud]);
 
+  // Eski varsayılan isim "Şakir (Ben)" -> "Emre". Buluttan eski adla gelen veri de düzeltilir;
+  // değişiklik normal eşitlemeyle diğer cihazlara gider.
+  useEffect(() => {
+    const OLD_NAME = 'Şakir (Ben)';
+    const NEW_NAME = 'Emre';
+    const fix = <T extends { member: string }>(list: T[]) =>
+      list.some((x) => x.member === OLD_NAME) ? list.map((x) => (x.member === OLD_NAME ? { ...x, member: NEW_NAME } : x)) : list;
+    if (familyMembers.some((m) => m.name === OLD_NAME)) {
+      setFamilyMembers((prev) => prev.map((m) => (m.name === OLD_NAME ? { ...m, name: NEW_NAME } : m)));
+    }
+    if (transactions.some((x) => x.member === OLD_NAME)) setTransactions(fix);
+    if (installments.some((x) => x.member === OLD_NAME)) setInstallments(fix);
+    if (creditCards.some((x) => x.member === OLD_NAME)) setCreditCards(fix);
+  }, [familyMembers, transactions, installments, creditCards]);
+
   // Zamanlayıcılar ve olay dinleyicileri her zaman en güncel veriyle gönderebilsin
   const syncToCloudRef = useRef(syncToCloud);
   syncToCloudRef.current = syncToCloud;

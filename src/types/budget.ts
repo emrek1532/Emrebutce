@@ -10,7 +10,7 @@ export interface Transaction {
   amount: number;
   currency: Currency;
   category: string;
-  member: string; // e.g., 'Şakir (Ben)', 'Eşim', 'Ortak'
+  member: string; // e.g., 'Emre', 'Eşim', 'Ortak'
   date: string; // YYYY-MM-DD
   description: string;
   paymentMethod: PaymentMethod;
