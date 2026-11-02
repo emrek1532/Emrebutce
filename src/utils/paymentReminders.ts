@@ -4,6 +4,7 @@
 import type { CreditCardAccount, InstallmentDebt, RecurringItem, Transaction } from '../types/budget';
 import { budgetMonthOf, monthKeyOf } from './budgetMonth';
 import { callRpc, SUPABASE_URL } from './cloudStore';
+import { minimumPaymentOf, statementDebtOf } from './cardStatement';
 
 export interface PaymentReminder {
   id: string;
@@ -26,8 +27,10 @@ export function buildReminders(data: {
   const list: PaymentReminder[] = [];
 
   for (const c of data.creditCards) {
-    if (c.currentDebt > 0) {
-      list.push({ id: `card-${c.id}`, title: `${norm(c.name).includes(norm(c.bank)) ? c.name : `${c.bank} ${c.name}`} kart borcu`, amount: Math.round(c.currentDebt * 100) / 100, day: c.dueDay });
+    const due = statementDebtOf(c);
+    if (due > 0) {
+      const name = norm(c.name).includes(norm(c.bank)) ? c.name : `${c.bank} ${c.name}`;
+      list.push({ id: `card-${c.id}`, title: `${name} ekstre (${minimumPaymentOf(c) > 0 ? `asgari ${minimumPaymentOf(c).toLocaleString('tr-TR')} ₺` : 'asgari ödendi'})`, amount: Math.round(due * 100) / 100, day: c.dueDay });
     }
   }
 

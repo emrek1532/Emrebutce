@@ -34,6 +34,7 @@ import {
   VaultLiveLink
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
+import { lastStatementKey } from '../utils/cardStatement';
 import { budgetMonthOf, monthKeyOf, shiftMonthKey } from '../utils/budgetMonth';
 import { readXlsx } from '../utils/xlsxReader';
 import { buildImportFromSheets } from '../utils/excelImport';
@@ -785,6 +786,18 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     created.forEach((tx) => applyCardDebt(tx, 1));
   }, [recurring, transactions]);
 
+  // Hesap kesim günü geldiyse kartın o anki borcu yeni ekstre borcu olur (ay başına bir kez)
+  useEffect(() => {
+    const due = creditCards.filter((c) => c.statementKey !== lastStatementKey(c));
+    if (due.length === 0) return;
+    setCreditCards((prev) =>
+      prev.map((c) => {
+        const key = lastStatementKey(c);
+        return c.statementKey === key ? c : { ...c, statementDebt: c.currentDebt, statementTotal: c.currentDebt, statementKey: key };
+      })
+    );
+  }, [creditCards]);
+
   // Eski varsayılan isim "Şakir (Ben)" -> "Emre". Buluttan eski adla gelen veri de düzeltilir;
   // değişiklik normal eşitlemeyle diğer cihazlara gider.
   useEffect(() => {
@@ -1085,8 +1098,13 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const payCardDebt = (cardId: string, amount: number, recordAsExpense: boolean) => {
     const card = creditCards.find((c) => c.id === cardId);
     if (!card || !(amount > 0)) return;
+    const round = (n: number) => Math.max(0, Math.round(n * 100) / 100);
     setCreditCards((prev) =>
-      prev.map((c) => (c.id === cardId ? { ...c, currentDebt: Math.max(0, Math.round((c.currentDebt - amount) * 100) / 100) } : c))
+      prev.map((c) =>
+        c.id === cardId
+          ? { ...c, currentDebt: round(c.currentDebt - amount), statementDebt: round((c.statementDebt ?? c.currentDebt) - amount) }
+          : c
+      )
     );
     if (recordAsExpense) {
       const today = new Date();

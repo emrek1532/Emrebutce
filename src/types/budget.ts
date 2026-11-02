@@ -104,6 +104,11 @@ export interface CreditCardAccount {
   currentDebt: number;
   statementDay: number; // ekstre kesim günü (1-31)
   dueDay: number; // son ödeme günü (1-31)
+  // Son kesilen ekstrenin borcu ve ayı (YYYY-MM); kesim günü gelince güncel borçtan alınır
+  statementDebt?: number;
+  // Ekstre kesildiğindeki toplam (asgari ödeme bundan hesaplanır)
+  statementTotal?: number;
+  statementKey?: string;
   notes?: string;
 }
 
