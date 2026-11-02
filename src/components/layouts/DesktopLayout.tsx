@@ -7,6 +7,7 @@ import { TransactionTable } from '../common/TransactionTable';
 import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
+import { BudgetPlanCard } from '../common/BudgetPlanCard';
 import { CashFlowTrendChart } from '../charts/CashFlowTrendChart';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
@@ -200,6 +201,8 @@ export const DesktopLayout: React.FC<Props> = ({
         {/* TAB CONTENTS */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
+            <BudgetPlanCard />
+
             {/* Visual Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Category Donut */}
