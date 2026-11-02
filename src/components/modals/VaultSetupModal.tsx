@@ -1,32 +1,34 @@
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { Link2, Plus, QrCode, Wallet } from 'lucide-react';
+import { Link2, Plus, Wallet } from 'lucide-react';
+import { parseShareLink, readShareLinkFromLocation } from '../../utils/shareLink';
 
-// Bu cihaz henüz bir kasaya bağlı değilken açılır: mevcut kasaya bağlan ya da yeni kasa aç.
+// Bu cihaz henüz aile verilerine bağlı değilken açılır: paylaşılan linki aç ya da ilk kez başlat.
 export const VaultSetupModal: React.FC = () => {
   const { syncConfig, syncFromCloud, createNewVault } = useBudget();
   const [dismissed, setDismissed] = useState(false);
-  const [vaultId, setVaultId] = useState('');
-  const [passphrase, setPassphrase] = useState('');
+  const [link, setLink] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmNew, setConfirmNew] = useState(false);
+  // Uygulama paylaşım linkiyle açıldıysa bağlantı kendiliğinden kurulur; o sırada ekranı gösterme
+  const [openedWithLink] = useState(() => readShareLinkFromLocation() !== null);
 
-  // QR bağlantısıyla (?vault=...&key=...) açıldıysa bağlantı kendiliğinden kurulur; ekranı gösterme
-  const openedWithLink = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('vault');
-  if (syncConfig.vaultId || dismissed || openedWithLink) return null;
+  if (syncConfig.vaultId || dismissed) return null;
+  if (openedWithLink && syncConfig.status !== 'error') return null;
 
-  const link = async (e: React.FormEvent) => {
+  const open = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!vaultId.trim() || !passphrase.trim()) {
-      setError('Kasa kodunu ve anahtarı girin.');
+    const creds = parseShareLink(link);
+    if (!creds) {
+      setError('Bu bir Cebim paylaşım linki değil.');
       return;
     }
     setBusy(true);
     setError(null);
-    const ok = await syncFromCloud(vaultId.trim().toUpperCase(), passphrase.trim());
+    const ok = await syncFromCloud(creds.vaultId, creds.passphrase);
     setBusy(false);
-    if (!ok) setError('Bağlanılamadı. Kasa kodunu ve anahtarı kontrol edin.');
+    if (!ok) setError('Link açılamadı. Linkin güncel olduğundan emin olun.');
   };
 
   return (
@@ -38,38 +40,30 @@ export const VaultSetupModal: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Cebim'e hoş geldiniz</h3>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Bu cihaz henüz bir kasaya bağlı değil.</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">Aile verilerini görmek için size gönderilen linki açın.</p>
           </div>
         </div>
 
-        <div className="rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm font-semibold text-sky-800 dark:text-sky-300">
-            <QrCode className="w-4 h-4" /> En kolayı: QR ile bağlan
-          </div>
-          <p className="text-xs text-sky-900/80 dark:text-sky-200/80 leading-relaxed">
-            Cebim'in açık olduğu diğer cihazda <b>Telefona Yükle</b>'ye basın ve çıkan QR kodu bu cihazın kamerasıyla okutun.
-            Veriler kendiliğinden gelir.
-          </p>
+        {openedWithLink && syncConfig.errorMessage && (
+          <p className="text-xs text-rose-600">Link açılamadı: {syncConfig.errorMessage}</p>
+        )}
+
+        <div className="rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900 p-4 text-xs text-sky-900/80 dark:text-sky-200/80 leading-relaxed">
+          Cebim'i kullanan biri <b>Linki Paylaş</b> düğmesiyle size link gönderir ya da QR kodu gösterir. O linki açmanız yeterli; aynı
+          verileri görür, değişiklikleri anında paylaşırsınız.
         </div>
 
-        <form onSubmit={link} className="space-y-3">
+        <form onSubmit={open} className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-            <Link2 className="w-4 h-4" /> Ya da kodla bağlan
+            <Link2 className="w-4 h-4" /> Linki buraya yapıştırın
           </div>
           <input
-            value={vaultId}
-            onChange={(e) => setVaultId(e.target.value)}
-            placeholder="Kasa kodu (AILE-...)"
-            autoCapitalize="characters"
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-mono"
-          />
-          <input
-            value={passphrase}
-            onChange={(e) => setPassphrase(e.target.value)}
-            placeholder="Şifreleme anahtarı"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            placeholder="https://…"
             autoCapitalize="none"
             autoCorrect="off"
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-mono"
+            className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm"
           />
           {error && <p className="text-xs text-rose-600">{error}</p>}
           <button
@@ -77,7 +71,7 @@ export const VaultSetupModal: React.FC = () => {
             disabled={busy}
             className="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold disabled:opacity-60"
           >
-            {busy ? 'Bağlanıyor…' : 'Mevcut kasaya bağlan'}
+            {busy ? 'Açılıyor…' : 'Linki aç'}
           </button>
         </form>
 
@@ -85,14 +79,14 @@ export const VaultSetupModal: React.FC = () => {
           {confirmNew ? (
             <div className="space-y-2">
               <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                Yeni kasa, diğer cihazlarınızdaki verilerle bağlantısız, ayrı bir kasa olur. Emin misiniz?
+                Sıfırdan yeni bir aile bütçesi başlatılacak; başkalarının verileriyle bağlantısı olmaz. Emin misiniz?
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={createNewVault}
                   className="flex-1 py-2 rounded-lg bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-sm font-semibold"
                 >
-                  Evet, yeni kasa aç
+                  Evet, yeni başlat
                 </button>
                 <button
                   onClick={() => setConfirmNew(false)}
@@ -107,7 +101,7 @@ export const VaultSetupModal: React.FC = () => {
               onClick={() => setConfirmNew(true)}
               className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-700 dark:text-neutral-300"
             >
-              <Plus className="w-4 h-4" /> İlk cihazım, yeni kasa aç
+              <Plus className="w-4 h-4" /> Linkim yok, sıfırdan başlat
             </button>
           )}
           <button onClick={() => setDismissed(true)} className="w-full text-xs text-neutral-400 py-1">

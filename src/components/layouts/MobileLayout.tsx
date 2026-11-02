@@ -109,7 +109,7 @@ export const MobileLayout: React.FC<Props> = ({
           <button
             onClick={onOpenShare}
             className="p-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50"
-            title="Telefona Yükle & QR Paylaş"
+            title="Linki Paylaş"
           >
             <Smartphone className="w-4 h-4" />
           </button>
@@ -118,7 +118,7 @@ export const MobileLayout: React.FC<Props> = ({
           <button
             onClick={onOpenSync}
             className="p-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 relative"
-            title="Şifreli Bulut Kasası"
+            title="Eşitleme ve Yedek"
           >
             <ShieldCheck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             <span

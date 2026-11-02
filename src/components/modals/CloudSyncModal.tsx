@@ -1,21 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { useBudget } from '../../context/BudgetContext';
+import { parseShareLink } from '../../utils/shareLink';
 import {
   X,
   ShieldCheck,
-  Cloud,
   RefreshCw,
-  Copy,
-  Check,
-  Eye,
-  EyeOff,
   Download,
   Upload,
   FileSpreadsheet,
   Key,
-  Laptop,
-  Smartphone,
-  Tablet,
   CheckCircle2,
   AlertCircle,
   Trash2
@@ -31,7 +24,6 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
     syncConfig,
     syncToCloud,
     syncFromCloud,
-    updateSyncCredentials,
     exportEncryptedVault,
     exportCsv,
     importVaultBackup,
@@ -40,31 +32,15 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
   } = useBudget();
   const [rotating, setRotating] = useState(false);
 
-  const [copiedVault, setCopiedVault] = useState(false);
-  const [copiedKey, setCopiedKey] = useState(false);
-  const [showPassphrase, setShowPassphrase] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
-  // For linking other device
-  const [linkVaultId, setLinkVaultId] = useState('');
-  const [linkPassphrase, setLinkPassphrase] = useState('');
+  const [linkInput, setLinkInput] = useState('');
   const [linkError, setLinkError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
-
-  const copyToClipboard = (text: string, type: 'vault' | 'key') => {
-    navigator.clipboard.writeText(text);
-    if (type === 'vault') {
-      setCopiedVault(true);
-      setTimeout(() => setCopiedVault(false), 2000);
-    } else {
-      setCopiedKey(true);
-      setTimeout(() => setCopiedKey(false), 2000);
-    }
-  };
 
   const handleManualSyncNow = async () => {
     setIsSyncing(true);
@@ -79,20 +55,21 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   const handleLinkDevice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!linkVaultId.trim() || !linkPassphrase.trim()) {
-      setLinkError('Lütfen Kasa Kodu ve Şifreleme Anahtarını giriniz.');
+    const creds = parseShareLink(linkInput);
+    if (!creds) {
+      setLinkError('Bu bir Cebim paylaşım linki değil.');
       return;
     }
     setLinkError(null);
     setIsSyncing(true);
-
-    const ok = await syncFromCloud(linkVaultId.trim(), linkPassphrase.trim());
+    const ok = await syncFromCloud(creds.vaultId, creds.passphrase);
     setIsSyncing(false);
     if (ok) {
-      setSyncFeedback('Cihaz başarıyla bağlandı ve veriler eşitlendi!');
+      setLinkInput('');
+      setSyncFeedback('Link açıldı, veriler eşitlendi.');
       setTimeout(() => setSyncFeedback(null), 4000);
     } else {
-      setLinkError('Bağlantı kurulamadı. Lütfen kodları kontrol ediniz.');
+      setLinkError('Link açılamadı. Linkin güncel olduğundan emin olun.');
     }
   };
 
@@ -115,10 +92,10 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                Uçtan Uca Şifreli Bulut Senkronizasyonu
+                Eşitleme ve Yedek
               </h3>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                AES-GCM 256-bit Sıfır-Bilgi (Zero-Knowledge) Aile Kasası
+                Veriler şifreli saklanır, tüm cihazlarda anında güncellenir
               </p>
             </div>
           </div>
@@ -195,155 +172,58 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Credentials Info */}
+          {/* Paylaşım linki */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              Bu Cihazın Kasa Bilgileri
-            </h4>
-
-            {/* Vault ID */}
-            <div>
-              <label className="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                Kasa Kimliği (Vault ID)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={syncConfig.vaultId}
-                  className="flex-1 px-3 py-2 text-xs font-mono font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 select-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(syncConfig.vaultId, 'vault')}
-                  className="px-3 py-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 text-neutral-700 dark:text-neutral-300 transition-colors"
-                >
-                  {copiedVault ? <Check className="w-3.5 h-3.5 text-sky-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedVault ? 'Kopyalandı' : 'Kopyala'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Master Key */}
-            <div>
-              <label className="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                Şifreleme Anahtar Kelimesi (Passphrase)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type={showPassphrase ? 'text' : 'password'}
-                  readOnly
-                  value={syncConfig.passphrase}
-                  className="flex-1 px-3 py-2 text-xs font-mono font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassphrase(!showPassphrase)}
-                  className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                  title={showPassphrase ? 'Gizle' : 'Göster'}
-                >
-                  {showPassphrase ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(syncConfig.passphrase, 'key')}
-                  className="px-3 py-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 text-neutral-700 dark:text-neutral-300 transition-colors"
-                >
-                  {copiedKey ? <Check className="w-3.5 h-3.5 text-sky-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedKey ? 'Kopyalandı' : 'Kopyala'}</span>
-                </button>
-              </div>
-              {syncConfig.passphrase.length < 20 && (
-                <p className="mt-1.5 text-[11px] text-amber-700 dark:text-amber-400">
-                  Bu anahtar kısa ve tahmin edilebilir. Aşağıdaki "Anahtarı Yenile" ile güçlü bir anahtara geçmeniz önerilir.
-                </p>
-              )}
-              <button
-                type="button"
-                disabled={rotating}
-                onClick={async () => {
-                  if (
-                    !window.confirm(
-                      'Kasa yeni, güçlü bir anahtarla yeniden şifrelenecek. Eski anahtar artık çalışmayacak; diğer cihazları (telefon, eşinizin telefonu) yeni anahtarla tekrar bağlamanız gerekecek. Devam edilsin mi?'
-                    )
-                  )
-                    return;
-                  setRotating(true);
-                  try {
-                    await rotatePassphrase();
-                    setShowPassphrase(true);
-                    setSyncFeedback('Anahtar yenilendi. Yeni anahtarı güvenli bir yere kaydedin ve diğer cihazları "Telefona Yükle" QR koduyla yeniden bağlayın.');
-                  } catch (err: any) {
-                    alert(err.message || 'Anahtar yenilenemedi.');
-                  } finally {
-                    setRotating(false);
-                  }
-                }}
-                className="mt-2 w-full px-3 py-2 text-xs font-semibold rounded-lg border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 disabled:opacity-50"
-              >
-                {rotating ? 'Yenileniyor…' : 'Anahtarı Yenile (güçlü anahtara geç)'}
-              </button>
-            </div>
-
-            {/* Auto sync switch */}
-            <div className="flex items-center justify-between pt-2">
-              <label className="text-xs text-neutral-700 dark:text-neutral-300 font-medium">
-                Otomatik Arka Plan Eşitleme
-              </label>
-              <input
-                type="checkbox"
-                checked={syncConfig.autoSync}
-                onChange={(e) =>
-                  updateSyncCredentials(syncConfig.vaultId, syncConfig.passphrase, e.target.checked)
-                }
-                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
-              />
-            </div>
-          </div>
-
-          {/* Link Other Device Section */}
-          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2 flex items-center gap-2">
-              <Smartphone className="w-4 h-4 text-neutral-500" />
-              <span>Telefon veya Tableti Bağla</span>
-            </h4>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-              Telefon veya tabletinizdeki Cebim uygulamasına bu Kasa Kimliği ve Şifreleme Anahtarını girerek tüm aile bütçenizi anında senkronize edebilirsiniz.
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Paylaşım Linki</h4>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Başka birini eklemek için üstteki <b>Linki Paylaş</b> düğmesini kullanın. Size gönderilen bir linki bu cihazda açmak için buraya yapıştırın:
             </p>
-
-            <form onSubmit={handleLinkDevice} className="p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  placeholder="Başka Kasa ID (örn: AILE-XXXX)"
-                  value={linkVaultId}
-                  onChange={(e) => setLinkVaultId(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-mono"
-                />
-                <input
-                  type="text"
-                  placeholder="Şifreleme Anahtarı"
-                  value={linkPassphrase}
-                  onChange={(e) => setLinkPassphrase(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-mono"
-                />
-              </div>
-
-              {linkError && (
-                <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>{linkError}</span>
-                </div>
-              )}
-
+            <form onSubmit={handleLinkDevice} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Linki yapıştırın"
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                className="flex-1 min-w-0 px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+              />
               <button
                 type="submit"
                 disabled={isSyncing}
-                className="w-full py-2 text-xs font-semibold rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-neutral-100 dark:hover:bg-white dark:text-neutral-900 transition-colors"
+                className="px-3 py-2 text-xs font-semibold rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-neutral-100 dark:text-neutral-900 disabled:opacity-50"
               >
-                Bu Kasaya Bağlan & Verileri İçe Aktar
+                Aç
               </button>
             </form>
+            {linkError && (
+              <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{linkError}</span>
+              </div>
+            )}
+            <button
+              type="button"
+              disabled={rotating || !syncConfig.vaultId}
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    'Yeni bir paylaşım linki oluşturulacak. Eski link artık çalışmaz; bu cihaz dışındaki herkese yeni linki göndermeniz gerekir. Devam edilsin mi?'
+                  )
+                )
+                  return;
+                setRotating(true);
+                try {
+                  await rotatePassphrase();
+                  setSyncFeedback('Yeni link oluşturuldu. "Linki Paylaş" ile diğer cihazlara yeniden gönderin.');
+                } catch (err: any) {
+                  alert(err.message || 'Link yenilenemedi.');
+                } finally {
+                  setRotating(false);
+                }
+              }}
+              className="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 disabled:opacity-50"
+            >
+              {rotating ? 'Yenileniyor…' : 'Linki Yenile (eski link çalışmaz olur)'}
+            </button>
           </div>
 
           {/* Backup & Export Options */}
@@ -396,14 +276,14 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </h4>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
               Tüm harcama/gelir kayıtları, kredi kartları, taksitler, tasarruf hedefleri ve bütçe limitleri silinir. Aile üyeleri ve
-              kasa bağlantısı korunur. Bu kasaya bağlı tüm cihazlar da sıfırlanır.
+              paylaşım linki korunur. Linki açan tüm cihazlar da sıfırlanır.
             </p>
             <button
               type="button"
               onClick={() => {
                 if (
                   window.confirm(
-                    'Tüm harcama, gelir, kart, taksit, hedef ve limit kayıtları bu kasaya bağlı TÜM cihazlardan silinecek. Bu işlem geri alınamaz.\n\nÖnce "Şifreli Yedek" indirmeniz önerilir. Devam edilsin mi?'
+                    'Tüm harcama, gelir, kart, taksit, hedef ve limit kayıtları linki açan TÜM cihazlardan silinecek. Bu işlem geri alınamaz.\n\nÖnce "Şifreli Yedek" indirmeniz önerilir. Devam edilsin mi?'
                   )
                 ) {
                   resetAllData();

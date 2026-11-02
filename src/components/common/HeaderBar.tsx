@@ -136,17 +136,17 @@ export const HeaderBar: React.FC<Props> = ({
           {/* Share & Install on Phone */}
           <button
             onClick={onOpenShare}
-            title="Telefona Yükle & QR ile Paylaş"
+            title="Linki Paylaş"
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
           >
             <Smartphone className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-            <span className="hidden sm:inline">Telefona Yükle</span>
+            <span className="hidden sm:inline">Linki Paylaş</span>
           </button>
 
           {/* Cloud Sync Button */}
           <button
             onClick={onOpenSync}
-            title="Bulut & Şifreli Kasa Ayarları"
+            title="Eşitleme ve Yedek"
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors"
           >
             <ShieldCheck
@@ -158,8 +158,8 @@ export const HeaderBar: React.FC<Props> = ({
                   : 'text-sky-600 dark:text-sky-400'
               }`}
             />
-            <span className="hidden md:inline font-mono text-[11px]">
-              {syncConfig.vaultId}
+            <span className="hidden md:inline text-[11px]">
+              {syncConfig.status === 'error' ? 'Eşitlenemedi' : syncConfig.status === 'syncing' ? 'Eşitleniyor' : 'Eşitlendi'}
             </span>
           </button>
 

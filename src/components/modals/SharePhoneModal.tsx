@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import QRCode from 'qrcode';
+import { buildShareLink } from '../../utils/shareLink';
 import {
   X,
   Smartphone,
@@ -28,7 +29,6 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { syncConfig } = useBudget();
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [includeSyncKey, setIncludeSyncKey] = useState(true);
   const [copied, setCopied] = useState(false);
   const [activePlatform, setActivePlatform] = useState<'android' | 'ios'>('android');
   const [installSuccess, setInstallSuccess] = useState(false);
@@ -37,9 +37,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   // Construct target link
-  const shareUrl = includeSyncKey && syncConfig.vaultId
-    ? `${baseUrl}?vault=${encodeURIComponent(syncConfig.vaultId)}&key=${encodeURIComponent(syncConfig.passphrase)}`
-    : baseUrl;
+  const shareUrl = syncConfig.vaultId ? buildShareLink(baseUrl, syncConfig) : baseUrl;
 
   // Generate QR Code
   useEffect(() => {
@@ -79,14 +77,14 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   const handleWhatsAppShare = () => {
     const text = encodeURIComponent(
-      `Aile Bütçe Programımıza bağlanmak için bu linki telefonunda açabilirsin:\n${shareUrl}`
+      `Cebim aile bütçemiz (bu linki Chrome'da aç):\n${shareUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
   const handleTelegramShare = () => {
     const text = encodeURIComponent(
-      `Aile Bütçe Programımıza bağlanmak için bu linki telefonunda açabilirsin:\n${shareUrl}`
+      `Cebim aile bütçemiz (bu linki Chrome'da aç):\n${shareUrl}`
     );
     window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`, '_blank');
   };
@@ -102,10 +100,10 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                Telefona Yükle & Aileyle Paylaş
+                Linki Paylaş
               </h3>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                PWA desteği, QR Kod ve Chrome yükleme çözümü
+                Linki açan herkes aynı verileri görür
               </p>
             </div>
           </div>
@@ -181,25 +179,9 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 </p>
               </div>
 
-              {/* Include Key Option */}
-              <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={includeSyncKey}
-                    onChange={(e) => setIncludeSyncKey(e.target.checked)}
-                    className="rounded border-neutral-300 text-sky-600 focus:ring-sky-500 w-4 h-4 mt-0.5"
-                  />
-                  <div>
-                    <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 block">
-                      Kasa Şifresini QR Koda Dahil Et
-                    </span>
-                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block">
-                      Telefonunuz parola girmeye gerek kalmadan mevcut verilerinizi otomatik yükler.
-                    </span>
-                  </div>
-                </label>
-              </div>
+              <p className="pt-2 border-t border-neutral-200 dark:border-neutral-700 text-[11px] text-neutral-500 dark:text-neutral-400">
+                Bu linki açan kişi sizinle aynı verileri görür ve değişiklikler herkese anında yansır. Linki sadece ailenizle paylaşın.
+              </p>
             </div>
           </div>
 
