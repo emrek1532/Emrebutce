@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
+import { CARRY_DEFAULT_FROM_DAY } from '../../utils/budgetMonth';
 import { CreditCardAccount, InstallmentDebt, PaymentMethod, RecurringItem, TransactionType } from '../../types/budget';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../data/initialData';
 import { X } from 'lucide-react';
@@ -347,6 +348,7 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Havale/EFT');
   const [active, setActive] = useState(true);
   const [cardId, setCardId] = useState('');
+  const [countForNextMonth, setCountForNextMonth] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -359,6 +361,7 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
     setPaymentMethod(editItem?.paymentMethod ?? 'Havale/EFT');
     setActive(editItem?.active ?? true);
     setCardId(editItem?.cardId ?? '');
+    setCountForNextMonth(editItem?.countForNextMonth ?? false);
   }, [isOpen, editItem, familyMembers]);
 
   if (!isOpen) return null;
@@ -381,7 +384,8 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
       dayOfMonth: clampDay(dayOfMonth),
       paymentMethod,
       active,
-      cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined
+      cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined,
+      countForNextMonth: type === 'income' ? countForNextMonth : undefined
     };
     if (editItem) updateRecurring({ ...editItem, ...item });
     else addRecurring(item);
@@ -431,9 +435,27 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({ isOpen, onClose,
           </div>
           <div>
             <label className={labelClass}>Her ayın kaçı?</label>
-            <input className={inputClass} type="number" min={1} max={31} value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} />
+            <input
+              className={inputClass}
+              type="number"
+              min={1}
+              max={31}
+              value={dayOfMonth}
+              onChange={(e) => {
+                setDayOfMonth(e.target.value);
+                if (!editItem && type === 'income') setCountForNextMonth(Number(e.target.value) >= CARRY_DEFAULT_FROM_DAY);
+              }}
+            />
           </div>
         </div>
+        {type === 'income' && (
+          <label className="flex items-start gap-2 text-xs text-neutral-700 dark:text-neutral-300">
+            <input type="checkbox" className="mt-0.5" checked={countForNextMonth} onChange={(e) => setCountForNextMonth(e.target.checked)} />
+            <span>
+              <b>Sonraki ayın bütçesine say</b> — ay sonunda yatan maaş için (ör. 30 Ekim'de yatan maaş Kasım bütçesine girer).
+            </span>
+          </label>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelClass}>Kimin</label>

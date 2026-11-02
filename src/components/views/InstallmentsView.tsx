@@ -4,6 +4,7 @@ import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/b
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
 import { ExcelImportBar } from '../common/ExcelImportBar';
+import { budgetMonthOf } from '../../utils/budgetMonth';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -141,15 +142,22 @@ export const InstallmentsView: React.FC = () => {
         ) : (
           <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 divide-y divide-neutral-100 dark:divide-neutral-800">
             {recurring.map((r) => {
-              const posted = transactions.some((t) => t.id === `rec-${r.id}-${monthKey}`);
+              const carry = r.type === 'income' && r.countForNextMonth;
+              const posted = transactions.some((t) => t.id.startsWith(`rec-${r.id}-`) && budgetMonthOf(t) === monthKey);
               const skipped = r.skipMonths?.includes(monthKey);
               return (
                 <div key={r.id} className={`px-4 py-3 flex items-center justify-between gap-3 ${r.active ? '' : 'opacity-50'}`}>
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">{r.title}</div>
                     <div className="text-[11px] text-neutral-500">
-                      Her ayın {r.dayOfMonth}'i · {r.member} ·{' '}
-                      {!r.active ? 'Pasif' : posted ? 'Bu ay eklendi ✓' : skipped ? 'Bu ay atlandı' : `${r.dayOfMonth}'inde eklenecek`}
+                      Her ayın {r.dayOfMonth}'i{carry ? ' · sonraki aya sayılır' : ''} · {r.member} ·{' '}
+                      {!r.active
+                        ? 'Pasif'
+                        : posted
+                          ? 'Bu ayın bütçesinde ✓'
+                          : skipped
+                            ? 'Bu ay atlandı'
+                            : `${r.dayOfMonth}'inde eklenecek`}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">

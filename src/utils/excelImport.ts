@@ -1,6 +1,7 @@
 // "Cebim Veri Şablonu" Excel dosyasını uygulama verisine çevirir.
 // Kimlikler satır adından üretilir: aynı dosya tekrar yüklenirse kayıtlar çoğalmaz, güncellenir.
 import type { Cell, Sheets } from './xlsxReader';
+import { CARRY_DEFAULT_FROM_DAY } from './budgetMonth';
 import type {
   CreditCardAccount,
   InstallmentDebt,
@@ -178,7 +179,14 @@ export function buildImportFromSheets(
         dayOfMonth: toDay(t.get(r, 'Ayın Kaçında')) ?? 1,
         paymentMethod: card ? 'Kredi Kartı' : type === 'income' ? 'Havale/EFT' : toPayment(t.get(r, 'Ödeme'), 'Havale/EFT'),
         active: true,
-        cardId: card?.id
+        cardId: card?.id,
+        // Ay sonunda yatan gelir sonraki aya sayılır; sütun boşsa günden tahmin edilir
+        countForNextMonth:
+          type === 'income'
+            ? String(t.get(r, 'Sonraki Aya') ?? '').trim()
+              ? isYes(t.get(r, 'Sonraki Aya'))
+              : (toDay(t.get(r, 'Ayın Kaçında')) ?? 1) >= CARRY_DEFAULT_FROM_DAY
+            : undefined
       });
     }
   };
