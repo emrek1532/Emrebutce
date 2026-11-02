@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Koyu tema sistem ayarından değil, uygulamadaki tema düğmesinden gelir (varsayılan açık) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;

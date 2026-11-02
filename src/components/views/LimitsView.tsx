@@ -56,7 +56,7 @@ export const LimitsView: React.FC = () => {
 
         <button
           onClick={handleAddNew}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors whitespace-nowrap"
+          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-sky-600 dark:hover:bg-sky-700 transition-colors whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
           <span>Yeni Kategori Limiti</span>
@@ -74,16 +74,16 @@ export const LimitsView: React.FC = () => {
           </span>
         </div>
 
-        <div className="p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/30 dark:bg-emerald-950/20 shadow-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/30 dark:bg-sky-950/20 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400 block mb-0.5">
+            <span className="text-[10px] uppercase font-semibold text-sky-600 dark:text-sky-400 block mb-0.5">
               Güvenli Bölge
             </span>
-            <span className="text-lg font-bold font-mono text-emerald-700 dark:text-emerald-300">
+            <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">
               {safeCount} Kategori
             </span>
           </div>
-          <CheckCircle2 className="w-5 h-5 text-emerald-500 opacity-80" />
+          <CheckCircle2 className="w-5 h-5 text-sky-500 opacity-80" />
         </div>
 
         <div className="p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/30 dark:bg-amber-950/20 shadow-xs flex items-center justify-between">

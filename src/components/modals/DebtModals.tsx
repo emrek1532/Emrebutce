@@ -4,7 +4,7 @@ import { CreditCardAccount, InstallmentDebt } from '../../types/budget';
 import { X } from 'lucide-react';
 
 const inputClass =
-  'w-full px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500';
+  'w-full px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500';
 const labelClass = 'block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1';
 
 const ModalShell: React.FC<{ title: string; onClose: () => void; children: React.ReactNode }> = ({
@@ -40,7 +40,7 @@ const ModalFooter: React.FC<{ onClose: () => void; submitLabel: string }> = ({ o
     </button>
     <button
       type="submit"
-      className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg"
+      className="px-4 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg"
     >
       {submitLabel}
     </button>

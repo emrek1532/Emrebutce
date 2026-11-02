@@ -67,7 +67,7 @@ export const InstallmentsView: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <CreditCard className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             <span>Kredi Kartları & Taksitler</span>
           </h2>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
@@ -75,11 +75,11 @@ export const InstallmentsView: React.FC = () => {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
+          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">
               Aylık Taksit Yükü
             </span>
-            <span className="text-lg font-bold font-mono text-emerald-700 dark:text-emerald-300">{money(monthlyLoad)}</span>
+            <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(monthlyLoad)}</span>
           </div>
           <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">
@@ -104,7 +104,7 @@ export const InstallmentsView: React.FC = () => {
           <button
             type="button"
             onClick={() => setCardModal({ open: true, card: null })}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Kart Ekle</span>
@@ -154,7 +154,7 @@ export const InstallmentsView: React.FC = () => {
                     {card.limit > 0 && (
                       <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${usage >= 90 ? 'bg-rose-500' : usage >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                          className={`h-full rounded-full ${usage >= 90 ? 'bg-rose-500' : usage >= 70 ? 'bg-amber-500' : 'bg-sky-500'}`}
                           style={{ width: `${usage}%` }}
                         />
                       </div>
@@ -183,7 +183,7 @@ export const InstallmentsView: React.FC = () => {
           <button
             type="button"
             onClick={() => setInstModal({ open: true, inst: null })}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Taksit Ekle</span>
@@ -204,7 +204,7 @@ export const InstallmentsView: React.FC = () => {
                 <div
                   key={inst.id}
                   className={`p-4 rounded-xl border bg-white dark:bg-neutral-900 shadow-xs flex flex-col justify-between gap-3 ${
-                    active ? 'border-neutral-200 dark:border-neutral-800' : 'border-emerald-200 dark:border-emerald-900 opacity-70'
+                    active ? 'border-neutral-200 dark:border-neutral-800' : 'border-sky-200 dark:border-sky-900 opacity-70'
                   }`}
                 >
                   <div className="space-y-2">
@@ -235,7 +235,7 @@ export const InstallmentsView: React.FC = () => {
                           </span>
                         </div>
                         <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (paid / inst.totalInstallments) * 100)}%` }} />
+                          <div className="h-full bg-sky-500 rounded-full" style={{ width: `${Math.min(100, (paid / inst.totalInstallments) * 100)}%` }} />
                         </div>
                       </div>
                     ) : (
@@ -258,7 +258,7 @@ export const InstallmentsView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => markInstallmentPaid(inst.id)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
+                        className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Bu ay ödendi</span>
@@ -276,14 +276,14 @@ export const InstallmentsView: React.FC = () => {
       {relief.length > 0 && (
         <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
           <div className="flex items-center gap-2 mb-3">
-            <TrendingDown className="w-4 h-4 text-emerald-600" />
+            <TrendingDown className="w-4 h-4 text-sky-600" />
             <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">Borç Bitiş Takvimi</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {relief.map((r) => (
-              <div key={r.label} className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">{r.label}</span>
-                <span className="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-300 block mt-0.5">+{money(r.amount)} / ay rahatlama</span>
+              <div key={r.label} className="p-3 rounded-xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/40 dark:bg-sky-950/20">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">{r.label}</span>
+                <span className="text-sm font-bold font-mono text-sky-700 dark:text-sky-300 block mt-0.5">+{money(r.amount)} / ay rahatlama</span>
                 <span className="text-[11px] text-neutral-500 block mt-0.5">{r.titles.join(', ')} bitiyor</span>
               </div>
             ))}

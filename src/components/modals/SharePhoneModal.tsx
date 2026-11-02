@@ -99,7 +99,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
@@ -123,14 +123,14 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="p-6 space-y-5 overflow-y-auto">
           {/* Native Install Button (if browser triggered beforeinstallprompt) */}
           {isInstallable && !isInstalled && (
-            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 flex items-center justify-between gap-3">
+            <div className="p-3.5 rounded-xl bg-sky-50 dark:bg-sky-950/50 border border-sky-300 dark:border-sky-800 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <Download className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <Download className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
                 <div>
-                  <h4 className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                  <h4 className="text-xs font-bold text-sky-950 dark:text-sky-200">
                     Chrome Yüklemeye Hazır!
                   </h4>
-                  <p className="text-[11px] text-emerald-800 dark:text-emerald-300">
+                  <p className="text-[11px] text-sky-800 dark:text-sky-300">
                     Bu cihazın ana ekranına tam uygulama olarak ekleyebilirsiniz.
                   </p>
                 </div>
@@ -138,7 +138,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={handleNativeInstall}
-                className="px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shrink-0 shadow-xs"
+                className="px-3.5 py-2 text-xs font-bold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors shrink-0 shadow-xs"
               >
                 Hemen Yükle
               </button>
@@ -146,8 +146,8 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
           )}
 
           {installSuccess && (
-            <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <div className="p-3 rounded-lg bg-sky-100 dark:bg-sky-900/60 text-sky-900 dark:text-sky-100 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-sky-600" />
               <span>Uygulama başarıyla cihazınıza yüklendi!</span>
             </div>
           )}
@@ -174,21 +174,21 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     <span className="text-[10px] text-neutral-400">Geçiniz</span>
                   </div>
 
-                  <div className="flex items-center justify-between p-2.5 rounded bg-emerald-700/90 border-2 border-emerald-400 text-white animate-pulse">
+                  <div className="flex items-center justify-between p-2.5 rounded bg-sky-700/90 border-2 border-sky-400 text-white animate-pulse">
                     <div>
                       <div className="text-white text-xs font-bold flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                        <CheckCircle2 className="w-4 h-4 text-sky-300" />
                         <span>2. Kısayol oluştur</span>
                       </div>
-                      <div className="text-[10px] text-emerald-200 font-semibold">👉 BUNA DOKUNUN! Yeşil logolu tam uygulama eklenir</div>
+                      <div className="text-[10px] text-sky-200 font-semibold">👉 BUNA DOKUNUN! Yeşil logolu tam uygulama eklenir</div>
                     </div>
-                    <span className="text-[11px] font-bold bg-white text-emerald-800 px-2 py-0.5 rounded shadow">SEÇİNİZ</span>
+                    <span className="text-[11px] font-bold bg-white text-sky-800 px-2 py-0.5 rounded shadow">SEÇİNİZ</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-200">
-                  <p className="text-xs text-emerald-900 dark:text-emerald-100 font-medium leading-relaxed">
-                    <strong>Neden böyle?</strong> AI Studio geliştirme ortamı şifreli oturum korumalıdır. Google'ın dış Play Store WebAPK mint robotu içeri giremediği için 1. butona "yüklenemez" der; ancak hemen altındaki <strong>"Kısayol oluştur"</strong> butonuna dokunduğunuzda Chrome anında yeşil Ailve logosunu ana ekranınıza bağımsız, reklamsız ve tam ekran çalışan bir mobil uygulama olarak yükler.
+                <div className="p-2.5 rounded-lg bg-sky-100 dark:bg-sky-950/80 border border-sky-300 dark:border-sky-800 text-sky-950 dark:text-sky-200">
+                  <p className="text-xs text-sky-900 dark:text-sky-100 font-medium leading-relaxed">
+                    <strong>Neden böyle?</strong> AI Studio geliştirme ortamı şifreli oturum korumalıdır. Google'ın dış Play Store WebAPK mint robotu içeri giremediği için 1. butona "yüklenemez" der; ancak hemen altındaki <strong>"Kısayol oluştur"</strong> butonuna dokunduğunuzda Chrome anında mavi Cebim logosunu ana ekranınıza bağımsız, reklamsız ve tam ekran çalışan bir mobil uygulama olarak yükler.
                   </p>
                 </div>
               </div>
@@ -233,7 +233,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     type="checkbox"
                     checked={includeSyncKey}
                     onChange={(e) => setIncludeSyncKey(e.target.checked)}
-                    className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 mt-0.5"
+                    className="rounded border-neutral-300 text-sky-600 focus:ring-sky-500 w-4 h-4 mt-0.5"
                   />
                   <div>
                     <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 block">
@@ -263,9 +263,9 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 flex items-center gap-1.5 transition-colors shrink-0"
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-sky-600 dark:hover:bg-sky-700 flex items-center gap-1.5 transition-colors shrink-0"
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 text-sky-400" /> : <Copy className="w-4 h-4" />}
                 <span>{copied ? 'Kopyalandı' : 'Kopyala'}</span>
               </button>
             </div>
@@ -275,7 +275,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={handleWhatsAppShare}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>WhatsApp'ta Aç</span>
@@ -327,7 +327,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
             {activePlatform === 'android' ? (
               <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/40 space-y-2.5 text-xs text-neutral-700 dark:text-neutral-300">
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     1
                   </span>
                   <p>
@@ -335,7 +335,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     2
                   </span>
                   <p>
@@ -343,7 +343,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     3
                   </span>
                   <p>
@@ -351,18 +351,18 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     4
                   </span>
                   <p>
-                    Ana ekranınızda yeşil logolu <strong>Ailve Bütçe</strong> belirecektir. Tıkladığınızda bağımsız, adres çubuğu olmayan yerel bir uygulama gibi açılır.
+                    Ana ekranınızda mavi cüzdan logolu <strong>Cebim</strong> belirecektir. Tıkladığınızda bağımsız, adres çubuğu olmayan yerel bir uygulama gibi açılır.
                   </p>
                 </div>
               </div>
             ) : (
               <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/40 space-y-2 text-xs text-neutral-700 dark:text-neutral-300">
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     1
                   </span>
                   <p>
@@ -370,7 +370,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     2
                   </span>
                   <p>
@@ -378,7 +378,7 @@ export const SharePhoneModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     3
                   </span>
                   <p>

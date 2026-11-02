@@ -114,7 +114,7 @@ export const SimulatorView: React.FC = () => {
               <span className="font-semibold text-neutral-800 dark:text-neutral-200">
                 Maaş Artışı / Prim
               </span>
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="font-mono font-bold text-sky-600 dark:text-sky-400">
                 +%{salaryIncreasePercent} ({formatCurrency(114250 * (salaryIncreasePercent / 100), currency)})
               </span>
             </div>
@@ -125,7 +125,7 @@ export const SimulatorView: React.FC = () => {
               step="5"
               value={salaryIncreasePercent}
               onChange={(e) => setSalaryIncreasePercent(Number(e.target.value))}
-              className="w-full accent-emerald-500 cursor-pointer"
+              className="w-full accent-sky-500 cursor-pointer"
             />
             <span className="text-[11px] text-neutral-400 block">
               Mevcut toplam hane geliri: 114.250 ₺
@@ -209,7 +209,7 @@ export const SimulatorView: React.FC = () => {
                 {/* Tooltip on hover */}
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-2 pointer-events-none z-30 bg-neutral-900 text-white rounded-lg p-2.5 shadow-xl text-xs whitespace-nowrap font-mono">
                   <p className="font-bold text-neutral-200 mb-1">{item.name}</p>
-                  <p className="text-emerald-400">Net Kalan: +{formatCurrency(item.netMonthly, currency)}</p>
+                  <p className="text-sky-400">Net Kalan: +{formatCurrency(item.netMonthly, currency)}</p>
                   <p className="text-neutral-400">Toplam Gider: {formatCurrency(item.totalExpense, currency)}</p>
                   <p className="text-blue-300">Biriken Varlık: {formatCurrency(item.cumulativeSavings, currency)}</p>
                 </div>
@@ -217,8 +217,8 @@ export const SimulatorView: React.FC = () => {
                 <div
                   className={`w-full rounded-t transition-all duration-300 ${
                     isHighlight
-                      ? 'bg-emerald-500 group-hover:bg-emerald-400'
-                      : 'bg-emerald-600/70 group-hover:bg-emerald-500'
+                      ? 'bg-sky-500 group-hover:bg-sky-400'
+                      : 'bg-sky-600/70 group-hover:bg-sky-500'
                   }`}
                   style={{ height: `${h}%` }}
                 />

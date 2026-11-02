@@ -98,7 +98,7 @@ export const CashFlowTrendChart: React.FC = () => {
                 {isHovered && (
                   <div className="absolute bottom-full mb-2 z-20 bg-neutral-900 dark:bg-neutral-800 text-white rounded-lg p-2.5 shadow-xl text-xs whitespace-nowrap border border-neutral-700">
                     <p className="font-semibold text-neutral-200 mb-1">{m.label}</p>
-                    <div className="flex items-center justify-between gap-4 text-emerald-400 font-mono">
+                    <div className="flex items-center justify-between gap-4 text-sky-400 font-mono">
                       <span>Gelir:</span>
                       <span>+{formatCurrency(m.income, currency)}</span>
                     </div>
@@ -108,7 +108,7 @@ export const CashFlowTrendChart: React.FC = () => {
                     </div>
                     <div className="border-t border-neutral-700 mt-1 pt-1 flex items-center justify-between gap-4 font-bold font-mono">
                       <span>Net Tasarruf:</span>
-                      <span className={m.savings >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                      <span className={m.savings >= 0 ? 'text-sky-400' : 'text-rose-400'}>
                         {m.savings >= 0 ? '+' : ''}{formatCurrency(m.savings, currency)}
                       </span>
                     </div>
@@ -119,7 +119,7 @@ export const CashFlowTrendChart: React.FC = () => {
                 <div className="flex items-end justify-center gap-1 sm:gap-2 w-full max-w-[48px] h-full pb-0.5">
                   {/* Income bar */}
                   <div
-                    className="w-1/2 bg-emerald-500 rounded-t transition-all duration-300 group-hover:bg-emerald-400 shadow-sm"
+                    className="w-1/2 bg-sky-500 rounded-t transition-all duration-300 group-hover:bg-sky-400 shadow-sm"
                     style={{ height: `${Math.max(incomeH, 2)}%` }}
                   />
                   {/* Expense bar */}
@@ -142,7 +142,7 @@ export const CashFlowTrendChart: React.FC = () => {
       {/* Legend */}
       <div className="flex items-center justify-center gap-6 mt-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-emerald-500" />
+          <span className="w-3 h-3 rounded-sm bg-sky-500" />
           <span>Gelir</span>
         </div>
         <div className="flex items-center gap-1.5">

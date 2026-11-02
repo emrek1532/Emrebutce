@@ -18,7 +18,7 @@ export const NotificationsDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <Bell className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               Bütçe Bildirimleri
             </h3>
@@ -51,7 +51,7 @@ export const NotificationsDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center text-neutral-400">
-              <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2 opacity-60" />
+              <CheckCircle2 className="w-10 h-10 text-sky-500 mb-2 opacity-60" />
               <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                 Yeni Bildirim Yok
               </p>
@@ -74,7 +74,7 @@ export const NotificationsDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
                       : isWarn
                       ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60'
                       : isGoal
-                      ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/60'
+                      ? 'bg-sky-50/60 dark:bg-sky-950/30 border-sky-200 dark:border-sky-900/60'
                       : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
                   }`}
                 >
@@ -92,7 +92,7 @@ export const NotificationsDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
                       ) : isWarn ? (
                         <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       ) : isGoal ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                       ) : (
                         <Cloud className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       )}

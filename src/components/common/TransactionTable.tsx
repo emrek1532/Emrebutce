@@ -75,7 +75,7 @@ export const TransactionTable: React.FC<Props> = ({
                       <span
                         className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                           isIncome
-                            ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400'
+                            ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400'
                             : 'bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400'
                         }`}
                       >
@@ -113,7 +113,7 @@ export const TransactionTable: React.FC<Props> = ({
                   <td
                     className={`py-3 px-4 text-right font-mono font-bold whitespace-nowrap tabular-nums ${
                       isIncome
-                        ? 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-sky-600 dark:text-sky-400'
                         : 'text-rose-600 dark:text-rose-400'
                     }`}
                   >

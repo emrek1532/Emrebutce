@@ -63,7 +63,7 @@ export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
             <span
               className={`text-xs font-bold font-mono px-2 py-0.5 rounded-full ${
                 isCompleted
-                  ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                  ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
                   : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
               }`}
             >
@@ -89,7 +89,7 @@ export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
             className="h-full rounded-full transition-all duration-500"
             style={{
               width: `${percent}%`,
-              backgroundColor: isCompleted ? '#10B981' : goal.color
+              backgroundColor: isCompleted ? '#0EA5E9' : goal.color
             }}
           />
         </div>
@@ -141,12 +141,12 @@ export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
               placeholder={`Tutar (${currency})`}
               value={depositAmount}
               onChange={(e) => setDepositAmount(e.target.value)}
-              className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-mono focus:outline-none focus:ring-1 focus:ring-sky-500"
               autoFocus
             />
             <button
               type="submit"
-              className="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors whitespace-nowrap"
             >
               Kaydet
             </button>
@@ -164,7 +164,7 @@ export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
             onClick={() => setShowDepositInput(true)}
             className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 transition-colors"
           >
-            <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
             <span>Tasarruf Ekle</span>
           </button>
         )}

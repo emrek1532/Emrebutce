@@ -27,7 +27,7 @@ export const GoalsView: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-            <PiggyBank className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <PiggyBank className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             <span>Aile Tasarruf & Birikim Hedefleri</span>
           </h2>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
@@ -37,7 +37,7 @@ export const GoalsView: React.FC = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors whitespace-nowrap"
+          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
           <span>Yeni Tasarruf Hedefi</span>
@@ -69,7 +69,7 @@ export const GoalsView: React.FC = () => {
               </span>
             </div>
 
-            <div className="w-14 h-14 rounded-full border-4 border-emerald-500/20 dark:border-emerald-500/30 flex items-center justify-center font-bold font-mono text-emerald-600 dark:text-emerald-400 text-sm">
+            <div className="w-14 h-14 rounded-full border-4 border-sky-500/20 dark:border-sky-500/30 flex items-center justify-center font-bold font-mono text-sky-600 dark:text-sky-400 text-sm">
               %{overallPercent}
             </div>
           </div>
@@ -78,7 +78,7 @@ export const GoalsView: React.FC = () => {
         {/* Linear progress */}
         <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
           <div
-            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+            className="h-full bg-sky-500 rounded-full transition-all duration-500"
             style={{ width: `${overallPercent}%` }}
           />
         </div>
