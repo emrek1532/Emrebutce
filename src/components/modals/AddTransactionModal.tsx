@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { Currency, PaymentMethod, Transaction, TransactionType } from '../../types/budget';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../data/initialData';
-import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle, Mic, Square } from 'lucide-react';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, SAVING_CATEGORIES } from '../../data/initialData';
+import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle, Mic, Square, PiggyBank } from 'lucide-react';
 import { isVoiceSupported, listenOnce, parseVoiceTransaction, VoiceSession } from '../../utils/voiceTransaction';
 
 interface Props {
@@ -19,7 +19,7 @@ export const AddTransactionModal: React.FC<Props> = ({
   editTransaction,
   startWithVoice
 }) => {
-  const { addTransaction, updateTransaction, familyMembers, currency: activeCurrency } = useBudget();
+  const { addTransaction, updateTransaction, familyMembers, savingsGoals, currency: activeCurrency } = useBudget();
 
   const [type, setType] = useState<TransactionType>(editTransaction?.type || 'expense');
   const [amount, setAmount] = useState<string>(editTransaction ? String(editTransaction.amount) : '');
@@ -38,6 +38,32 @@ export const AddTransactionModal: React.FC<Props> = ({
     editTransaction?.paymentMethod || 'Kredi Kartı'
   );
   const [isRecurring, setIsRecurring] = useState<boolean>(editTransaction?.isRecurring || false);
+  const [goalId, setGoalId] = useState<string>(editTransaction?.goalId || '');
+
+  const categoriesFor = (t: TransactionType) =>
+    t === 'income' ? INCOME_CATEGORIES : t === 'saving' ? SAVING_CATEGORIES : EXPENSE_CATEGORIES;
+
+  // Pencere her açıldığında alanları düzenlenen işleme (ya da boş forma) göre doldur
+  useEffect(() => {
+    if (!isOpen) return;
+    const t = editTransaction?.type || 'expense';
+    setType(t);
+    setAmount(editTransaction ? String(editTransaction.amount) : '');
+    setCurrency(editTransaction?.currency || activeCurrency);
+    setCategory(editTransaction?.category || categoriesFor(t)[0]);
+    setMember(editTransaction?.member || familyMembers[0]?.name || 'Ortak');
+    setDate(editTransaction?.date || new Date().toISOString().split('T')[0]);
+    setDescription(editTransaction?.description || '');
+    setPaymentMethod(editTransaction?.paymentMethod || 'Kredi Kartı');
+    setIsRecurring(editTransaction?.isRecurring || false);
+    setGoalId(editTransaction?.goalId || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, editTransaction]);
+
+  const selectType = (t: TransactionType) => {
+    setType(t);
+    setCategory(categoriesFor(t)[0]);
+  };
 
   const [isListening, setIsListening] = useState(false);
   const [voiceText, setVoiceText] = useState<string | null>(null);
@@ -105,8 +131,9 @@ export const AddTransactionModal: React.FC<Props> = ({
         member,
         date,
         description: description.trim(),
-        paymentMethod,
-        isRecurring
+        paymentMethod: type === 'expense' ? paymentMethod : 'Havale/EFT',
+        isRecurring,
+        goalId: type === 'saving' && goalId ? goalId : undefined
       });
     } else {
       addTransaction({
@@ -117,15 +144,16 @@ export const AddTransactionModal: React.FC<Props> = ({
         member,
         date,
         description: description.trim(),
-        paymentMethod,
-        isRecurring
+        paymentMethod: type === 'expense' ? paymentMethod : 'Havale/EFT',
+        isRecurring,
+        goalId: type === 'saving' && goalId ? goalId : undefined
       });
     }
 
     onClose();
   };
 
-  const currentCategoryList = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+  const currentCategoryList = categoriesFor(type);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
@@ -178,39 +206,48 @@ export const AddTransactionModal: React.FC<Props> = ({
             </div>
           )}
 
-          {/* Type Toggle: Gider / Gelir */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-100 dark:bg-neutral-800/80 rounded-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setType('expense');
-                setCategory(EXPENSE_CATEGORIES[0]);
-              }}
-              className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-lg transition-all ${
-                type === 'expense'
-                  ? 'bg-rose-500 text-white shadow-xs'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
-              }`}
-            >
-              <ArrowDownCircle className="w-4 h-4" />
-              <span>Gider (Harcama)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setType('income');
-                setCategory(INCOME_CATEGORIES[0]);
-              }}
-              className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-lg transition-all ${
-                type === 'income'
-                  ? 'bg-sky-600 text-white shadow-xs'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
-              }`}
-            >
-              <ArrowUpCircle className="w-4 h-4" />
-              <span>Gelir (Maaş / Ek Gelir)</span>
-            </button>
+          {/* Tür: Gider / Gelir / Birikim */}
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-neutral-100 dark:bg-neutral-800/80 rounded-xl">
+            {([
+              ['expense', 'Gider', ArrowDownCircle, 'bg-rose-500'],
+              ['income', 'Gelir', ArrowUpCircle, 'bg-sky-600'],
+              ['saving', 'Birikim', PiggyBank, 'bg-amber-500']
+            ] as const).map(([t, label, Icon, active]) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => selectType(t)}
+                className={`flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold rounded-lg transition-all ${
+                  type === t
+                    ? `${active} text-white shadow-xs`
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{label}</span>
+              </button>
+            ))}
           </div>
+
+          {type === 'saving' && (
+            <div>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                Hangi hedefe? (isteğe bağlı)
+              </label>
+              <select
+                value={goalId}
+                onChange={(e) => setGoalId(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              >
+                <option value="">Genel birikim (hedefe bağlı değil)</option>
+                {savingsGoals.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Amount & Currency */}
           <div className="grid grid-cols-3 gap-2">
@@ -312,6 +349,7 @@ export const AddTransactionModal: React.FC<Props> = ({
               />
             </div>
 
+            {type === 'expense' && (
             <div>
               <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
                 Ödeme Yöntemi
@@ -327,20 +365,7 @@ export const AddTransactionModal: React.FC<Props> = ({
                 <option value="Havale/EFT">Havale / EFT</option>
               </select>
             </div>
-          </div>
-
-          {/* Recurring check */}
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="checkbox"
-              id="recurringCheck"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="rounded border-neutral-300 text-sky-600 focus:ring-sky-500 w-4 h-4"
-            />
-            <label htmlFor="recurringCheck" className="text-xs text-neutral-700 dark:text-neutral-300 select-none">
-              Aylık Düzenli Tekrarlanan İşlem (Maaş, Kira, Fatura vb.)
-            </label>
+            )}
           </div>
 
           {/* Submit */}

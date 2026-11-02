@@ -4,14 +4,10 @@ import { ActiveTab, Transaction } from '../../types/budget';
 import { HeaderBar } from '../common/HeaderBar';
 import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
-import { AnalyticsView } from '../views/AnalyticsView';
-import { LimitsView } from '../views/LimitsView';
 import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
-import { SimulatorView } from '../views/SimulatorView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { CashFlowTrendChart } from '../charts/CashFlowTrendChart';
-import { BudgetProgressCard } from '../charts/BudgetProgressCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import {
@@ -45,6 +41,7 @@ export const DesktopLayout: React.FC<Props> = ({
   const {
     monthlyIncome,
     monthlyExpense,
+    monthlySavings,
     monthlyBalance,
     savingsRate,
     currency,
@@ -180,47 +177,25 @@ export const DesktopLayout: React.FC<Props> = ({
             </span>
           </div>
 
-          {/* Tasarruf Oranı */}
+          {/* Birikim */}
           <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
             <div className="flex items-center justify-between text-neutral-400 mb-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Aylık Tasarruf Oranı
+                Bu Ay Birikim
               </span>
-              <PiggyBank className="w-4 h-4 text-sky-600" />
+              <PiggyBank className="w-4 h-4 text-amber-500" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
-                %{savingsRate}
+              <span className="text-2xl font-bold font-mono tabular-nums text-amber-600 dark:text-amber-400">
+                {formatCurrency(monthlySavings, currency)}
               </span>
             </div>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-1">
-              Gelirin birikim payı (Hedef: %25)
+              Gelirdeki payı: %{monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0}
             </span>
           </div>
         </div>
 
-        {/* Warning Banner if any category exceeds alertThreshold */}
-        {criticalLimits.length > 0 && (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <div>
-                <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
-                  {criticalLimits.length} Kategori Bütçe Sınırına Ulaştı veya Aştı
-                </h4>
-                <p className="text-xs text-amber-800 dark:text-amber-300">
-                  {criticalLimits.map((c) => c.category).join(', ')} için harcama limitleri kritik seviyede.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setActiveTab('limits')}
-              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors whitespace-nowrap"
-            >
-              Limitleri Yönet
-            </button>
-          </div>
-        )}
 
         {/* TAB CONTENTS */}
         {activeTab === 'overview' && (
@@ -233,12 +208,6 @@ export const DesktopLayout: React.FC<Props> = ({
                   <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                     Kategori Dağılımı (Bu Ay)
                   </h3>
-                  <button
-                    onClick={() => setActiveTab('analytics')}
-                    className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
-                  >
-                    Detaylı Rapor
-                  </button>
                 </div>
                 <CategoryDonutChart compact={false} />
               </div>
@@ -296,9 +265,6 @@ export const DesktopLayout: React.FC<Props> = ({
         )}
 
         {activeTab === 'installments' && <InstallmentsView />}
-        {activeTab === 'simulator' && <SimulatorView />}
-        {activeTab === 'analytics' && <AnalyticsView />}
-        {activeTab === 'limits' && <LimitsView />}
         {activeTab === 'goals' && <GoalsView />}
       </main>
 

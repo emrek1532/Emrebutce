@@ -94,37 +94,6 @@ export const HeaderBar: React.FC<Props> = ({
             <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">Yeni</span>
           </button>
           <button
-            onClick={() => setActiveTab('simulator')}
-            className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
-              activeTab === 'simulator'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            <span>Bütçe Simülatörü</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">24 Ay</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`whitespace-nowrap transition-colors py-1 ${
-              activeTab === 'analytics'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            Analiz & Raporlar
-          </button>
-          <button
-            onClick={() => setActiveTab('limits')}
-            className={`whitespace-nowrap transition-colors py-1 ${
-              activeTab === 'limits'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            Bütçe Limitleri
-          </button>
-          <button
             onClick={() => setActiveTab('goals')}
             className={`whitespace-nowrap transition-colors py-1 ${
               activeTab === 'goals'
@@ -132,7 +101,7 @@ export const HeaderBar: React.FC<Props> = ({
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
-            Tasarruf Hedefleri
+            Birikim
           </button>
         </nav>
 

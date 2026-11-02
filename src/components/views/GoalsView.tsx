@@ -28,7 +28,7 @@ export const GoalsView: React.FC = () => {
         <div>
           <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
             <PiggyBank className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-            <span>Aile Tasarruf & Birikim Hedefleri</span>
+            <span>Birikim & Hedefler</span>
           </h2>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
             Gelecek planlarınız, tatil ve acil durum fonlarınız için hedefler belirleyin ve ilerlemenizi takip edin.
@@ -40,7 +40,7 @@ export const GoalsView: React.FC = () => {
           className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Tasarruf Hedefi</span>
+          <span>Yeni Birikim Hedefi</span>
         </button>
       </div>
 

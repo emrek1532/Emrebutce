@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
-  const { depositToGoal, deleteSavingsGoal, currency } = useBudget();
+  const { addTransaction, deleteSavingsGoal, currency, familyMembers } = useBudget();
   const [showDepositInput, setShowDepositInput] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
 
@@ -29,9 +29,19 @@ export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
     e.preventDefault();
     const val = parseFloat(depositAmount);
     if (!isNaN(val) && val > 0) {
-      // Convert entered amount from display currency to goal currency
-      const amountInGoalCur = convertCurrency(val, currency, goal.currency);
-      depositToGoal(goal.id, amountInGoalCur);
+      // Birikim işlemi olarak kaydedilir; hedefin tutarı işlemle birlikte artar (silinirse geri düşer)
+      const today = new Date();
+      addTransaction({
+        type: 'saving',
+        amount: val,
+        currency,
+        category: 'Birikim',
+        member: familyMembers[0]?.name || 'Ortak',
+        date: new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0],
+        description: `${goal.title} hedefine birikim`,
+        paymentMethod: 'Havale/EFT',
+        goalId: goal.id
+      });
       setDepositAmount('');
       setShowDepositInput(false);
     }
@@ -165,7 +175,7 @@ export const SavingsGoalCard: React.FC<Props> = ({ goal, onEdit }) => {
             className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 transition-colors"
           >
             <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-            <span>Tasarruf Ekle</span>
+            <span>Birikim Ekle</span>
           </button>
         )}
       </div>

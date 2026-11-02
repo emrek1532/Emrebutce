@@ -13,11 +13,7 @@ import {
   CloudVaultPayload
 } from '../types/budget';
 import {
-  DEFAULT_TRANSACTIONS,
-  DEFAULT_CATEGORY_LIMITS,
-  DEFAULT_SAVINGS_GOALS,
-  DEFAULT_FAMILY_MEMBERS,
-  DEFAULT_INSTALLMENTS
+  DEFAULT_FAMILY_MEMBERS
 } from '../data/initialData';
 import {
   generateVaultId,
@@ -77,8 +73,8 @@ interface BudgetContextValue {
   setFilterCategory: (c: string) => void;
   filterMember: string;
   setFilterMember: (m: string) => void;
-  filterType: 'all' | 'income' | 'expense';
-  setFilterType: (t: 'all' | 'income' | 'expense') => void;
+  filterType: 'all' | 'income' | 'expense' | 'saving';
+  setFilterType: (t: 'all' | 'income' | 'expense' | 'saving') => void;
   filterDateRange: 'all' | 'this_month' | 'last_month' | 'last_3_months' | 'this_year';
   setFilterDateRange: (d: 'all' | 'this_month' | 'last_month' | 'last_3_months' | 'this_year') => void;
   filteredTransactions: Transaction[];
@@ -127,6 +123,7 @@ interface BudgetContextValue {
   // Calculated Metrics
   monthlyIncome: number;
   monthlyExpense: number;
+  monthlySavings: number;
   monthlyBalance: number;
   savingsRate: number;
   categorySpendingMap: Record<string, number>;
@@ -152,17 +149,17 @@ const LS_DEVICE = 'ailve_device_mode_v5';
 export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const saved = localStorage.getItem(LS_TRANSACTIONS);
-    return saved ? JSON.parse(saved) : DEFAULT_TRANSACTIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [categoryLimits, setCategoryLimits] = useState<CategoryLimit[]>(() => {
     const saved = localStorage.getItem(LS_LIMITS);
-    return saved ? JSON.parse(saved) : DEFAULT_CATEGORY_LIMITS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(() => {
     const saved = localStorage.getItem(LS_GOALS);
-    return saved ? JSON.parse(saved) : DEFAULT_SAVINGS_GOALS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(() => {
@@ -172,7 +169,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [installments, setInstallments] = useState<InstallmentDebt[]>(() => {
     const saved = localStorage.getItem(LS_INSTALLMENTS);
-    return saved ? JSON.parse(saved) : DEFAULT_INSTALLMENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [creditCards, setCreditCards] = useState<CreditCardAccount[]>(() => {
@@ -230,7 +227,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [filterQuery, setFilterQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterMember, setFilterMember] = useState('all');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'saving'>('all');
   const [filterDateRange, setFilterDateRange] = useState<'all' | 'this_month' | 'last_month' | 'last_3_months' | 'this_year'>('this_month');
 
   // Window resize listener
@@ -332,21 +329,25 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [transactions, currentMonthPrefix, currency]);
 
   // Monthly totals
-  const { monthlyIncome, monthlyExpense } = useMemo(() => {
+  const { monthlyIncome, monthlyExpense, monthlySavings } = useMemo(() => {
     let inc = 0;
     let exp = 0;
+    let sav = 0;
     transactions.forEach((tx) => {
       if (tx.date.startsWith(currentMonthPrefix)) {
         const val = convertCurrency(tx.amount, tx.currency, currency);
         if (tx.type === 'income') inc += val;
+        else if (tx.type === 'saving') sav += val;
         else exp += val;
       }
     });
-    return { monthlyIncome: inc, monthlyExpense: exp };
+    return { monthlyIncome: inc, monthlyExpense: exp, monthlySavings: sav };
   }, [transactions, currentMonthPrefix, currency]);
 
-  const monthlyBalance = monthlyIncome - monthlyExpense;
-  const savingsRate = monthlyIncome > 0 ? Math.max(0, Math.round(((monthlyIncome - monthlyExpense) / monthlyIncome) * 100)) : 0;
+  // Elde kalan: gelir - gider - birikime ayrılan
+  const monthlyBalance = monthlyIncome - monthlyExpense - monthlySavings;
+  // Gelirin birikime ayrılan yüzdesi
+  const savingsRate = monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0;
 
   // Automated Category Limit Check & Notification generation
   const evaluateLimits = useCallback(
@@ -785,7 +786,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const rows = transactions.map((t) => [
       t.id,
       t.date,
-      t.type === 'income' ? 'Gelir' : 'Gider',
+      t.type === 'income' ? 'Gelir' : t.type === 'saving' ? 'Birikim' : 'Gider',
       `"${t.category}"`,
       t.amount,
       t.currency,
@@ -874,15 +875,28 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       createdAt: new Date().toISOString()
     };
     setTransactions((prev) => [newTx, ...prev]);
+    applyGoalSaving(newTx, 1);
+  };
+
+  // Hedefe bağlı birikim işlemi hedefin biriken tutarını artırır/azaltır
+  const applyGoalSaving = (tx: Transaction | undefined, sign: 1 | -1) => {
+    if (!tx || tx.type !== 'saving' || !tx.goalId) return;
+    const goal = savingsGoals.find((g) => g.id === tx.goalId);
+    if (!goal) return;
+    depositToGoal(goal.id, sign * convertCurrency(tx.amount, tx.currency, goal.currency));
   };
 
   const updateTransaction = (updatedTx: Transaction) => {
+    const old = transactions.find((t) => t.id === updatedTx.id);
     setTransactions((prev) => prev.map((t) => (t.id === updatedTx.id ? updatedTx : t)));
+    applyGoalSaving(old, -1);
+    applyGoalSaving(updatedTx, 1);
   };
 
   const deleteTransaction = (id: string) => {
     const tx = transactions.find((t) => t.id === id);
     setTransactions((prev) => prev.filter((t) => t.id !== id));
+    applyGoalSaving(tx, -1);
     // Düzenli işlem silinirse o ay için yeniden oluşturulmaz
     const recMatch = id.match(/^rec-(.+)-(\d{4}-\d{2})$/);
     if (recMatch) {
@@ -929,7 +943,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSavingsGoals((prev) =>
       prev.map((g) => {
         if (g.id !== id) return g;
-        const newCurrent = g.currentAmount + amount;
+        const newCurrent = Math.max(0, g.currentAmount + amount);
         if (newCurrent >= g.targetAmount && g.currentAmount < g.targetAmount) {
           // Add achievement notification
           setNotifications((n) => [
@@ -1200,6 +1214,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     importVaultBackup,
     monthlyIncome,
     monthlyExpense,
+    monthlySavings,
     monthlyBalance,
     savingsRate,
     categorySpendingMap

@@ -1,6 +1,6 @@
 // Sesli işlem girişi: tarayıcının konuşma tanıma özelliğiyle Türkçe cümleyi yazıya çevirir
 // ve "markette 250 lira harcadım" gibi bir cümleden işlem alanlarını çıkarır.
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../data/initialData';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, SAVING_CATEGORIES } from '../data/initialData';
 import type { PaymentMethod, TransactionType } from '../types/budget';
 
 type SpeechRecognitionCtor = new () => {
@@ -103,7 +103,13 @@ const NUMBER_WORDS = new Set([...Object.keys(UNITS), 'yüz', 'bin', 'milyon']);
 
 export function extractAmount(text: string): number | null {
   // Rakamlı tutar: "1.250,50", "1250.5", "2 bin", "1,5 milyon", "250"
-  const digit = text.match(/(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.](\d{1,2}))?\s*(bin|milyon)?(?!\d)/i);
+  const pattern = /(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.](\d{1,2}))?\s*(bin|milyon)?(?!\d)/gi;
+  const candidates = Array.from(text.matchAll(pattern)).map((m) => ({ m, after: text.slice((m.index ?? 0) + m[0].length).trimStart().toLocaleLowerCase('tr-TR') }));
+  // Önce "lira/TL/₺" ile biten sayı; yoksa gram, adet, taksit gibi birim almayan ilk sayı
+  const digit = (
+    candidates.find((c) => /^(lira|tl|₺)/.test(c.after)) ||
+    candidates.find((c) => !/^(gram|gr\b|adet|taksit|ay\b|kilo|kg|litre|tane)/.test(c.after))
+  )?.m;
   if (digit) {
     const whole = Number(digit[1].replace(/[.\s]/g, ''));
     const fraction = digit[2] ? Number(`0.${digit[2]}`) : 0;
@@ -124,6 +130,8 @@ export function extractAmount(text: string): number | null {
   }
   return best;
 }
+
+const SAVING_HINTS = ['birikim', 'biriktir', 'kenara', 'kumbara', 'altın aldım', 'döviz aldım', 'dolar aldım', 'euro aldım', 'yatırım yaptım', 'hesaba attım'];
 
 const INCOME_HINTS = ['maaş', 'gelir', 'prim', 'ikramiye', 'kazandım', 'yattı', 'avans', 'temettü', 'faiz geldi', 'ödeme aldım', 'para aldım'];
 
@@ -178,14 +186,20 @@ function isoDate(d: Date): string {
 export function parseVoiceTransaction(transcript: string, memberNames: string[]): VoiceTransactionDraft {
   const text = transcript.toLocaleLowerCase('tr-TR');
   // "kira geliri" gibi gelir ifadeleri, "kira" gider anahtar kelimesinden önce kontrol edilir
-  const type: TransactionType = INCOME_HINTS.some((k) => text.includes(k)) || text.includes('kira geliri') ? 'income' : 'expense';
+  const type: TransactionType = SAVING_HINTS.some((k) => text.includes(k))
+    ? 'saving'
+    : INCOME_HINTS.some((k) => text.includes(k)) || text.includes('kira geliri')
+      ? 'income'
+      : 'expense';
 
   // Ödeme yöntemi ifadeleri ("kredi kartıyla") kategoriyi yanıltmasın
   const categoryText = PAYMENT_KEYWORDS.flatMap(([, k]) => k).reduce((t, k) => t.split(k).join(' '), text);
   const category =
-    type === 'income'
-      ? findByKeywords(categoryText, INCOME_CATEGORY_KEYWORDS) || INCOME_CATEGORIES[INCOME_CATEGORIES.length - 1]
-      : findByKeywords(categoryText, CATEGORY_KEYWORDS) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
+    type === 'saving'
+      ? (text.includes('altın') ? 'Altın' : /dolar|euro|döviz/.test(text) ? 'Döviz' : text.includes('yatırım') ? 'Yatırım' : SAVING_CATEGORIES[0])
+      : type === 'income'
+        ? findByKeywords(categoryText, INCOME_CATEGORY_KEYWORDS) || INCOME_CATEGORIES[INCOME_CATEGORIES.length - 1]
+        : findByKeywords(categoryText, CATEGORY_KEYWORDS) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
 
   const member =
     memberNames.find((name) => {

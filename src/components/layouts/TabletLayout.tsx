@@ -4,11 +4,8 @@ import { ActiveTab, Transaction } from '../../types/budget';
 import { HeaderBar } from '../common/HeaderBar';
 import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
-import { AnalyticsView } from '../views/AnalyticsView';
-import { LimitsView } from '../views/LimitsView';
 import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
-import { SimulatorView } from '../views/SimulatorView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
@@ -45,6 +42,7 @@ export const TabletLayout: React.FC<Props> = ({
   const {
     monthlyIncome,
     monthlyExpense,
+    monthlySavings,
     monthlyBalance,
     savingsRate,
     currency,
@@ -114,39 +112,6 @@ export const TabletLayout: React.FC<Props> = ({
             <span>Taksitler & Borçlar</span>
           </button>
           <button
-            onClick={() => setActiveTab('simulator')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'simulator'
-                ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-xs'
-                : 'text-neutral-600 dark:text-neutral-400'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Simülatör</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'analytics'
-                ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-xs'
-                : 'text-neutral-600 dark:text-neutral-400'
-            }`}
-          >
-            <PieChart className="w-3.5 h-3.5" />
-            <span>Analiz</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('limits')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'limits'
-                ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-xs'
-                : 'text-neutral-600 dark:text-neutral-400'
-            }`}
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Limitler</span>
-          </button>
-          <button
             onClick={() => setActiveTab('goals')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'goals'
@@ -155,7 +120,7 @@ export const TabletLayout: React.FC<Props> = ({
             }`}
           >
             <Target className="w-3.5 h-3.5" />
-            <span>Hedefler</span>
+            <span>Birikim</span>
           </button>
         </div>
 
@@ -199,7 +164,7 @@ export const TabletLayout: React.FC<Props> = ({
                 {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
               </span>
               <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400">
-                %{savingsRate} Tasarruf
+                %{savingsRate} Birikim
               </span>
             </div>
 
@@ -217,23 +182,14 @@ export const TabletLayout: React.FC<Props> = ({
                 </span>
               </div>
             </div>
+            {monthlySavings > 0 && (
+              <div className="mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs">
+                <span className="text-neutral-400">Bu ay birikim</span>
+                <span className="font-bold font-mono text-amber-600 dark:text-amber-400">{formatCurrency(monthlySavings, currency)}</span>
+              </div>
+            )}
           </div>
 
-          {/* Limit Alert Warning Card */}
-          {warnCount > 0 && (
-            <div
-              onClick={() => setActiveTab('limits')}
-              className="p-4 rounded-2xl border border-amber-200 dark:border-amber-800/80 bg-amber-50/50 dark:bg-amber-950/20 text-xs text-amber-900 dark:text-amber-200 cursor-pointer"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                <h4 className="font-bold">Kritik Bütçe Eşikleri</h4>
-              </div>
-              <p className="text-neutral-600 dark:text-neutral-300">
-                {warnCount} kategoride belirlenen harcama tavanına yaklaşıldı veya aşıldı.
-              </p>
-            </div>
-          )}
 
           {/* Family Members list */}
           <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
@@ -303,9 +259,6 @@ export const TabletLayout: React.FC<Props> = ({
           )}
 
           {activeTab === 'installments' && <InstallmentsView />}
-          {activeTab === 'simulator' && <SimulatorView />}
-          {activeTab === 'analytics' && <AnalyticsView />}
-          {activeTab === 'limits' && <LimitsView />}
           {activeTab === 'goals' && <GoalsView />}
         </div>
       </div>
