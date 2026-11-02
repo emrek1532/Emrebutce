@@ -29,7 +29,16 @@ function isActive(inst: InstallmentDebt) {
 }
 
 export const InstallmentsView: React.FC = () => {
-  const { installments, creditCards, currency, markInstallmentPaid, deleteInstallment, deleteCreditCard } = useBudget();
+  const {
+    installments,
+    creditCards,
+    currency,
+    markInstallmentPaid,
+    undoInstallmentPayment,
+    isInstallmentPaidThisMonth,
+    deleteInstallment,
+    deleteCreditCard
+  } = useBudget();
   const [cardModal, setCardModal] = useState<{ open: boolean; card: CreditCardAccount | null }>({ open: false, card: null });
   const [instModal, setInstModal] = useState<{ open: boolean; inst: InstallmentDebt | null }>({ open: false, inst: null });
 
@@ -254,15 +263,31 @@ export const InstallmentsView: React.FC = () => {
                         {inst.endDate ? ` · Bitiş: ${inst.endDate.split('-').reverse().join('.')}` : ''}
                       </span>
                     </div>
-                    {active && inst.totalInstallments && (
-                      <button
-                        type="button"
-                        onClick={() => markInstallmentPaid(inst.id)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Bu ay ödendi</span>
-                      </button>
+                    {isInstallmentPaidThisMonth(inst.id) ? (
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Bu ay ödendi
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => undoInstallmentPayment(inst.id)}
+                          className="text-[10px] text-neutral-500 hover:text-rose-600 underline"
+                        >
+                          Geri al
+                        </button>
+                      </div>
+                    ) : (
+                      active && (
+                        <button
+                          type="button"
+                          onClick={() => markInstallmentPaid(inst.id)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Bu ayı öde</span>
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
