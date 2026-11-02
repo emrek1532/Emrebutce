@@ -5,6 +5,7 @@ import {
   SavingsGoal,
   FamilyMember,
   InstallmentDebt,
+  CreditCardAccount,
   BudgetNotification,
   Currency,
   DeviceMode,
@@ -94,6 +95,11 @@ interface BudgetContextValue {
   deleteCategoryLimit: (id: string) => void;
   addFamilyMember: (member: Omit<FamilyMember, 'id'>) => void;
   addInstallment: (inst: Omit<InstallmentDebt, 'id'>) => void;
+  updateInstallment: (inst: InstallmentDebt) => void;
+  creditCards: CreditCardAccount[];
+  addCreditCard: (card: Omit<CreditCardAccount, 'id'>) => void;
+  updateCreditCard: (card: CreditCardAccount) => void;
+  deleteCreditCard: (id: string) => void;
   deleteInstallment: (id: string) => void;
   markInstallmentPaid: (id: string, period?: number) => void;
   setCurrency: (c: Currency) => void;
@@ -126,6 +132,7 @@ const LS_LIMITS = 'ailve_limits_v5';
 const LS_GOALS = 'ailve_goals_v5';
 const LS_MEMBERS = 'ailve_members_v5';
 const LS_INSTALLMENTS = 'ailve_installments_v5';
+const LS_CARDS = 'ailve_cards_v5';
 const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
 // Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
@@ -158,6 +165,11 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [installments, setInstallments] = useState<InstallmentDebt[]>(() => {
     const saved = localStorage.getItem(LS_INSTALLMENTS);
     return saved ? JSON.parse(saved) : DEFAULT_INSTALLMENTS;
+  });
+
+  const [creditCards, setCreditCards] = useState<CreditCardAccount[]>(() => {
+    const saved = localStorage.getItem(LS_CARDS);
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [currency, setCurrencyState] = useState<Currency>(() => {
@@ -259,6 +271,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     localStorage.setItem(LS_INSTALLMENTS, JSON.stringify(installments));
   }, [installments]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_CARDS, JSON.stringify(creditCards));
+  }, [creditCards]);
 
   useEffect(() => {
     localStorage.setItem(LS_CURRENCY, currency);
@@ -416,7 +432,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
       if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
       if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
-      if (decrypted.installments) setInstallments(decrypted.installments);
+      if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards);
       if (decrypted.currency) setCurrencyState(decrypted.currency);
 
       remoteUpdatedAtRef.current = data.updatedAt;
@@ -476,6 +492,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         savingsGoals,
         familyMembers,
         installments,
+        creditCards,
         currency
       };
 
@@ -518,6 +535,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     savingsGoals,
     familyMembers,
     installments,
+    creditCards,
     currency,
     effectiveDevice
   ]);
@@ -618,7 +636,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       syncToCloud();
     }, PUSH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, currency, syncConfig.autoSync, syncToCloud]);
+  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, currency, syncConfig.autoSync, syncToCloud]);
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
@@ -676,6 +694,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       savingsGoals,
       familyMembers,
       installments,
+      creditCards,
       currency
     };
     const encrypted = await encryptData(payload, syncConfig.passphrase);
@@ -734,7 +753,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
           if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
           if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
-          if (decrypted.installments) setInstallments(decrypted.installments);
+          if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards);
           if (decrypted.currency) setCurrencyState(decrypted.currency);
 
           setNotifications((prev) => [
@@ -851,6 +870,22 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setInstallments((prev) => [newInst, ...prev]);
   };
 
+  const updateInstallment = (inst: InstallmentDebt) => {
+    setInstallments((prev) => prev.map((i) => (i.id === inst.id ? inst : i)));
+  };
+
+  const addCreditCard = (card: Omit<CreditCardAccount, 'id'>) => {
+    setCreditCards((prev) => [...prev, { ...card, id: `card-${Date.now()}` }]);
+  };
+
+  const updateCreditCard = (card: CreditCardAccount) => {
+    setCreditCards((prev) => prev.map((c) => (c.id === card.id ? card : c)));
+  };
+
+  const deleteCreditCard = (id: string) => {
+    setCreditCards((prev) => prev.filter((c) => c.id !== id));
+  };
+
   const deleteInstallment = (id: string) => {
     setInstallments((prev) => prev.filter((i) => i.id !== id));
   };
@@ -885,6 +920,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const resetAllData = () => {
     setTransactions([]);
     setInstallments([]);
+    setCreditCards([]);
     setSavingsGoals([]);
     setCategoryLimits([]);
     setNotifications([]);
@@ -967,6 +1003,11 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     deleteCategoryLimit,
     addFamilyMember,
     addInstallment,
+    updateInstallment,
+    creditCards,
+    addCreditCard,
+    updateCreditCard,
+    deleteCreditCard,
     deleteInstallment,
     markInstallmentPaid,
     setCurrency,

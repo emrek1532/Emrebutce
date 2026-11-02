@@ -363,7 +363,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
               Verileri Sıfırla
             </h4>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-              Tüm harcama/gelir kayıtları, taksitler, tasarruf hedefleri ve bütçe limitleri silinir. Aile üyeleri ve
+              Tüm harcama/gelir kayıtları, kredi kartları, taksitler, tasarruf hedefleri ve bütçe limitleri silinir. Aile üyeleri ve
               kasa bağlantısı korunur. Bu kasaya bağlı tüm cihazlar da sıfırlanır.
             </p>
             <button
@@ -371,7 +371,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
               onClick={() => {
                 if (
                   window.confirm(
-                    'Tüm harcama, gelir, taksit, hedef ve limit kayıtları bu kasaya bağlı TÜM cihazlardan silinecek. Bu işlem geri alınamaz.\n\nÖnce "Şifreli Yedek" indirmeniz önerilir. Devam edilsin mi?'
+                    'Tüm harcama, gelir, kart, taksit, hedef ve limit kayıtları bu kasaya bağlı TÜM cihazlardan silinecek. Bu işlem geri alınamaz.\n\nÖnce "Şifreli Yedek" indirmeniz önerilir. Devam edilsin mi?'
                   )
                 ) {
                   resetAllData();
