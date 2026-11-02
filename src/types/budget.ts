@@ -125,6 +125,33 @@ export interface RecurringItem {
   skipMonths?: string[];
 }
 
+// Elde tutulan birikim: altın (gram/ayar ya da sikke adedi), döviz veya TL
+export type AssetKind =
+  | 'has'
+  | 'ayar22'
+  | 'ayar18'
+  | 'ayar14'
+  | 'ceyrek'
+  | 'yarim'
+  | 'tam'
+  | 'ata'
+  | 'gremse'
+  | 'ata5'
+  | 'gumus'
+  | 'USD'
+  | 'EUR'
+  | 'GBP'
+  | 'TRY';
+
+export interface AssetHolding {
+  id: string;
+  kind: AssetKind;
+  amount: number; // gram, adet ya da döviz/TL tutarı
+  member: string;
+  note?: string;
+  updatedAt: string;
+}
+
 export interface CloudVaultPayload {
   version: number;
   updatedAt: string;
@@ -135,6 +162,7 @@ export interface CloudVaultPayload {
   installments?: InstallmentDebt[];
   creditCards?: CreditCardAccount[];
   recurring?: RecurringItem[];
+  assets?: AssetHolding[];
   currency: Currency;
 }
 

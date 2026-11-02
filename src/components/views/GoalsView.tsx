@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { SavingsGoalCard } from '../charts/SavingsGoalCard';
 import { AddGoalModal } from '../modals/AddGoalModal';
+import { AssetsSection } from './AssetsSection';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { Target, Plus, PiggyBank, Sparkles, TrendingUp } from 'lucide-react';
 
@@ -43,6 +44,8 @@ export const GoalsView: React.FC = () => {
           <span>Yeni Birikim Hedefi</span>
         </button>
       </div>
+
+      <AssetsSection />
 
       {/* Aggregate Progress Banner */}
       <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">

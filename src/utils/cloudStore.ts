@@ -15,7 +15,7 @@ import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
 
 export class VaultNotFoundError extends Error {}
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/+$/, '');
+export const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/+$/, '');
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
@@ -28,7 +28,7 @@ const realtimeClient = isSupabaseConfigured
 const NOT_CONFIGURED_MESSAGE =
   'Bulut sunucusu yapılandırılmamış (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY eksik).';
 
-async function callRpc(fn: string, args: Record<string, unknown>): Promise<Response> {
+export async function callRpc(fn: string, args: Record<string, unknown>): Promise<Response> {
   const body = JSON.stringify(args);
   return fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',

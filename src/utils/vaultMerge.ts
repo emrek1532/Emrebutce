@@ -42,6 +42,7 @@ export function mergeVault(
     installments: mergeList(b?.installments, local.installments, remote.installments),
     creditCards: mergeList(b?.creditCards, local.creditCards, remote.creditCards),
     recurring: mergeList(b?.recurring, local.recurring, remote.recurring),
+    assets: mergeList(b?.assets, local.assets, remote.assets),
     currency: b && local.currency !== b.currency ? local.currency : remote.currency
   };
 }
