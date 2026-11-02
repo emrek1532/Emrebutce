@@ -89,6 +89,18 @@ export interface InstallmentDebt {
   schedule?: InstallmentScheduleItem[];
 }
 
+export interface CreditCardAccount {
+  id: string;
+  bank: string;
+  name: string;
+  member: string;
+  limit: number;
+  currentDebt: number;
+  statementDay: number; // ekstre kesim günü (1-31)
+  dueDay: number; // son ödeme günü (1-31)
+  notes?: string;
+}
+
 export interface CloudVaultPayload {
   version: number;
   updatedAt: string;
@@ -97,6 +109,7 @@ export interface CloudVaultPayload {
   savingsGoals: SavingsGoal[];
   familyMembers: FamilyMember[];
   installments?: InstallmentDebt[];
+  creditCards?: CreditCardAccount[];
   currency: Currency;
 }
 
