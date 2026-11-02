@@ -9,6 +9,7 @@ import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { SavingsGoalCard } from '../charts/SavingsGoalCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { AddGoalModal } from '../modals/AddGoalModal';
+import { AssetsSection } from '../views/AssetsSection';
 import { InstallmentsView } from '../views/InstallmentsView';
 import {
   LayoutGrid,
@@ -347,7 +348,9 @@ export const MobileLayout: React.FC<Props> = ({
         {/* TAB 4: GOALS */}
         {activeTab === 'goals' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <AssetsSection />
+
+            <div className="flex items-center justify-between pt-2">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
                 Birikim Hedefleri
               </h3>
