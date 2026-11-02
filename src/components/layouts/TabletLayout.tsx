@@ -7,6 +7,7 @@ import { TransactionTable } from '../common/TransactionTable';
 import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
+import { BudgetPlanCard } from '../common/BudgetPlanCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import {
@@ -215,6 +216,8 @@ export const TabletLayout: React.FC<Props> = ({
         <div className="col-span-12 lg:col-span-8">
           {activeTab === 'overview' && (
             <div className="space-y-6">
+              <BudgetPlanCard />
+
               <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
                 <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-4">
                   Kategori Harcama Dağılımı

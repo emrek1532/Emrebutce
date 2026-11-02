@@ -6,6 +6,7 @@ import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
+import { BudgetPlanCard } from '../common/BudgetPlanCard';
 import { SavingsGoalCard } from '../charts/SavingsGoalCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { AddGoalModal } from '../modals/AddGoalModal';
@@ -257,6 +258,8 @@ export const MobileLayout: React.FC<Props> = ({
                 </div>
               )}
             </div>
+
+            <BudgetPlanCard />
 
             {/* Quick Category Donut Preview */}
             <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
