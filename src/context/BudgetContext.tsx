@@ -6,6 +6,7 @@ import {
   FamilyMember,
   InstallmentDebt,
   CreditCardAccount,
+  RecurringItem,
   BudgetNotification,
   Currency,
   DeviceMode,
@@ -100,6 +101,10 @@ interface BudgetContextValue {
   addCreditCard: (card: Omit<CreditCardAccount, 'id'>) => void;
   updateCreditCard: (card: CreditCardAccount) => void;
   deleteCreditCard: (id: string) => void;
+  recurring: RecurringItem[];
+  addRecurring: (item: Omit<RecurringItem, 'id'>) => void;
+  updateRecurring: (item: RecurringItem) => void;
+  deleteRecurring: (id: string) => void;
   deleteInstallment: (id: string) => void;
   markInstallmentPaid: (id: string, period?: number) => void;
   undoInstallmentPayment: (id: string) => void;
@@ -135,6 +140,7 @@ const LS_GOALS = 'ailve_goals_v5';
 const LS_MEMBERS = 'ailve_members_v5';
 const LS_INSTALLMENTS = 'ailve_installments_v5';
 const LS_CARDS = 'ailve_cards_v5';
+const LS_RECURRING = 'ailve_recurring_v5';
 const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
 // Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
@@ -171,6 +177,11 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [creditCards, setCreditCards] = useState<CreditCardAccount[]>(() => {
     const saved = localStorage.getItem(LS_CARDS);
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [recurring, setRecurring] = useState<RecurringItem[]>(() => {
+    const saved = localStorage.getItem(LS_RECURRING);
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -275,6 +286,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     localStorage.setItem(LS_CARDS, JSON.stringify(creditCards));
   }, [creditCards]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_RECURRING, JSON.stringify(recurring));
+  }, [recurring]);
 
   useEffect(() => {
     localStorage.setItem(LS_CURRENCY, currency);
@@ -432,7 +447,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
       if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
       if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
-      if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards);
+      if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards); if (decrypted.recurring) setRecurring(decrypted.recurring);
       if (decrypted.currency) setCurrencyState(decrypted.currency);
 
       remoteUpdatedAtRef.current = data.updatedAt;
@@ -493,6 +508,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         familyMembers,
         installments,
         creditCards,
+        recurring,
         currency
       };
 
@@ -536,6 +552,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     familyMembers,
     installments,
     creditCards,
+    recurring,
     currency,
     effectiveDevice
   ]);
@@ -619,6 +636,39 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [syncFromCloud]);
 
+  // Düzenli gelir/giderler: bu ayın günü geldiyse işlemi bir kez oluşturur. İşlem kimliği
+  // (kalem + ay) sabit olduğu için iki cihaz aynı ayı oluştursa da kopya oluşmaz.
+  useEffect(() => {
+    const today = new Date();
+    const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const existing = new Set(transactions.map((t) => t.id));
+    const due = recurring.filter((r) => {
+      const day = Math.min(r.dayOfMonth, lastDay);
+      return (
+        r.active &&
+        today.getDate() >= day &&
+        !r.skipMonths?.includes(monthKey) &&
+        !existing.has(`rec-${r.id}-${monthKey}`)
+      );
+    });
+    if (due.length === 0) return;
+    const created: Transaction[] = due.map((r) => ({
+      id: `rec-${r.id}-${monthKey}`,
+      type: r.type,
+      amount: r.amount,
+      currency: 'TRY',
+      category: r.category,
+      member: r.member,
+      date: `${monthKey}-${String(Math.min(r.dayOfMonth, lastDay)).padStart(2, '0')}`,
+      description: r.title,
+      paymentMethod: r.paymentMethod,
+      isRecurring: true,
+      createdAt: new Date().toISOString()
+    }));
+    setTransactions((prev) => [...created, ...prev.filter((t) => !created.some((c) => c.id === t.id))]);
+  }, [recurring, transactions]);
+
   // Eski varsayılan isim "Şakir (Ben)" -> "Emre". Buluttan eski adla gelen veri de düzeltilir;
   // değişiklik normal eşitlemeyle diğer cihazlara gider.
   useEffect(() => {
@@ -651,7 +701,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       syncToCloud();
     }, PUSH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, currency, syncConfig.autoSync, syncToCloud]);
+  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, recurring, currency, syncConfig.autoSync, syncToCloud]);
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
@@ -710,6 +760,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       familyMembers,
       installments,
       creditCards,
+      recurring,
       currency
     };
     const encrypted = await encryptData(payload, syncConfig.passphrase);
@@ -768,7 +819,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (decrypted.categoryLimits) setCategoryLimits(decrypted.categoryLimits);
           if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
           if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
-          if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards);
+          if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards); if (decrypted.recurring) setRecurring(decrypted.recurring);
           if (decrypted.currency) setCurrencyState(decrypted.currency);
 
           setNotifications((prev) => [
@@ -783,6 +834,29 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             ...prev
           ]);
         }
+      } else if (parsed.app === 'CebimImport') {
+        // Hazır veri dosyası: taksit listesini değiştirir, düzenli kalemleri ekler/günceller.
+        // Kartlar ve işlemler olduğu gibi kalır.
+        if (Array.isArray(parsed.installments)) setInstallments(parsed.installments);
+        if (Array.isArray(parsed.recurring)) {
+          const incoming: RecurringItem[] = parsed.recurring;
+          setRecurring((prev) => [...prev.filter((r) => !incoming.some((n) => n.id === r.id)), ...incoming]);
+        }
+        if (Array.isArray(parsed.creditCards)) {
+          const incoming: CreditCardAccount[] = parsed.creditCards;
+          setCreditCards((prev) => [...prev.filter((c) => !incoming.some((n) => n.id === c.id)), ...incoming]);
+        }
+        setNotifications((prev) => [
+          {
+            id: `import-ok-${Date.now()}`,
+            type: 'sync_success',
+            title: 'Veriler Yüklendi',
+            message: `${parsed.installments?.length ?? 0} taksit ve ${parsed.recurring?.length ?? 0} düzenli gelir/gider eklendi.`,
+            timestamp: new Date().toISOString(),
+            read: false
+          },
+          ...prev
+        ]);
       } else if (Array.isArray(parsed)) {
         // Plain transactions array
         setTransactions(parsed);
@@ -809,6 +883,14 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const deleteTransaction = (id: string) => {
     const tx = transactions.find((t) => t.id === id);
     setTransactions((prev) => prev.filter((t) => t.id !== id));
+    // Düzenli işlem silinirse o ay için yeniden oluşturulmaz
+    const recMatch = id.match(/^rec-(.+)-(\d{4}-\d{2})$/);
+    if (recMatch) {
+      const [, recId, month] = recMatch;
+      setRecurring((prev) =>
+        prev.map((r) => (r.id === recId ? { ...r, skipMonths: [...(r.skipMonths || []), month].slice(-24) } : r))
+      );
+    }
     // Taksit ödemesi silinirse taksit sayacı da geri alınır
     const instId = tx?.installmentInfo?.installmentId;
     if (instId) {
@@ -816,10 +898,13 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         prev.map((i) => {
           if (i.id !== instId) return i;
           const paid = Math.max(0, (i.paidInstallments || 0) - 1);
+          const total = i.schedule ? i.schedule.length : i.totalInstallments;
           return {
             ...i,
             paidInstallments: paid,
-            remainingInstallments: i.totalInstallments ? i.totalInstallments - paid : i.remainingInstallments
+            remainingInstallments: total ? total - paid : i.remainingInstallments,
+            // Değişken planda ödenen dönem tekrar ödenmemiş olur
+            schedule: i.schedule?.map((s) => (s.period === tx?.installmentInfo?.current ? { ...s, paid: false } : s))
           };
         })
       );
@@ -917,6 +1002,18 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCreditCards((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const addRecurring = (item: Omit<RecurringItem, 'id'>) => {
+    setRecurring((prev) => [...prev, { ...item, id: `rec-${Date.now()}` }]);
+  };
+
+  const updateRecurring = (item: RecurringItem) => {
+    setRecurring((prev) => prev.map((r) => (r.id === item.id ? item : r)));
+  };
+
+  const deleteRecurring = (id: string) => {
+    setRecurring((prev) => prev.filter((r) => r.id !== id));
+  };
+
   const deleteInstallment = (id: string) => {
     setInstallments((prev) => prev.filter((i) => i.id !== id));
   };
@@ -934,43 +1031,43 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const markInstallmentPaid = (id: string, periodNumber?: number) => {
     const inst = installments.find((i) => i.id === id);
     if (!inst) return;
-    if (inst.schedule && periodNumber !== undefined) {
-      setInstallments((prev) =>
-        prev.map((i) =>
-          i.id === id ? { ...i, schedule: i.schedule!.map((s) => (s.period === periodNumber ? { ...s, paid: true } : s)) } : i
-        )
-      );
-      return;
-    }
     if (getInstallmentPaymentThisMonth(id)) return;
 
+    // Değişken tutarlı plan (ör. Eminevim): sıradaki ödenmemiş dönemin tutarı ödenir
+    const scheduleItem = inst.schedule
+      ? inst.schedule.find((s) => (periodNumber !== undefined ? s.period === periodNumber : !s.paid))
+      : undefined;
+    if (inst.schedule && !scheduleItem) return;
+
     const paid = (inst.paidInstallments || 0) + 1;
+    const total = inst.schedule ? inst.schedule.length : inst.totalInstallments;
     setInstallments((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? {
-              ...i,
-              paidInstallments: paid,
-              remainingInstallments: i.totalInstallments ? Math.max(0, i.totalInstallments - paid) : i.remainingInstallments
-            }
-          : i
-      )
+      prev.map((i) => {
+        if (i.id !== id) return i;
+        return {
+          ...i,
+          paidInstallments: paid,
+          remainingInstallments: total ? Math.max(0, total - paid) : i.remainingInstallments,
+          schedule: i.schedule?.map((s) => (s.period === scheduleItem?.period ? { ...s, paid: true } : s))
+        };
+      })
     );
 
     const creditor = inst.creditor.toLocaleLowerCase('tr-TR');
     const paidByCard = creditCards.some((c) => creditor.includes(c.bank.toLocaleLowerCase('tr-TR')));
     const today = new Date();
     const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const label = scheduleItem ? `${scheduleItem.period}. dönem` : total ? `${paid}/${total}` : '';
     addTransaction({
       type: 'expense',
-      amount: inst.monthlyAmount,
+      amount: scheduleItem ? scheduleItem.amount : inst.monthlyAmount,
       currency: 'TRY',
       category: 'Borç & Kredi',
       member: inst.member,
       date: localDate,
-      description: `${inst.title} taksiti${inst.totalInstallments ? ` (${paid}/${inst.totalInstallments})` : ''}`,
+      description: `${inst.title} taksiti${label ? ` (${label})` : ''}`,
       paymentMethod: paidByCard ? 'Kredi Kartı' : 'Havale/EFT',
-      installmentInfo: { current: paid, total: inst.totalInstallments || 0, installmentId: id }
+      installmentInfo: { current: scheduleItem ? scheduleItem.period : paid, total: total || 0, installmentId: id }
     });
   };
 
@@ -993,6 +1090,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTransactions([]);
     setInstallments([]);
     setCreditCards([]);
+    setRecurring([]);
     setSavingsGoals([]);
     setCategoryLimits([]);
     setNotifications([]);
@@ -1080,6 +1178,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     addCreditCard,
     updateCreditCard,
     deleteCreditCard,
+    recurring,
+    addRecurring,
+    updateRecurring,
+    deleteRecurring,
     deleteInstallment,
     markInstallmentPaid,
     undoInstallmentPayment,

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { CreditCardAccount, InstallmentDebt } from '../../types/budget';
+import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/budget';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
-import { CreditCardModal, InstallmentModal } from '../modals/DebtModals';
-import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown } from 'lucide-react';
+import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
+import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
@@ -24,8 +24,17 @@ function formatShortDate(d: Date) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 }
 
+// Değişken planda (ör. Eminevim) toplam dönem sayısı plandan, tutar sıradaki dönemden gelir
+function totalOf(inst: InstallmentDebt) {
+  return inst.schedule ? inst.schedule.length : inst.totalInstallments;
+}
+
+function currentAmount(inst: InstallmentDebt) {
+  return inst.schedule ? inst.schedule.find((s) => !s.paid)?.amount ?? 0 : inst.monthlyAmount;
+}
+
 function isActive(inst: InstallmentDebt) {
-  return inst.totalInstallments ? (inst.remainingInstallments ?? 0) > 0 : true;
+  return totalOf(inst) ? (inst.remainingInstallments ?? 0) > 0 : true;
 }
 
 export const InstallmentsView: React.FC = () => {
@@ -37,27 +46,33 @@ export const InstallmentsView: React.FC = () => {
     undoInstallmentPayment,
     isInstallmentPaidThisMonth,
     deleteInstallment,
-    deleteCreditCard
+    deleteCreditCard,
+    recurring,
+    deleteRecurring,
+    transactions
   } = useBudget();
+  const [recModal, setRecModal] = useState<{ open: boolean; item: RecurringItem | null }>({ open: false, item: null });
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [cardModal, setCardModal] = useState<{ open: boolean; card: CreditCardAccount | null }>({ open: false, card: null });
   const [instModal, setInstModal] = useState<{ open: boolean; inst: InstallmentDebt | null }>({ open: false, inst: null });
 
   const money = (tryAmount: number) => formatCurrency(convertCurrency(tryAmount, 'TRY', currency), currency);
 
   const activeInstallments = installments.filter(isActive);
-  const monthlyLoad = activeInstallments.reduce((sum, i) => sum + i.monthlyAmount, 0);
+  const monthlyLoad = activeInstallments.reduce((sum, i) => sum + currentAmount(i), 0);
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
 
   // Biten taksitlerin aylık bütçede açacağı yer, bitiş ayına göre
   const reliefByMonth = new Map<string, { label: string; amount: number; titles: string[] }>();
   activeInstallments
-    .filter((i) => i.totalInstallments && i.endDate)
+    .filter((i) => totalOf(i) && i.endDate)
     .forEach((i) => {
       const [y, m] = i.endDate.split('-').map(Number);
       const key = `${y}-${String(m).padStart(2, '0')}`;
       const entry = reliefByMonth.get(key) || { label: `${MONTHS[m - 1]} ${y}`, amount: 0, titles: [] };
-      entry.amount += i.monthlyAmount;
+      entry.amount += currentAmount(i);
       entry.titles.push(i.title);
       reliefByMonth.set(key, entry);
     });
@@ -98,6 +113,59 @@ export const InstallmentsView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Düzenli gelir & giderler */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+            <Repeat className="w-4 h-4 text-sky-600" />
+            Düzenli Gelir & Giderler
+          </h3>
+          <button
+            type="button"
+            onClick={() => setRecModal({ open: true, item: null })}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Ekle</span>
+          </button>
+        </div>
+        {recurring.length === 0 ? (
+          <p className="p-4 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 text-xs text-neutral-500 text-center">
+            Maaş, kira gibi her ay tekrarlayan kalemleri ekleyin; günü gelince kendiliğinden işlem olarak kaydedilir.
+          </p>
+        ) : (
+          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 divide-y divide-neutral-100 dark:divide-neutral-800">
+            {recurring.map((r) => {
+              const posted = transactions.some((t) => t.id === `rec-${r.id}-${monthKey}`);
+              const skipped = r.skipMonths?.includes(monthKey);
+              return (
+                <div key={r.id} className={`px-4 py-3 flex items-center justify-between gap-3 ${r.active ? '' : 'opacity-50'}`}>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">{r.title}</div>
+                    <div className="text-[11px] text-neutral-500">
+                      Her ayın {r.dayOfMonth}'i · {r.member} ·{' '}
+                      {!r.active ? 'Pasif' : posted ? 'Bu ay eklendi ✓' : skipped ? 'Bu ay atlandı' : `${r.dayOfMonth}'inde eklenecek`}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-sm font-bold font-mono ${r.type === 'income' ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      {r.type === 'income' ? '+' : '-'}
+                      {money(r.amount)}
+                    </span>
+                    <button type="button" title="Düzenle" onClick={() => setRecModal({ open: true, item: r })} className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button type="button" title="Sil" onClick={() => confirmDelete(r.title, () => deleteRecurring(r.id))} className="p-1.5 rounded-md text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* Kredi kartları */}
       <section className="space-y-3">
@@ -235,16 +303,16 @@ export const InstallmentsView: React.FC = () => {
                       <span className="ml-1.5 text-[11px] font-normal text-neutral-500">· {inst.member}</span>
                     </h4>
                     {inst.notes && <p className="text-xs text-neutral-500 dark:text-neutral-400">{inst.notes}</p>}
-                    {inst.totalInstallments ? (
+                    {totalOf(inst) ? (
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs font-mono">
-                          <span className="text-neutral-400">{paid} / {inst.totalInstallments} ödendi</span>
+                          <span className="text-neutral-400">{inst.schedule ? 'Dönem ' : ''}{paid} / {totalOf(inst)} ödendi</span>
                           <span className="font-semibold text-neutral-700 dark:text-neutral-300">
                             {active ? `${inst.remainingInstallments} taksit kaldı` : 'Bitti'}
                           </span>
                         </div>
                         <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-sky-500 rounded-full" style={{ width: `${Math.min(100, (paid / inst.totalInstallments) * 100)}%` }} />
+                          <div className="h-full bg-sky-500 rounded-full" style={{ width: `${Math.min(100, (paid / (totalOf(inst) || 1)) * 100)}%` }} />
                         </div>
                       </div>
                     ) : (
@@ -256,7 +324,7 @@ export const InstallmentsView: React.FC = () => {
                     <div>
                       <span className="text-[10px] text-neutral-400 block uppercase">Aylık</span>
                       <span className="text-base font-bold font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
-                        {money(inst.monthlyAmount)}
+                        {money(currentAmount(inst))}
                       </span>
                       <span className="text-[10px] text-neutral-500 block">
                         {active ? `Sonraki: ${formatShortDate(next.date)}` : ''}
@@ -317,6 +385,7 @@ export const InstallmentsView: React.FC = () => {
       )}
 
       <CreditCardModal isOpen={cardModal.open} editCard={cardModal.card} onClose={() => setCardModal({ open: false, card: null })} />
+      <RecurringModal isOpen={recModal.open} editItem={recModal.item} onClose={() => setRecModal({ open: false, item: null })} />
       <InstallmentModal isOpen={instModal.open} editInstallment={instModal.inst} onClose={() => setInstModal({ open: false, inst: null })} />
     </div>
   );
