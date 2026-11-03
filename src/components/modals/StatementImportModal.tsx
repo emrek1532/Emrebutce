@@ -7,7 +7,7 @@ import { FileText, X } from 'lucide-react';
 
 // Kart/banka ekstresi PDF'inden harcamaları okuyup seçilenleri işlem olarak ekler (cihazda, yapay zekâsız)
 export const StatementImportModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { creditCards, familyMembers, importTransactions, updateCreditCard } = useBudget();
+  const { creditCards, familyMembers, importTransactions, updateCreditCard, transactions } = useBudget();
   const [lines, setLines] = useState<StatementLine[] | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [categories, setCategories] = useState<Record<string, string>>({});
@@ -72,6 +72,11 @@ export const StatementImportModal: React.FC<{ onClose: () => void }> = ({ onClos
     if (!(total >= 0)) return '';
     const remaining = Math.max(0, Math.round((total - num(paidText)) * 100) / 100);
     const cut = summary.statementDate;
+    const periodAfterCut = cut
+      ? transactions
+          .filter((t) => t.type === 'expense' && t.cardId === card.id && t.date > cut)
+          .reduce((s, t) => s + t.amount, 0)
+      : Math.max(0, card.currentDebt - (card.statementDebt ?? card.currentDebt));
     const due = summary.dueDate;
     updateCreditCard({
       ...card,
@@ -81,8 +86,8 @@ export const StatementImportModal: React.FC<{ onClose: () => void }> = ({ onClos
       statementDay: cut ? Number(cut.slice(8, 10)) : card.statementDay,
       dueDay: due ? Number(due.slice(8, 10)) : card.dueDay,
       limit: summary.limit ?? card.limit,
-      // Güncel borç en az ekstreden kalan kadardır (üstü dönem içi harcamalar)
-      currentDebt: Math.max(card.currentDebt, remaining)
+      // Güncel borç = ekstreden kalan + kesimden SONRA bu kartla yapılan harcamalar (dönem içi)
+      currentDebt: Math.round((remaining + periodAfterCut) * 100) / 100
     });
     return ` ${cardName} kartı güncellendi: ekstre ${total.toLocaleString('tr-TR')} ₺, kalan ${remaining.toLocaleString('tr-TR')} ₺.`;
   };
