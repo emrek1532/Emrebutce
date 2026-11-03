@@ -33,7 +33,8 @@ import {
   EncryptedVaultRecord,
   connectVaultLive,
   VaultLiveLink,
-  loadVaultBackup
+  loadVaultBackup,
+  VaultConflictError
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
 import { lastStatementKey } from '../utils/cardStatement';
@@ -589,7 +590,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   // Şifreleyip buluta yazar; newPassphrase verilirse kasa yeni anahtarla şifrelenir ve yazma izni ona devredilir
-  const pushPayload = async (payload: CloudVaultPayload, newPassphrase?: string) => {
+  const pushPayload = async (payload: CloudVaultPayload, newPassphrase?: string, expectedUpdatedAt?: string | null) => {
     const pass = newPassphrase ?? syncConfig.passphrase;
     const encrypted = await encryptData(payload, pass);
     const writeToken = await deriveWriteToken(syncConfig.vaultId, syncConfig.passphrase);
@@ -598,7 +599,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       syncConfig.vaultId,
       { ...encrypted, version: payload.version, updatedAt: payload.updatedAt, clientInfo: `Cebim-${effectiveDevice}` },
       writeToken,
-      newWriteToken
+      newWriteToken,
+      expectedUpdatedAt === undefined ? remoteUpdatedAtRef.current ?? null : expectedUpdatedAt
     );
     remoteUpdatedAtRef.current = serverUpdatedAt ?? payload.updatedAt;
     setBase(payload);
@@ -615,34 +617,47 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       let payload = currentPayload();
+      let mergedFromRemote = false;
 
       // Başka bir cihaz daha yeni sürüm yüklediyse: bu cihazda bekleyen değişiklik yoksa onu al,
       // varsa iki tarafı kayıt bazında birleştirip öyle gönder (kimsenin değişikliği kaybolmaz).
-      let remote: EncryptedVaultRecord | null = null;
-      try {
-        remote = await loadVault(syncConfig.vaultId);
-      } catch (err) {
-        if (!(err instanceof VaultNotFoundError)) throw err;
-      }
-      if (remote && isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) {
-        const remotePayload = await decryptRecord(remote, syncConfig.passphrase);
-        if (!dirtyRef.current) {
-          applyPayload(remotePayload);
+      // Sunucu, bu cihazın bildiği sürümden sonra başka yazma olduysa reddeder; o zaman yeniden birleştirilir.
+      for (let attempt = 0; attempt < 4; attempt++) {
+        let remote: EncryptedVaultRecord | null = null;
+        try {
+          remote = await loadVault(syncConfig.vaultId);
+        } catch (err) {
+          if (!(err instanceof VaultNotFoundError)) throw err;
+        }
+        if (remote && isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) {
+          const remotePayload = await decryptRecord(remote, syncConfig.passphrase);
+          if (!dirtyRef.current && !mergedFromRemote) {
+            applyPayload(remotePayload);
+            setBase(remotePayload);
+            remoteUpdatedAtRef.current = remote.updatedAt;
+            setSyncConfig((prev) => ({
+              ...prev,
+              status: 'synced',
+              lastSyncedAt: new Date().toISOString(),
+              remoteUpdatedAt: remoteUpdatedAtRef.current
+            }));
+            return true;
+          }
+          payload = mergeVault(baseRef.current, payload, remotePayload);
+          applyPayload(payload);
+          // Birleştirilen hal artık bu sürümün üzerine kuruldu
           setBase(remotePayload);
           remoteUpdatedAtRef.current = remote.updatedAt;
-          setSyncConfig((prev) => ({
-            ...prev,
-            status: 'synced',
-            lastSyncedAt: new Date().toISOString(),
-            remoteUpdatedAt: remoteUpdatedAtRef.current
-          }));
-          return true;
+          mergedFromRemote = true;
         }
-        payload = mergeVault(baseRef.current, payload, remotePayload);
-        applyPayload(payload);
+        try {
+          await pushPayload(payload, undefined, remote ? remote.updatedAt ?? null : null);
+          break;
+        } catch (err) {
+          if (err instanceof VaultConflictError && attempt < 3) continue;
+          throw err;
+        }
       }
-
-      await pushPayload(payload);
 
       setSyncConfig((prev) => ({
         ...prev,
