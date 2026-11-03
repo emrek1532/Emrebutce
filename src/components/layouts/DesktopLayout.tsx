@@ -209,6 +209,7 @@ export const DesktopLayout: React.FC<Props> = ({
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
+            {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
 
             {/* Visual Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -274,7 +275,8 @@ export const DesktopLayout: React.FC<Props> = ({
           </div>
         )}
 
-        {activeTab === 'installments' && <InstallmentsView />}
+        {activeTab === 'installments' && <InstallmentsView section="debts" />}
+        {activeTab === 'cards' && <InstallmentsView section="cards" />}
         {activeTab === 'goals' && <GoalsView />}
       </main>
 

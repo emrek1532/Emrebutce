@@ -184,6 +184,17 @@ export const MobileLayout: React.FC<Props> = ({
           İşlemler
         </button>
         <button
+          onClick={() => setActiveTab('cards')}
+          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
+            activeTab === 'cards'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
+          }`}
+        >
+          <CreditCard className="w-3 h-3" />
+          <span>Kartlar</span>
+        </button>
+        <button
           onClick={() => setActiveTab('installments')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
             activeTab === 'installments'
@@ -191,8 +202,7 @@ export const MobileLayout: React.FC<Props> = ({
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
-          <CreditCard className="w-3 h-3" />
-          <span>Taksitler & Borçlar</span>
+          <span>Borçlar</span>
         </button>
         <button
           onClick={() => setActiveTab('goals')}
@@ -264,6 +274,7 @@ export const MobileLayout: React.FC<Props> = ({
             </div>
 
             {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
+            {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
 
             {/* Quick Category Donut Preview */}
             <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
@@ -381,7 +392,8 @@ export const MobileLayout: React.FC<Props> = ({
 
 
         {/* TAB: INSTALLMENTS & DEBTS */}
-        {activeTab === 'installments' && <InstallmentsView />}
+        {activeTab === 'installments' && <InstallmentsView section="debts" />}
+        {activeTab === 'cards' && <InstallmentsView section="cards" />}
 
         {/* TAB: SIMULATOR */}
       </main>

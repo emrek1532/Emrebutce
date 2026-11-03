@@ -3,12 +3,12 @@ import { useBudget } from '../../context/BudgetContext';
 import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/budget';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
-import { ExcelImportBar } from '../common/ExcelImportBar';
+import { StatementImportModal } from '../modals/StatementImportModal';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
 import { UpcomingPayments } from '../common/UpcomingPayments';
 import { budgetMonthOf } from '../../utils/budgetMonth';
 import { minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
-import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat } from 'lucide-react';
+import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat, FileText } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
@@ -42,7 +42,10 @@ function isActive(inst: InstallmentDebt) {
   return totalOf(inst) ? (inst.remainingInstallments ?? 0) > 0 : true;
 }
 
-export const InstallmentsView: React.FC = () => {
+// Aynı ekran üç yerde parça parça kullanılır: Kartlar sekmesi, Borçlar sekmesi ve Özet'teki düzenli gelir/giderler
+export type InstallmentsSection = 'cards' | 'debts' | 'recurring';
+
+export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ section = 'debts' }) => {
   const {
     installments,
     creditCards,
@@ -61,14 +64,13 @@ export const InstallmentsView: React.FC = () => {
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [cardModal, setCardModal] = useState<{ open: boolean; card: CreditCardAccount | null }>({ open: false, card: null });
+  const [statementOpen, setStatementOpen] = useState(false);
   const [instModal, setInstModal] = useState<{ open: boolean; inst: InstallmentDebt | null }>({ open: false, inst: null });
 
   const money = (tryAmount: number) => formatCurrency(convertCurrency(tryAmount, 'TRY', currency), currency);
 
   const activeInstallments = installments.filter(isActive);
   const monthlyLoad = activeInstallments.reduce((sum, i) => sum + currentAmount(i), 0);
-  // Kira, abonelik gibi her ay tekrarlayan giderler (taksitler hariç)
-  const monthlyFixed = recurring.filter((r) => r.active && r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
 
@@ -95,50 +97,62 @@ export const InstallmentsView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Özet */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-            <span>Kredi Kartları & Taksitler</span>
-          </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-            Kartlarınızı ve taksitli borçlarınızı ekleyin; ödeme günleri ve bitiş tarihleri otomatik takip edilir.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full sm:w-auto">
-          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">
-              Aylık Taksit Yükü
-            </span>
+      {section === 'debts' && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              <span>Borçlar & Taksitler</span>
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Krediler, yapılandırmalar, Eminevim ve diğer taksitli borçlar; ödeme günleri ve bitişleri otomatik takip edilir.
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 w-full sm:w-auto">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Aylık Taksit Yükü</span>
             <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(monthlyLoad)}</span>
           </div>
-          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">
-              Aylık Sabit Gider
-            </span>
-            <span className="text-lg font-bold font-mono text-amber-800 dark:text-amber-300">{money(monthlyFixed)}</span>
+        </div>
+      )}
+
+      {section === 'cards' && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              <span>Kredi Kartları</span>
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Ekstre borcu, asgari ödeme, dönem içi harcama ve kalan limit. Yeni ekstre gelince PDF'ini yükleyin.
+            </p>
           </div>
-          <div className="p-3 rounded-xl bg-neutral-900 dark:bg-neutral-100 border border-neutral-900 dark:border-neutral-100">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-300 dark:text-neutral-600 block">
-              Aylık Toplam Yük
-            </span>
-            <span className="text-lg font-bold font-mono text-white dark:text-neutral-900">{money(monthlyLoad + monthlyFixed)}</span>
-          </div>
-          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">
-              Toplam Kart Borcu
-            </span>
-            <span className="text-lg font-bold font-mono text-rose-700 dark:text-rose-300">{money(totalCardDebt)}</span>
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">Toplam Kart Borcu</span>
+              <span className="text-lg font-bold font-mono text-rose-700 dark:text-rose-300">{money(totalCardDebt)}</span>
+            </div>
+            <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Kalan Limit</span>
+              <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(Math.max(0, totalCardLimit - totalCardDebt))}</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <UpcomingPayments />
+      {section === 'cards' && (
+        <button
+          type="button"
+          onClick={() => setStatementOpen(true)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-sky-300 dark:border-sky-800 text-sm font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
+        >
+          <FileText className="w-4 h-4" /> Ekstre PDF'i yükle (harcamalar + kart borcu)
+        </button>
+      )}
 
-      <ExcelImportBar />
+      {section === 'recurring' && <UpcomingPayments />}
 
       {/* Düzenli gelir & giderler */}
+      {section === 'recurring' && (
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
@@ -197,15 +211,17 @@ export const InstallmentsView: React.FC = () => {
           </div>
         )}
       </section>
+      )}
 
       {/* Kredi kartları */}
+      {section === 'cards' && (
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
-            Kredi Kartlarım
+            Kartlarım
             {totalCardLimit > 0 && (
               <span className="ml-2 text-xs font-normal text-neutral-500">
-                Limit doluluğu %{Math.round((totalCardDebt / totalCardLimit) * 100)} · kalan limit {money(Math.max(0, totalCardLimit - totalCardDebt))}
+                Limit doluluğu %{Math.round((totalCardDebt / totalCardLimit) * 100)}
               </span>
             )}
           </h3>
@@ -338,8 +354,10 @@ export const InstallmentsView: React.FC = () => {
           </div>
         )}
       </section>
+      )}
 
       {/* Taksitler */}
+      {section === 'debts' && (
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">Taksitler & Krediler</h3>
@@ -450,11 +468,12 @@ export const InstallmentsView: React.FC = () => {
           </div>
         )}
       </section>
+      )}
 
       {/* Bitiş takvimi */}
-      <DebtPayoffChart />
+      {section === 'debts' && <DebtPayoffChart />}
 
-      {relief.length > 0 && (
+      {section === 'debts' && relief.length > 0 && (
         <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
           <div className="flex items-center gap-2 mb-3">
             <TrendingDown className="w-4 h-4 text-sky-600" />
@@ -475,6 +494,7 @@ export const InstallmentsView: React.FC = () => {
       <CreditCardModal isOpen={cardModal.open} editCard={cardModal.card} onClose={() => setCardModal({ open: false, card: null })} />
       <RecurringModal isOpen={recModal.open} editItem={recModal.item} onClose={() => setRecModal({ open: false, item: null })} />
       <InstallmentModal isOpen={instModal.open} editInstallment={instModal.inst} onClose={() => setInstModal({ open: false, inst: null })} />
+      {statementOpen && <StatementImportModal onClose={() => setStatementOpen(false)} />}
     </div>
   );
 };

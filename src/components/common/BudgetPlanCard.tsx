@@ -133,7 +133,7 @@ export const BudgetPlanCard: React.FC = () => {
       {plan.cards > 0 && (
         <p className="text-[11px] text-amber-700 dark:text-amber-400">
           Kart ekstreleri, kartlardaki "Son ekstre borcu" toplamıdır. Bilinmiyorsa kartın tüm borcu (kalan taksitler dahil) sayılır;
-          Taksitler & Borçlar'da her kartı düzenleyip bu ayki gerçek ekstre tutarını girin.
+          Kartlar sekmesinde ekstre PDF'ini yükleyin ya da kartı düzenleyip gerçek ekstre tutarını girin.
         </p>
       )}
       {plan.cardPeriod > 0 && (
