@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { budgetMonthOf, monthKeyOf } from '../../utils/budgetMonth';
-import { statementDebtOf, periodSpendOf } from '../../utils/cardStatement';
+import { minimumPaymentOf, statementDebtOf, periodSpendOf } from '../../utils/cardStatement';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { Wallet } from 'lucide-react';
 
@@ -69,10 +69,13 @@ export const BudgetPlanCard: React.FC = () => {
     const saved = thisMonth.filter((t) => t.type === 'saving').reduce((s, t) => s + toTry(t), 0);
 
     const free = income - fixed - loans - cards - spent - saved;
+    // Kartlara sadece kalan asgari ödenirse (kalan ekstre sonraki aya faizle devreder)
+    const minimums = creditCards.reduce((s, c) => s + minimumPaymentOf(c), 0) + cardPayments;
+    const freeWithMinimum = free + cards - minimums;
     const now = new Date();
     const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1;
     const cardPeriod = creditCards.reduce((s, c) => s + periodSpendOf(c), 0);
-    return { income, fixed, loans, cards, spent, saved, free, daily: free / daysLeft, daysLeft, cardPeriod };
+    return { income, fixed, loans, cards, spent, saved, free, daily: free / daysLeft, daysLeft, cardPeriod, minimums, freeWithMinimum };
   }, [transactions, recurring, installments, creditCards]);
 
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
@@ -107,6 +110,14 @@ export const BudgetPlanCard: React.FC = () => {
           </div>
         )}
       </div>
+      {plan.cards > plan.minimums && (
+        <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-xs flex items-center justify-between gap-2">
+          <span className="text-amber-800 dark:text-amber-300">Kartlara sadece asgari ({money(plan.minimums)}) ödenirse</span>
+          <span className={`font-mono font-bold ${plan.freeWithMinimum >= 0 ? 'text-sky-700 dark:text-sky-400' : 'text-rose-600'}`}>
+            {money(plan.freeWithMinimum)}
+          </span>
+        </div>
+      )}
       <div className="text-xs space-y-1 pt-2 border-t border-neutral-100 dark:border-neutral-800">
         <div className="flex justify-between">
           <span className="text-neutral-500">Beklenen gelir</span>
