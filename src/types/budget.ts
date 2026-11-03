@@ -157,6 +157,12 @@ export interface AssetHolding {
   updatedAt: string;
 }
 
+// Birikimlerin toplam değerinin günlük kaydı (id = YYYY-MM-DD)
+export interface AssetSnapshot {
+  id: string;
+  total: number; // TL
+}
+
 export interface CloudVaultPayload {
   version: number;
   updatedAt: string;
@@ -168,6 +174,7 @@ export interface CloudVaultPayload {
   creditCards?: CreditCardAccount[];
   recurring?: RecurringItem[];
   assets?: AssetHolding[];
+  assetHistory?: AssetSnapshot[];
   currency: Currency;
 }
 
