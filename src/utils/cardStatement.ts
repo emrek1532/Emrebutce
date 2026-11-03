@@ -16,8 +16,8 @@ export const statementDebtOf = (card: CreditCardAccount) => card.statementDebt ?
 // Dönem içi (henüz ekstreye girmemiş) harcama
 export const periodSpendOf = (card: CreditCardAccount) => Math.max(0, card.currentDebt - statementDebtOf(card));
 
-// Asgari ödeme: limiti 50.000 ₺'ye kadar olan kartlarda ekstrenin %20'si, üstünde %40'ı (BDDK oranları)
-export const minimumRateOf = (card: CreditCardAccount) => (card.limit > 50000 ? 0.4 : 0.2);
+// Asgari ödeme: limiti 100.000 ₺'ye kadar olan kartlarda dönem borcunun %20'si, üstünde %40'ı (banka ekstrelerindeki güncel kural)
+export const minimumRateOf = (card: CreditCardAccount) => (card.limit > 100000 ? 0.4 : 0.2);
 // Kalan asgari: ekstre toplamının asgari payından bu dönem ödenen kısım düşülür
 export const minimumPaymentOf = (card: CreditCardAccount) => {
   const total = card.statementTotal ?? statementDebtOf(card);
