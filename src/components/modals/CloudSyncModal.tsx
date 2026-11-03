@@ -120,7 +120,7 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 Verileriniz Cihazınızda Şifrelenir
               </span>
               <p className="mt-0.5 text-neutral-500 dark:text-neutral-400">
-                Bütçe hareketleriniz, tasarruf hedefleriniz ve limitleriniz buluta gönderilmeden önce tarayıcınızda AES-256 ile şifrelenir. Bulut sunucusu şifreli verinin içeriğini asla göremez.
+                Tüm verileriniz buluta gönderilmeden önce bu cihazda AES-256 ile şifrelenir; sunucu içeriği göremez. Sadece ödeme hatırlatması açıksa hatırlatılacak ödemelerin adı, tutarı ve günü şifresiz saklanır.
               </p>
             </div>
           </div>

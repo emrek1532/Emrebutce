@@ -188,7 +188,7 @@ export const MobileLayout: React.FC<Props> = ({
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
             activeTab === 'installments'
               ? 'bg-sky-600 text-white shadow-xs'
-              : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
           <CreditCard className="w-3 h-3" />

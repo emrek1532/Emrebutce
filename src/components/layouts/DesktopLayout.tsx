@@ -84,10 +84,10 @@ export const DesktopLayout: React.FC<Props> = ({
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Aile Finans & Bütçe Yönetimi
+              Aile Bütçemiz
             </h1>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Uçtan uca şifreli bulut kasası · Otomatik senkronizasyon · Bütçe limit uyarıları
+              Şifreli · Tüm cihazlarda anında eşitlenir · Ödeme hatırlatmaları
             </p>
           </div>
 
