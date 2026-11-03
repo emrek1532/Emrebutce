@@ -91,7 +91,6 @@ export const HeaderBar: React.FC<Props> = ({
             }`}
           >
             <span>Taksitler & Borçlar</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">Yeni</span>
           </button>
           <button
             onClick={() => setActiveTab('goals')}

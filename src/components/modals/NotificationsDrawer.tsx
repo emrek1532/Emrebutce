@@ -58,7 +58,7 @@ export const NotificationsDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
                 Yeni Bildirim Yok
               </p>
               <span className="text-xs text-neutral-500 dark:text-neutral-400 max-w-[200px] mt-1">
-                Tüm harcama limitleriniz ve bütçe hedefleriniz güvenli seviyede.
+                Yeni bir uyarı yok. Yaklaşan ödemeleriniz yukarıda listelenir.
               </span>
             </div>
           ) : (
