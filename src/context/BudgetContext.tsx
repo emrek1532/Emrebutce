@@ -139,6 +139,8 @@ interface BudgetContextValue {
   importVaultBackup: (file: File) => Promise<void>;
   importExcel: (file: File) => Promise<string>;
   restoreBackup: (slot: string) => Promise<void>;
+  // Hazır kimlikli işlemleri toplu ekler/günceller (kart borcuna eklemez); eklenen sayıyı döndürür
+  importTransactions: (txs: Transaction[]) => number;
 
   // Calculated Metrics
   selectedMonth: string;
@@ -1032,6 +1034,13 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Sunucudaki otomatik yedeği geri yükler: yedekteki hal bu cihazın değişikliği sayılır ve buluta yazılır,
   // böylece tüm cihazlar yedeğe döner.
+  const importTransactions = (txs: Transaction[]) => {
+    const existing = new Set(transactions.map((t) => t.id));
+    const fresh = txs.filter((t) => !existing.has(t.id));
+    if (fresh.length) setTransactions((prev) => [...prev, ...fresh].sort((a, b) => b.date.localeCompare(a.date)));
+    return fresh.length;
+  };
+
   const restoreBackup = async (slot: string) => {
     const record = await loadVaultBackup(syncConfig.vaultId, slot);
     const payload = await decryptRecord(record, syncConfig.passphrase);
@@ -1520,6 +1529,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     importVaultBackup,
     importExcel,
     restoreBackup,
+    importTransactions,
     monthlyIncome,
     monthlyExpense,
     monthlySavings,

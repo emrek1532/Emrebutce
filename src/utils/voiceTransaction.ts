@@ -142,7 +142,7 @@ const CATEGORY_KEYWORDS: Array<[string, string[]]> = [
   ['Ulaşım & Motor', ['benzin', 'akaryakıt', 'yakıt', 'mazot', 'motorin', 'otobüs', 'taksi', 'metro', 'ulaşım', 'motor', 'otopark', 'köprü', 'otoyol', 'marmaray', 'dolmuş']],
   ['Faturalar & Aidat', ['fatura', 'elektrik', 'doğalgaz', 'doğal gaz', 'su parası', 'internet', 'aidat', 'telefon faturası']],
   ['Market & Gıda', ['market', 'ekmek', 'gıda', 'manav', 'kasap', 'bakkal', 'migros', 'bim', 'a101', 'şok', 'carrefour', 'süt', 'sebze', 'meyve', 'pazar']],
-  ['Eğlence & Restoran', ['restoran', 'kafe', 'kahve', 'yemek', 'sinema', 'dışarıda', 'lokanta', 'döner', 'pizza', 'eğlence', 'tatil']],
+  ['Eğlence & Restoran', ['restoran', 'kafe', 'kahve', 'yemek', 'sinema', 'dışarıda', 'lokanta', 'döner', 'pizza', 'eğlence', 'tatil', 'netflix', 'spotify', 'youtube', 'disney', 'abonelik']],
   ['Sağlık & Bakım', ['eczane', 'ilaç', 'doktor', 'hastane', 'sağlık', 'kuaför', 'berber', 'diş', 'muayene']],
   ['Giyim & Alışveriş', ['kıyafet', 'giyim', 'ayakkabı', 'alışveriş', 'pantolon', 'mont', 'elbise', 'gömlek', 'çanta']],
   ['Konut & Birikim', ['birikim', 'altın', 'tasarruf']]
@@ -222,4 +222,9 @@ export function parseVoiceTransaction(transcript: string, memberNames: string[])
     date: isoDate(date),
     description
   };
+}
+
+// Açıklamadan gider kategorisi tahmini (ekstre içe aktarma da kullanır)
+export function guessExpenseCategory(text: string): string {
+  return findByKeywords(text.toLocaleLowerCase('tr-TR'), CATEGORY_KEYWORDS) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
 }
