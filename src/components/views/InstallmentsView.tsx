@@ -272,13 +272,19 @@ export const InstallmentsView: React.FC = () => {
                     )}
                   </div>
 
+                  {card.statementTotal !== undefined && card.statementTotal > stmt && (
+                    <div className="flex justify-between text-[11px] font-mono text-neutral-500">
+                      <span>Ekstre {money(card.statementTotal)}</span>
+                      <span>Ödenen {money(card.statementTotal - stmt)}</span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-3 gap-2 text-[11px]">
                     <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40">
-                      <span className="text-rose-700 dark:text-rose-300 block">Ekstre borcu</span>
+                      <span className="text-rose-700 dark:text-rose-300 block">Ekstreden kalan</span>
                       <span className="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{money(stmt)}</span>
                     </div>
                     <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40">
-                      <span className="text-amber-700 dark:text-amber-300 block">Asgari (%{Math.round(minimumRateOf(card) * 100)})</span>
+                      <span className="text-amber-700 dark:text-amber-300 block">Kalan asgari (%{Math.round(minimumRateOf(card) * 100)})</span>
                       <span className="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{money(minimum)}</span>
                     </div>
                     <div className="p-2 rounded-lg bg-neutral-50 dark:bg-neutral-800/60">
