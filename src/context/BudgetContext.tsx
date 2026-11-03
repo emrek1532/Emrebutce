@@ -136,6 +136,8 @@ interface BudgetContextValue {
   importExcel: (file: File) => Promise<string>;
 
   // Calculated Metrics
+  selectedMonth: string;
+  setSelectedMonth: (month: string) => void;
   monthlyIncome: number;
   monthlyExpense: number;
   monthlySavings: number;
@@ -349,13 +351,9 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, []);
 
-  // Spend calculations for current month (or selected currency)
-  const currentMonthPrefix = useMemo(() => {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    return `${y}-${m}`;
-  }, []);
+  // Özette gösterilen ay (YYYY-MM); varsayılan bu ay, önceki aylara geçilebilir
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => monthKeyOf(new Date()));
+  const currentMonthPrefix = selectedMonth;
 
   const categorySpendingMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -1413,6 +1411,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     currency,
     notifications,
     syncConfig,
+    selectedMonth,
+    setSelectedMonth,
     deviceMode,
     effectiveDevice,
     darkMode,

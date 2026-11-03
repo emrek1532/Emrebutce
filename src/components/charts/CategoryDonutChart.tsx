@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
+import { budgetMonthOf } from '../../utils/budgetMonth';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 
 interface CategorySlice {
@@ -17,15 +18,15 @@ const PALETTE = [
 ];
 
 export const CategoryDonutChart: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
-  const { filteredTransactions, currency, categoryLimits } = useBudget();
+  const { transactions, selectedMonth, currency, categoryLimits } = useBudget();
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
   // Calculate expenses by category from filteredTransactions
   const expenseMap: Record<string, number> = {};
   let totalExpense = 0;
 
-  filteredTransactions.forEach((tx) => {
-    if (tx.type === 'expense') {
+  transactions.forEach((tx) => {
+    if (tx.type === 'expense' && budgetMonthOf(tx) === selectedMonth) {
       const val = convertCurrency(tx.amount, tx.currency, currency);
       expenseMap[tx.category] = (expenseMap[tx.category] || 0) + val;
       totalExpense += val;
