@@ -71,6 +71,8 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
 
   const activeInstallments = installments.filter(isActive);
   const monthlyLoad = activeInstallments.reduce((sum, i) => sum + currentAmount(i), 0);
+  // Kira, abonelik gibi her ay tekrarlayan giderler (taksitler hariç)
+  const monthlyFixed = recurring.filter((r) => r.active && r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
 
@@ -147,6 +149,23 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
         >
           <FileText className="w-4 h-4" /> Ekstre PDF'i yükle (harcamalar + kart borcu)
         </button>
+      )}
+
+      {section === 'recurring' && (
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Aylık Sabit Gider</span>
+            <span className="text-base sm:text-lg font-bold font-mono text-amber-800 dark:text-amber-300">{money(monthlyFixed)}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Aylık Taksit Yükü</span>
+            <span className="text-base sm:text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(monthlyLoad)}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-neutral-900 dark:bg-neutral-100 border border-neutral-900 dark:border-neutral-100">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-300 dark:text-neutral-600 block">Aylık Toplam Yük</span>
+            <span className="text-base sm:text-lg font-bold font-mono text-white dark:text-neutral-900">{money(monthlyFixed + monthlyLoad)}</span>
+          </div>
+        </div>
       )}
 
       {section === 'recurring' && <UpcomingPayments />}

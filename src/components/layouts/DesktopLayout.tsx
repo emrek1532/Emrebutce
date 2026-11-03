@@ -123,11 +123,15 @@ export const DesktopLayout: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="max-w-xs">
-          <MonthSwitcher />
-        </div>
+        {(activeTab === 'overview' || activeTab === 'transactions') && (
+          <div className="max-w-xs">
+            <MonthSwitcher />
+          </div>
+        )}
 
-        {/* Executive KPI Strips */}
+        {/* Executive KPI Strips: sadece Özet'te */}
+        {activeTab === 'overview' && (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Net Bakiye */}
           <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
@@ -203,7 +207,8 @@ export const DesktopLayout: React.FC<Props> = ({
             </span>
           </div>
         </div>
-
+        </>
+        )}
 
         {/* TAB CONTENTS */}
         {activeTab === 'overview' && (
