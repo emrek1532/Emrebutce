@@ -164,7 +164,8 @@ export const TabletLayout: React.FC<Props> = ({
 
       {/* 2-Column Split Workspace */}
       <div className="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-12 gap-6">
-        {/* Left Side Pane (4 cols) */}
+        {/* Left Side Pane (4 cols): sadece Özet'te */}
+        {activeTab === 'overview' && (
         <div className="col-span-12 lg:col-span-4 space-y-5">
           <MonthSwitcher />
           {/* Balance card */}
@@ -226,8 +227,9 @@ export const TabletLayout: React.FC<Props> = ({
           </div>
         </div>
 
+        )}
         {/* Right Detail Workspace (8 cols) */}
-        <div className="col-span-12 lg:col-span-8">
+        <div className={`col-span-12 ${activeTab === 'overview' ? 'lg:col-span-8' : ''}`}>
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
@@ -265,6 +267,9 @@ export const TabletLayout: React.FC<Props> = ({
 
           {activeTab === 'transactions' && (
             <div className="space-y-4">
+              <div className="max-w-xs">
+                <MonthSwitcher />
+              </div>
               <FilterBar />
               <TransactionTable
                 transactions={filteredTransactions}
