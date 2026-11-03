@@ -105,6 +105,17 @@ export const TabletLayout: React.FC<Props> = ({
             <span>İşlemler</span>
           </button>
           <button
+            onClick={() => setActiveTab('cards')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'cards'
+                ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-xs'
+                : 'text-neutral-600 dark:text-neutral-400'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5 text-sky-500" />
+            <span>Kartlar</span>
+          </button>
+          <button
             onClick={() => setActiveTab('installments')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'installments'
@@ -112,8 +123,7 @@ export const TabletLayout: React.FC<Props> = ({
                 : 'text-neutral-600 dark:text-neutral-400'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5 text-sky-500" />
-            <span>Taksitler & Borçlar</span>
+            <span>Borçlar</span>
           </button>
           <button
             onClick={() => setActiveTab('goals')}
@@ -221,6 +231,7 @@ export const TabletLayout: React.FC<Props> = ({
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
+            {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
 
               <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
                 <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-4">
@@ -265,7 +276,8 @@ export const TabletLayout: React.FC<Props> = ({
             </div>
           )}
 
-          {activeTab === 'installments' && <InstallmentsView />}
+          {activeTab === 'installments' && <InstallmentsView section="debts" />}
+        {activeTab === 'cards' && <InstallmentsView section="cards" />}
           {activeTab === 'goals' && <GoalsView />}
         </div>
       </div>

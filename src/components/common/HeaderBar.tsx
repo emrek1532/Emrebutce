@@ -83,6 +83,16 @@ export const HeaderBar: React.FC<Props> = ({
             Harcama & Gelirler
           </button>
           <button
+            onClick={() => setActiveTab('cards')}
+            className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
+              activeTab === 'cards'
+                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
+                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+            }`}
+          >
+            <span>Kartlar</span>
+          </button>
+          <button
             onClick={() => setActiveTab('installments')}
             className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
               activeTab === 'installments'
@@ -90,7 +100,7 @@ export const HeaderBar: React.FC<Props> = ({
                 : 'hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
-            <span>Taksitler & Borçlar</span>
+            <span>Borçlar</span>
           </button>
           <button
             onClick={() => setActiveTab('goals')}

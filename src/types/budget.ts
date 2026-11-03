@@ -193,6 +193,7 @@ export type ActiveTab =
   | 'overview'
   | 'transactions'
   | 'installments'
+  | 'cards'
   | 'simulator'
   | 'analytics'
   | 'limits'
