@@ -8,6 +8,7 @@ import {
   CreditCardAccount,
   RecurringItem,
   AssetHolding,
+  AssetSnapshot,
   BudgetNotification,
   Currency,
   DeviceMode,
@@ -108,6 +109,8 @@ interface BudgetContextValue {
   payCardDebt: (cardId: string, amount: number, recordAsExpense: boolean) => void;
   recurring: RecurringItem[];
   assets: AssetHolding[];
+  assetHistory: AssetSnapshot[];
+  recordAssetSnapshot: (totalTl: number) => void;
   saveAsset: (asset: Omit<AssetHolding, 'id' | 'updatedAt'> & { id?: string }) => void;
   deleteAsset: (id: string) => void;
   addRecurring: (item: Omit<RecurringItem, 'id'>) => void;
@@ -157,6 +160,7 @@ const LS_INSTALLMENTS = 'ailve_installments_v5';
 const LS_CARDS = 'ailve_cards_v5';
 const LS_RECURRING = 'ailve_recurring_v5';
 const LS_ASSETS = 'cebim_assets_v1';
+const LS_ASSET_HISTORY = 'cebim_asset_history_v1';
 const LS_CURRENCY = 'ailve_currency_v5';
 const LS_SYNC = 'ailve_sync_v5';
 // Buluta henüz gönderilmemiş yerel değişiklik var mı (uygulama kapansa da hatırlanır)
@@ -201,6 +205,14 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [recurring, setRecurring] = useState<RecurringItem[]>(() => {
     const saved = localStorage.getItem(LS_RECURRING);
     return saved ? JSON.parse(saved) : [];
+  });
+
+  const [assetHistory, setAssetHistory] = useState<AssetSnapshot[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(LS_ASSET_HISTORY) || '[]');
+    } catch {
+      return [];
+    }
   });
 
   const [assets, setAssets] = useState<AssetHolding[]>(() => {
@@ -321,6 +333,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     localStorage.setItem(LS_ASSETS, JSON.stringify(assets));
   }, [assets]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_ASSET_HISTORY, JSON.stringify(assetHistory));
+  }, [assetHistory]);
 
   useEffect(() => {
     localStorage.setItem(LS_CURRENCY, currency);
@@ -509,6 +525,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (payload.creditCards) setCreditCards(payload.creditCards);
     if (payload.recurring) setRecurring(payload.recurring);
     if (payload.assets) setAssets(payload.assets);
+    if (payload.assetHistory) setAssetHistory(payload.assetHistory);
     if (payload.currency) setCurrencyState(payload.currency);
   };
 
@@ -563,6 +580,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     creditCards,
     recurring,
     assets,
+    assetHistory,
     currency
   });
 
@@ -651,6 +669,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     creditCards,
     recurring,
     assets,
+    assetHistory,
     currency,
     effectiveDevice
   ]);
@@ -832,7 +851,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       syncToCloud();
     }, PUSH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, recurring, assets, currency, syncConfig.autoSync, syncToCloud]);
+  }, [transactions, categoryLimits, savingsGoals, familyMembers, installments, creditCards, recurring, assets, assetHistory, currency, syncConfig.autoSync, syncToCloud]);
 
   // Diğer cihazların değişikliklerini al: açılışta, sekmeye dönünce ve düzenli aralıklarla
   useEffect(() => {
@@ -925,6 +944,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       creditCards,
       recurring,
       assets,
+      assetHistory,
       currency
     };
     const encrypted = await encryptData(payload, syncConfig.passphrase);
@@ -1266,6 +1286,18 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setAssets((prev) => (prev.some((a) => a.id === item.id) ? prev.map((a) => (a.id === item.id ? item : a)) : [...prev, item]));
   };
 
+  // Günde bir kayıt; değer %0,5'ten az değiştiyse yazmaz (gereksiz eşitleme olmasın)
+  const recordAssetSnapshot = (totalTl: number) => {
+    if (!(totalTl >= 0)) return;
+    const id = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    setAssetHistory((prev) => {
+      const today = prev.find((s) => s.id === id);
+      if (today && Math.abs(today.total - totalTl) <= Math.max(1, today.total * 0.005)) return prev;
+      const total = Math.round(totalTl);
+      return [...prev.filter((s) => s.id !== id), { id, total }].sort((a, b) => a.id.localeCompare(b.id)).slice(-730);
+    });
+  };
+
   const deleteAsset = (id: string) => {
     setAssets((prev) => prev.filter((a) => a.id !== id));
   };
@@ -1360,6 +1392,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCreditCards([]);
     setRecurring([]);
     setAssets([]);
+    setAssetHistory([]);
     setSavingsGoals([]);
     setCategoryLimits([]);
     setNotifications([]);
@@ -1447,6 +1480,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     payCardDebt,
     recurring,
     assets,
+    assetHistory,
+    recordAssetSnapshot,
     saveAsset,
     deleteAsset,
     addRecurring,

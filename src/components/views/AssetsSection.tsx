@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import type { AssetHolding, AssetKind } from '../../types/budget';
+import type { AssetHolding, AssetKind, AssetSnapshot } from '../../types/budget';
 import { ASSET_LABELS, cachedPrices, fetchPrices, PriceSnapshot, unitPrice } from '../../utils/assetPrices';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { Coins, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
@@ -15,7 +15,7 @@ const amountText = (a: AssetHolding) => {
 
 // Birikim sekmesinde elde tutulan altın, döviz ve TL birikimleri (Harem Altın alış fiyatıyla)
 export const AssetsSection: React.FC = () => {
-  const { assets, saveAsset, deleteAsset, familyMembers, currency } = useBudget();
+  const { assets, saveAsset, deleteAsset, familyMembers, currency, assetHistory, recordAssetSnapshot } = useBudget();
   const [prices, setPrices] = useState<PriceSnapshot | null>(cachedPrices());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +53,13 @@ export const AssetsSection: React.FC = () => {
   const byGroup = (g: 'altin' | 'doviz' | 'tl') =>
     rows.filter((r) => ASSET_LABELS[r.a.kind].group === g).reduce((s, r) => s + (r.value ?? 0), 0);
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
+
+  // Güncel fiyat varken toplam değeri günlük geçmişe yaz
+  const allPriced = rows.every((r) => r.value !== null);
+  useEffect(() => {
+    if (prices && !error && allPriced && assets.length > 0) recordAssetSnapshot(total);
+  }, [total, prices, error, allPriced, assets.length]);
+
   const priceTime = prices?.haremTime?.split(' ')[1]?.slice(0, 5);
 
   return (
@@ -100,6 +107,7 @@ export const AssetsSection: React.FC = () => {
             <span className="font-mono font-semibold">{money(byGroup('tl'))}</span>
           </div>
         </div>
+        <AssetHistoryChart history={assetHistory} money={money} />
         {error && <p className="mt-2 text-[11px] text-rose-600">{error} — son bilinen fiyatlar gösteriliyor.</p>}
       </div>
 
@@ -155,6 +163,44 @@ export const AssetsSection: React.FC = () => {
         />
       )}
     </section>
+  );
+};
+
+// Toplam birikim değerinin zaman içindeki değişimi (günlük kayıtlardan çizgi)
+const AssetHistoryChart: React.FC<{ history: AssetSnapshot[]; money: (tl: number) => string }> = ({ history, money }) => {
+  const points = history.slice(-180);
+  if (points.length < 2) {
+    return <p className="mt-3 text-[11px] text-neutral-500">Değer geçmişi her gün kaydedilir; grafik yarından itibaren görünür.</p>;
+  }
+  const last = points[points.length - 1];
+  const target = new Date(last.id);
+  target.setDate(target.getDate() - 30);
+  const monthAgo = [...points].reverse().find((p) => p.id <= target.toISOString().slice(0, 10)) ?? points[0];
+  const change = last.total - monthAgo.total;
+  const pct = monthAgo.total > 0 ? (change / monthAgo.total) * 100 : 0;
+  const min = Math.min(...points.map((p) => p.total));
+  const max = Math.max(...points.map((p) => p.total));
+  const span = max - min || 1;
+  const path = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${((i / (points.length - 1)) * 100).toFixed(2)},${(38 - ((p.total - min) / span) * 34).toFixed(2)}`)
+    .join(' ');
+  const up = change >= 0;
+  const fmtDate = (id: string) => id.split('-').reverse().slice(0, 2).join('.');
+  return (
+    <div className="mt-3 pt-3 border-t border-amber-200/70 dark:border-amber-900/60">
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="text-neutral-500">
+          {fmtDate(monthAgo.id)} → {fmtDate(last.id)}
+        </span>
+        <span className={`font-mono font-semibold ${up ? 'text-sky-700 dark:text-sky-400' : 'text-rose-600'}`}>
+          {up ? '+' : '−'}
+          {money(Math.abs(change))} ({up ? '+' : '−'}%{Math.abs(pct).toLocaleString('tr-TR', { maximumFractionDigits: 1 })})
+        </span>
+      </div>
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-12 mt-1" role="img" aria-label="Birikim değeri geçmişi">
+        <path d={path} fill="none" stroke={up ? '#0284c7' : '#e11d48'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+      </svg>
+    </div>
   );
 };
 

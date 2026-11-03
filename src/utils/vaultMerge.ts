@@ -43,6 +43,7 @@ export function mergeVault(
     creditCards: mergeList(b?.creditCards, local.creditCards, remote.creditCards),
     recurring: mergeList(b?.recurring, local.recurring, remote.recurring),
     assets: mergeList(b?.assets, local.assets, remote.assets),
+    assetHistory: mergeList(b?.assetHistory, local.assetHistory, remote.assetHistory).sort((x, y) => x.id.localeCompare(y.id)),
     currency: b && local.currency !== b.currency ? local.currency : remote.currency
   };
 }
