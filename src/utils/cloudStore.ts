@@ -45,16 +45,21 @@ export async function callRpc(fn: string, args: Record<string, unknown>): Promis
 
 // Sunucunun kaydettiği zaman damgasını döndürür (cihazlar arası "hangisi daha yeni" karşılaştırması için).
 export class VaultWriteDeniedError extends Error {}
+// Bu cihazın bildiği sürümden sonra başka bir cihaz yazmış: önce birleştirip tekrar denenmeli
+export class VaultConflictError extends Error {}
 
 // writeToken: anahtardan türetilen yazma belirteci. newWriteToken yalnızca anahtar değiştirilirken verilir.
 export async function saveVault(
   vaultId: string,
   record: EncryptedVaultRecord,
   writeToken: string,
-  newWriteToken?: string
+  newWriteToken?: string,
+  // Bu cihazın bildiği son sunucu sürümü; sunucudaki farklıysa yazma reddedilir (kör üzerine yazma olmaz)
+  expectedUpdatedAt?: string | null
 ): Promise<string | undefined> {
   const response = isSupabaseConfigured
-    ? await callRpc('upsert_vault_v2', {
+    ? await callRpc('upsert_vault_v3', {
+        p_expected_updated_at: expectedUpdatedAt ?? null,
         p_vault_id: vaultId,
         p_ciphertext: record.ciphertext,
         p_iv: record.iv,
@@ -72,6 +77,9 @@ export async function saveVault(
 
   if (!response.ok) {
     const body = await response.text().catch(() => '');
+    if (body.includes('vault_conflict')) {
+      throw new VaultConflictError('Kasa başka bir cihazda güncellenmiş.');
+    }
     if (body.includes('write_token')) {
       throw new VaultWriteDeniedError(
         'Bu cihazdaki şifreleme anahtarı kasayla eşleşmiyor (anahtar başka cihazda değiştirilmiş olabilir). Yeni anahtarı "Bu Kasaya Bağlan" ile girin.'
