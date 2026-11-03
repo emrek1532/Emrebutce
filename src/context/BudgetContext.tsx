@@ -1455,9 +1455,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const txDate = new Date(tx.date);
         const now = new Date();
         if (filterDateRange === 'this_month') {
-          if (budgetMonthOf(tx) !== monthKeyOf(now)) return false;
+          // Ay seçicide seçili ay (varsayılan bu ay)
+          if (budgetMonthOf(tx) !== selectedMonth) return false;
         } else if (filterDateRange === 'last_month') {
-          if (budgetMonthOf(tx) !== shiftMonthKey(monthKeyOf(now), -1)) return false;
+          if (budgetMonthOf(tx) !== shiftMonthKey(selectedMonth, -1)) return false;
         } else if (filterDateRange === 'last_3_months') {
           const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
           if (txDate < threeMonthsAgo) return false;
@@ -1467,7 +1468,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
       return true;
     });
-  }, [transactions, filterType, filterCategory, filterMember, filterQuery, filterDateRange]);
+  }, [transactions, filterType, filterCategory, filterMember, filterQuery, filterDateRange, selectedMonth]);
 
   const value: BudgetContextValue = {
     transactions,

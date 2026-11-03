@@ -339,6 +339,7 @@ export const MobileLayout: React.FC<Props> = ({
         {/* TAB 2: TRANSACTIONS */}
         {activeTab === 'transactions' && (
           <div className="space-y-4">
+            <MonthSwitcher />
             <FilterBar />
             <TransactionTable
               transactions={filteredTransactions}
