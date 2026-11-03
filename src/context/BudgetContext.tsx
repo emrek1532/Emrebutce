@@ -785,6 +785,18 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         // Atlanan ay, kalemin sayıldığı bütçe ayına göre tutulur
         const budgetMonth = carry ? shiftMonthKey(mk, 1) : mk;
         if (date > todayStr || existing.has(id) || counted.has(`${r.id}|${budgetMonth}`) || r.skipMonths?.includes(budgetMonth)) continue;
+        // Aynı gelir o bütçe ayına zaten elle girildiyse (yakın tutar) ikinci kez ekleme
+        if (
+          r.type === 'income' &&
+          transactions.some(
+            (t) =>
+              t.type === 'income' &&
+              !t.id.startsWith('rec-') &&
+              budgetMonthOf(t) === budgetMonth &&
+              Math.abs(t.amount - r.amount) <= Math.max(1, r.amount * 0.02)
+          )
+        )
+          continue;
         created.push({
           id,
           type: r.type,

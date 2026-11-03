@@ -21,7 +21,16 @@ export const BudgetPlanCard: React.FC = () => {
 
     // Gelir: düzenli gelirlerin tamamı (henüz yatmamış olsa da) + bu ay girilen diğer gelirler
     const recurringIncome = recurring.filter((r) => r.active && r.type === 'income').reduce((s, r) => s + r.amount, 0);
-    const otherIncome = thisMonth.filter((t) => t.type === 'income' && !t.id.startsWith('rec-')).reduce((s, t) => s + toTry(t), 0);
+    // Elle girilmiş gelir bir düzenli gelirle aynıysa (yakın tutar) o zaten düzenli gelirde sayıldı
+    const recurringIncomes = recurring.filter((r) => r.active && r.type === 'income');
+    const otherIncome = thisMonth
+      .filter(
+        (t) =>
+          t.type === 'income' &&
+          !t.id.startsWith('rec-') &&
+          !recurringIncomes.some((r) => Math.abs(t.amount - r.amount) <= Math.max(1, r.amount * 0.02))
+      )
+      .reduce((s, t) => s + toTry(t), 0);
     const income = recurringIncome + otherIncome;
 
     // Kartla ödenmeyen sabit giderler (kartla ödenenler ekstrenin içinde)
@@ -110,6 +119,12 @@ export const BudgetPlanCard: React.FC = () => {
           </div>
         ))}
       </div>
+      {plan.cards > 0 && (
+        <p className="text-[11px] text-amber-700 dark:text-amber-400">
+          Kart ekstreleri, kartlardaki "Son ekstre borcu" toplamıdır. Bilinmiyorsa kartın tüm borcu (kalan taksitler dahil) sayılır;
+          Taksitler & Borçlar'da her kartı düzenleyip bu ayki gerçek ekstre tutarını girin.
+        </p>
+      )}
       {plan.cardPeriod > 0 && (
         <p className="text-[11px] text-neutral-500">
           Kartla bu dönem harcanan {money(plan.cardPeriod)} bir sonraki ekstreye kalır; bu aya sayılmaz.
