@@ -8,6 +8,8 @@ import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
+import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
+import { monthKeyOf } from '../../utils/budgetMonth';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import {
@@ -41,6 +43,7 @@ export const TabletLayout: React.FC<Props> = ({
   onOpenReceiptScanner
 }) => {
   const {
+    selectedMonth,
     monthlyIncome,
     monthlyExpense,
     monthlySavings,
@@ -153,6 +156,7 @@ export const TabletLayout: React.FC<Props> = ({
       <div className="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-12 gap-6">
         {/* Left Side Pane (4 cols) */}
         <div className="col-span-12 lg:col-span-4 space-y-5">
+          <MonthSwitcher />
           {/* Balance card */}
           <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1">
@@ -216,7 +220,7 @@ export const TabletLayout: React.FC<Props> = ({
         <div className="col-span-12 lg:col-span-8">
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <BudgetPlanCard />
+              {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
 
               <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
                 <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-4">

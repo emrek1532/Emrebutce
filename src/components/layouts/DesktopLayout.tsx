@@ -8,6 +8,8 @@ import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
+import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
+import { monthKeyOf } from '../../utils/budgetMonth';
 import { CashFlowTrendChart } from '../charts/CashFlowTrendChart';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
@@ -40,6 +42,7 @@ export const DesktopLayout: React.FC<Props> = ({
   onOpenReceiptScanner
 }) => {
   const {
+    selectedMonth,
     monthlyIncome,
     monthlyExpense,
     monthlySavings,
@@ -120,13 +123,17 @@ export const DesktopLayout: React.FC<Props> = ({
           </div>
         </div>
 
+        <div className="max-w-xs">
+          <MonthSwitcher />
+        </div>
+
         {/* Executive KPI Strips */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Net Bakiye */}
           <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
             <div className="flex items-center justify-between text-neutral-400 mb-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Net Hane Bakiyesi (Bu Ay)
+                Net Hane Bakiyesi ({monthLabel(selectedMonth)})
               </span>
               <Wallet className="w-4 h-4" />
             </div>
@@ -182,7 +189,7 @@ export const DesktopLayout: React.FC<Props> = ({
           <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
             <div className="flex items-center justify-between text-neutral-400 mb-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Bu Ay Birikim
+                Birikim ({monthLabel(selectedMonth)})
               </span>
               <PiggyBank className="w-4 h-4 text-amber-500" />
             </div>
@@ -201,7 +208,7 @@ export const DesktopLayout: React.FC<Props> = ({
         {/* TAB CONTENTS */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            <BudgetPlanCard />
+            {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
 
             {/* Visual Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -209,7 +216,7 @@ export const DesktopLayout: React.FC<Props> = ({
               <div className="lg:col-span-5 p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                    Kategori Dağılımı (Bu Ay)
+                    Kategori Dağılımı ({monthLabel(selectedMonth)})
                   </h3>
                 </div>
                 <CategoryDonutChart compact={false} />

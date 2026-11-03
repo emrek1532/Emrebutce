@@ -7,6 +7,8 @@ import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
+import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
+import { monthKeyOf } from '../../utils/budgetMonth';
 import { SavingsGoalCard } from '../charts/SavingsGoalCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { AddGoalModal } from '../modals/AddGoalModal';
@@ -51,6 +53,7 @@ export const MobileLayout: React.FC<Props> = ({
   onOpenReceiptScanner
 }) => {
   const {
+    selectedMonth,
     currency,
     setCurrency,
     darkMode,
@@ -209,6 +212,7 @@ export const MobileLayout: React.FC<Props> = ({
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-4">
+            <MonthSwitcher />
             {/* Quick Balance Card */}
             <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1">
@@ -259,13 +263,13 @@ export const MobileLayout: React.FC<Props> = ({
               )}
             </div>
 
-            <BudgetPlanCard />
+            {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
 
             {/* Quick Category Donut Preview */}
             <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">
-                  Harcama Dağılımı (Bu Ay)
+                  Harcama Dağılımı ({monthLabel(selectedMonth)})
                 </h3>
               </div>
               <CategoryDonutChart compact={true} />
