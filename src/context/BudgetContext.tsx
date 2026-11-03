@@ -32,7 +32,8 @@ import {
   VaultNotFoundError,
   EncryptedVaultRecord,
   connectVaultLive,
-  VaultLiveLink
+  VaultLiveLink,
+  loadVaultBackup
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
 import { lastStatementKey } from '../utils/cardStatement';
@@ -137,6 +138,7 @@ interface BudgetContextValue {
   exportCsv: () => void;
   importVaultBackup: (file: File) => Promise<void>;
   importExcel: (file: File) => Promise<string>;
+  restoreBackup: (slot: string) => Promise<void>;
 
   // Calculated Metrics
   selectedMonth: string;
@@ -1028,6 +1030,17 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return message;
   };
 
+  // Sunucudaki otomatik yedeği geri yükler: yedekteki hal bu cihazın değişikliği sayılır ve buluta yazılır,
+  // böylece tüm cihazlar yedeğe döner.
+  const restoreBackup = async (slot: string) => {
+    const record = await loadVaultBackup(syncConfig.vaultId, slot);
+    const payload = await decryptRecord(record, syncConfig.passphrase);
+    applyPayload(payload);
+    // Değişen veriler otomatik eşitlemeyle hemen buluta gider (applyPayload'ın "gönderme" işaretini kaldır)
+    skipNextAutoPushRef.current = false;
+    setDirty(true);
+  };
+
   const importVaultBackup = async (file: File) => {
     try {
       const text = await file.text();
@@ -1506,6 +1519,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     exportCsv,
     importVaultBackup,
     importExcel,
+    restoreBackup,
     monthlyIncome,
     monthlyExpense,
     monthlySavings,

@@ -165,3 +165,25 @@ export function connectVaultLive(vaultId: string, onUpdate: () => void): VaultLi
     }
   };
 }
+
+// ---------- Otomatik şifreli yedekler (sunucu her gece alır) ----------
+export interface VaultBackupInfo {
+  slot: string;
+  vault_updated_at: string | null;
+  backed_up_at: string;
+}
+
+export async function listVaultBackups(vaultId: string): Promise<VaultBackupInfo[]> {
+  const res = await callRpc('list_vault_backups', { p_vault_id: vaultId });
+  if (!res.ok) throw new Error(`Yedekler alınamadı: ${res.status}`);
+  return res.json();
+}
+
+export async function loadVaultBackup(vaultId: string, slot: string): Promise<EncryptedVaultRecord> {
+  const res = await callRpc('get_vault_backup', { p_vault_id: vaultId, p_slot: slot });
+  if (!res.ok) throw new Error(`Yedek alınamadı: ${res.status}`);
+  const rows = await res.json();
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error('Yedek bulunamadı.');
+  const row = rows[0];
+  return { ciphertext: row.ciphertext, iv: row.iv, salt: row.salt, version: row.version, updatedAt: row.vault_updated_at };
+}

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { parseShareLink } from '../../utils/shareLink';
 import { ExcelImportBar } from '../common/ExcelImportBar';
+import { AutoBackups } from '../common/AutoBackups';
 import {
   X,
   ShieldCheck,
@@ -230,6 +231,10 @@ export const CloudSyncModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
           <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
             <ExcelImportBar />
+          </div>
+
+          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <AutoBackups />
           </div>
 
           {/* Backup & Export Options */}
