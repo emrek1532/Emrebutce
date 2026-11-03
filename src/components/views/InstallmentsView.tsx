@@ -4,6 +4,7 @@ import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/b
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
 import { ExcelImportBar } from '../common/ExcelImportBar';
+import { DebtPayoffChart } from '../charts/DebtPayoffChart';
 import { UpcomingPayments } from '../common/UpcomingPayments';
 import { budgetMonthOf } from '../../utils/budgetMonth';
 import { minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
@@ -437,6 +438,8 @@ export const InstallmentsView: React.FC = () => {
       </section>
 
       {/* Bitiş takvimi */}
+      <DebtPayoffChart />
+
       {relief.length > 0 && (
         <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
           <div className="flex items-center gap-2 mb-3">
