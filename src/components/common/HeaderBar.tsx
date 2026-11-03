@@ -61,7 +61,7 @@ export const HeaderBar: React.FC<Props> = ({
         </div>
 
         {/* Zone 2: Navigation Links (Desktop/Tablet) */}
-        <nav className="hidden xl:flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] items-center gap-5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+        <nav className="hidden lg:flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] items-center gap-3 xl:gap-5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
           <button
             onClick={() => setActiveTab('overview')}
             className={`whitespace-nowrap transition-colors py-1 ${
