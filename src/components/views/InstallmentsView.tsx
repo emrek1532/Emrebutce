@@ -205,7 +205,7 @@ export const InstallmentsView: React.FC = () => {
             Kredi Kartlarım
             {totalCardLimit > 0 && (
               <span className="ml-2 text-xs font-normal text-neutral-500">
-                Limit doluluğu %{Math.round((totalCardDebt / totalCardLimit) * 100)}
+                Limit doluluğu %{Math.round((totalCardDebt / totalCardLimit) * 100)} · kalan limit {money(Math.max(0, totalCardLimit - totalCardDebt))}
               </span>
             )}
           </h3>
@@ -268,6 +268,14 @@ export const InstallmentsView: React.FC = () => {
                           className={`h-full rounded-full ${usage >= 90 ? 'bg-rose-500' : usage >= 70 ? 'bg-amber-500' : 'bg-sky-500'}`}
                           style={{ width: `${usage}%` }}
                         />
+                      </div>
+                    )}
+                    {card.limit > 0 && (
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className="text-neutral-500">Kalan limit</span>
+                        <span className={`font-semibold ${card.limit - card.currentDebt < card.limit * 0.1 ? 'text-rose-600 dark:text-rose-400' : 'text-sky-700 dark:text-sky-300'}`}>
+                          {money(Math.max(0, card.limit - card.currentDebt))}
+                        </span>
                       </div>
                     )}
                   </div>
