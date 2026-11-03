@@ -127,3 +127,47 @@ export function parseStatementLines(lines: string[]): StatementLine[] {
   }
   return out;
 }
+
+// ---------- Ekstre özeti (dönem borcu, asgari, tarihler, limit) ----------
+export interface StatementSummary {
+  statementDate?: string; // hesap kesim (YYYY-MM-DD)
+  dueDate?: string; // son ödeme (YYYY-MM-DD)
+  statementDebt?: number; // dönem borcu
+  minimumPayment?: number;
+  limit?: number;
+  bankHint?: string; // PDF'te geçen banka adı
+}
+
+const toAmount = (s: string) => Number(s.replace(/\./g, '').replace(',', '.'));
+const AMT = '(\\d{1,3}(?:\\.\\d{3})*,\\d{2})';
+const DATE_ANY = '(\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|\\d{1,2}\\s+[A-Za-zÇĞİÖŞÜçğıöşü]+\\s+\\d{4})';
+
+function dateFrom(text: string): string | undefined {
+  const d = matchDate(text.trim());
+  return d && d.m >= 1 ? `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}` : undefined;
+}
+
+export function parseStatementSummary(lines: string[]): StatementSummary {
+  const text = lines.join('\n');
+  const find = (labels: string[], value: string) => {
+    for (const label of labels) {
+      const m = text.match(new RegExp(`${label}\\s*:?\\s*${value}`, 'i'));
+      if (m) return m[1];
+    }
+    return undefined;
+  };
+  const debt = find(['Dönem Borcunuz', 'Dönem Borcu', 'Toplam Borcunuz', 'Hesap Özeti Borcu', 'Ekstre Borcu'], AMT);
+  const min = find(['Min\\.? Ödeme Tutarı', 'Minimum Ödeme Tutarı', 'Asgari Ödeme Tutarı', 'Min\\.? Ödeme Tutarınız'], AMT);
+  const limit = find(['Kart Limiti', 'Kredi Kartı Limiti', 'Toplam Limit'], AMT);
+  const cut = find(['Hesap Kesim Tarihi', 'Ekstre Kesim Tarihi', 'Hesap Özeti Tarihi'], DATE_ANY);
+  const due = find(['Son Ödeme Tarihi'], DATE_ANY);
+  const bank = text.match(/garanti|yapı kredi|yapi kredi|akbank|iş ?bank|isbank|ziraat|halkbank|vakıf|vakif|qnb|finansbank|enpara|denizbank|ing\b|teb\b|kuveyt|albaraka/i)?.[0];
+  return {
+    statementDebt: debt ? toAmount(debt) : undefined,
+    minimumPayment: min ? toAmount(min) : undefined,
+    limit: limit ? toAmount(limit) : undefined,
+    statementDate: cut ? dateFrom(cut) : undefined,
+    dueDate: due ? dateFrom(due) : undefined,
+    bankHint: bank
+  };
+}

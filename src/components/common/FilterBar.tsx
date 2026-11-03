@@ -85,8 +85,8 @@ export const FilterBar: React.FC = () => {
             onChange={(e) => setFilterDateRange(e.target.value as any)}
             className="w-full px-2 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none"
           >
-            <option value="this_month">Bu Ay</option>
-            <option value="last_month">Geçen Ay</option>
+            <option value="this_month">Seçili ay</option>
+            <option value="last_month">Bir önceki ay</option>
             <option value="last_3_months">Son 3 Ay</option>
             <option value="this_year">Bu Yıl</option>
             <option value="all">Tüm Zamanlar</option>
