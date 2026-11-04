@@ -46,6 +46,7 @@ export const TabletLayout: React.FC<Props> = ({
     selectedMonth,
     monthlyIncome,
     monthlyExpense,
+    monthlyCardSpend,
     monthlySavings,
     monthlyBalance,
     savingsRate,
@@ -196,6 +197,9 @@ export const TabletLayout: React.FC<Props> = ({
                 <span className="font-bold font-mono text-rose-600 dark:text-rose-400">
                   -{formatCurrency(monthlyExpense, currency)}
                 </span>
+                {monthlyCardSpend > 0 && (
+                  <span className="text-[10px] text-neutral-400 block">kartla +{formatCurrency(monthlyCardSpend, currency)}</span>
+                )}
               </div>
             </div>
             {monthlySavings > 0 && (

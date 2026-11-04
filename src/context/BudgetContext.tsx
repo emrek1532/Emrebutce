@@ -148,6 +148,8 @@ interface BudgetContextValue {
   setSelectedMonth: (month: string) => void;
   monthlyIncome: number;
   monthlyExpense: number;
+  // Bu ay kartla yapılan harcamalar (net bakiyeden düşülmez; kart borcu ödenince düşer)
+  monthlyCardSpend: number;
   monthlySavings: number;
   ratesVersion: number;
   monthlyBalance: number;
@@ -388,19 +390,23 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [transactions, currentMonthPrefix, currency, ratesVersion]);
 
   // Monthly totals
-  const { monthlyIncome, monthlyExpense, monthlySavings } = useMemo(() => {
+  // Nakit akışı: kartla yapılan harcama o an hesaptan para çıkarmaz; para kart borcu ödendiğinde çıkar
+  // (o ödeme ayrıca gider olarak girilir). Bu yüzden kartlı harcamalar net bakiyeden düşülmez, ayrı gösterilir.
+  const { monthlyIncome, monthlyExpense, monthlySavings, monthlyCardSpend } = useMemo(() => {
     let inc = 0;
     let exp = 0;
     let sav = 0;
+    let card = 0;
     transactions.forEach((tx) => {
       if (budgetMonthOf(tx) === currentMonthPrefix) {
         const val = convertCurrency(tx.amount, tx.currency, currency);
         if (tx.type === 'income') inc += val;
         else if (tx.type === 'saving') sav += val;
+        else if (tx.paymentMethod === 'Kredi Kartı') card += val;
         else exp += val;
       }
     });
-    return { monthlyIncome: inc, monthlyExpense: exp, monthlySavings: sav };
+    return { monthlyIncome: inc, monthlyExpense: exp, monthlySavings: sav, monthlyCardSpend: card };
   }, [transactions, currentMonthPrefix, currency, ratesVersion]);
 
   // Elde kalan: gelir - gider - birikime ayrılan
@@ -1560,6 +1566,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     importTransactions,
     monthlyIncome,
     monthlyExpense,
+    monthlyCardSpend,
     monthlySavings,
     monthlyBalance,
     ratesVersion,
