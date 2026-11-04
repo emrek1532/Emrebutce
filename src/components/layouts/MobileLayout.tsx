@@ -8,6 +8,7 @@ import { TransactionTable } from '../common/TransactionTable';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
 import { OverviewPanel } from '../common/OverviewPanel';
+import { TxHeader } from '../common/TxHeader';
 import { ChartsPanel } from '../common/ChartsPanel';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
 import { monthKeyOf } from '../../utils/budgetMonth';
@@ -229,7 +230,7 @@ export const MobileLayout: React.FC<Props> = ({
         {/* TAB 2: TRANSACTIONS */}
         {activeTab === 'transactions' && (
           <div className="space-y-4">
-            <MonthSwitcher />
+            <TxHeader />
             <FilterBar />
             <TransactionTable
               transactions={filteredTransactions}

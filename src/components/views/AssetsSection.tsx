@@ -77,38 +77,43 @@ export const AssetsSection: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50/70 dark:bg-amber-950/30">
-        <div className="flex items-start justify-between gap-3">
+      <div className="p-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
+        <div className="relative overflow-hidden rounded-xl p-4 text-white bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 shadow-sm">
+        <div className="absolute -right-12 -top-14 w-44 h-44 rounded-full bg-white/15 pointer-events-none" />
+        <div className="relative flex items-start justify-between gap-3">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Toplam değer</span>
-            <div className="text-2xl font-bold font-mono text-neutral-900 dark:text-neutral-100">{money(total)}</div>
+            <span className="text-xs font-medium text-white/85">Toplam değer</span>
+            <div className="text-3xl font-extrabold font-mono tracking-tight">{money(total)}</div>
           </div>
           <button
             type="button"
             onClick={() => refresh(true)}
             title="Fiyatları yenile"
-            className="flex items-center gap-1 text-[11px] text-amber-800 dark:text-amber-300"
+            className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             {prices ? `Harem alış · ${priceTime ?? ''}` : 'Fiyat yok'}
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-2 mt-3 text-[11px]">
-          <div>
-            <span className="text-neutral-500 block">Altın</span>
-            <span className="font-mono font-semibold">{money(byGroup('altin'))}</span>
-          </div>
-          <div>
-            <span className="text-neutral-500 block">Döviz</span>
-            <span className="font-mono font-semibold">{money(byGroup('doviz'))}</span>
-          </div>
-          <div>
-            <span className="text-neutral-500 block">TL</span>
-            <span className="font-mono font-semibold">{money(byGroup('tl'))}</span>
-          </div>
+        <div className="relative grid grid-cols-3 gap-2 mt-4 text-[11px]">
+          {(
+            [
+              ['Altın', 'altin'],
+              ['Döviz', 'doviz'],
+              ['TL', 'tl']
+            ] as const
+          ).map(([label, g]) => (
+            <div key={g} className="rounded-xl bg-white/15 px-3 py-2 min-w-0">
+              <span className="text-white/80 block">{label}</span>
+              <span className="font-mono font-bold text-sm block truncate">{money(byGroup(g))}</span>
+            </div>
+          ))}
         </div>
+        </div>
+        <div className="px-2">
         <AssetHistoryChart history={assetHistory} money={money} />
         {error && <p className="mt-2 text-[11px] text-rose-600">{error} — son bilinen fiyatlar gösteriliyor.</p>}
+        </div>
       </div>
 
       {rows.length === 0 ? (
@@ -116,7 +121,7 @@ export const AssetsSection: React.FC = () => {
           Elinizdeki altını (ör. 22 ayar 50 gr, 3 çeyrek), dövizi ve TL birikimini ekleyin; değeri Harem Altın alış fiyatıyla hesaplanır.
         </p>
       ) : (
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 divide-y divide-neutral-100 dark:divide-neutral-800">
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800">
           {rows.map(({ a, price, value }) => (
             <div key={a.id} className="px-4 py-3 flex items-center justify-between gap-3">
               <div className="min-w-0">

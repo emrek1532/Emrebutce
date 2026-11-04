@@ -43,7 +43,7 @@ export const TransactionTable: React.FC<Props> = ({
   // Telefonda tablo yerine dokunulabilir satırlar (dokununca düzenle)
   if (compact) {
     return (
-      <ul className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800">
+      <ul className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xs border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800">
         {transactions.map((tx) => {
           const tone = txTone(tx.type);
           return (
@@ -84,7 +84,7 @@ export const TransactionTable: React.FC<Props> = ({
   }
 
   return (
-    <div className="w-full overflow-hidden bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xs">
+    <div className="w-full overflow-hidden bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-800 uppercase tracking-wider text-[10px] font-semibold">
@@ -111,7 +111,7 @@ export const TransactionTable: React.FC<Props> = ({
                 >
                   {/* Tarih */}
                   <td className="py-3 px-4 font-mono text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
-                    {tx.date}
+                    {tx.date.split('-').reverse().join('.')}
                   </td>
 
                   {/* Açıklama */}
