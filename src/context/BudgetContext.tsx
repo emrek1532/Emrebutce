@@ -38,7 +38,7 @@ import {
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
 import { lastStatementKey } from '../utils/cardStatement';
-import { budgetMonthOf, monthKeyOf, shiftMonthKey } from '../utils/budgetMonth';
+import { budgetMonthOf, isCashExpense, monthKeyOf, shiftMonthKey } from '../utils/budgetMonth';
 import { readXlsx } from '../utils/xlsxReader';
 import { buildImportFromSheets } from '../utils/excelImport';
 
@@ -402,8 +402,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const val = convertCurrency(tx.amount, tx.currency, currency);
         if (tx.type === 'income') inc += val;
         else if (tx.type === 'saving') sav += val;
-        else if (tx.paymentMethod === 'Kredi Kartı') card += val;
-        else exp += val;
+        else if (isCashExpense(tx)) exp += val;
+        else card += val;
       }
     });
     return { monthlyIncome: inc, monthlyExpense: exp, monthlySavings: sav, monthlyCardSpend: card };
@@ -1421,7 +1421,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       member: inst.member,
       date: localDate,
       description: `${inst.title} taksiti${label ? ` (${label})` : ''}`,
-      paymentMethod: paidByCard ? 'Kredi Kartı' : 'Havale/EFT',
+      // Kredi/taksit ödemesi hesaptan yapılır (kart ekstresine giren taksitler kart ödemesiyle zaten öder)
+      paymentMethod: paidByCard && /kart/i.test(`${inst.title} ${inst.notes ?? ''}`) ? 'Kredi Kartı' : 'Havale/EFT',
       installmentInfo: { current: scheduleItem ? scheduleItem.period : paid, total: total || 0, installmentId: id }
     });
   };

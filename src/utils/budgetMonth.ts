@@ -10,6 +10,11 @@ export const shiftMonthKey = (key: string, delta: number) => {
   return monthKeyOf(new Date(y, m - 1 + delta, 1));
 };
 
+// Hesaptan para çıkışı sayılan gider: kartla yapılan alışveriş değil (o, kart borcu ödenince çıkar);
+// ama Borçlar'dan ödenen kredi/taksit her zaman gerçek ödemedir (yöntemi yanlışlıkla kart görünse de).
+export const isCashExpense = (tx: Pick<Transaction, 'type' | 'paymentMethod' | 'installmentInfo'>) =>
+  tx.type === 'expense' && (tx.paymentMethod !== 'Kredi Kartı' || !!tx.installmentInfo?.installmentId);
+
 export const budgetMonthOf = (tx: Pick<Transaction, 'date' | 'budgetMonth'>) => tx.budgetMonth || tx.date.slice(0, 7);
 
 // Ayın bu gününden sonra yatan gelir varsayılan olarak sonraki aya sayılır
