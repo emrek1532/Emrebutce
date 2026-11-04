@@ -38,8 +38,8 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
   return (
     <div className={`rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 ${compact ? 'p-3' : 'p-4'} space-y-2`}>
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
-          <CalendarClock className="w-4 h-4 text-rose-500" /> Yaklaşan Ödemeler (7 gün)
+        <h4 className="whitespace-nowrap text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
+          <CalendarClock className="w-4 h-4 text-rose-500" /> Yaklaşan ödemeler
         </h4>
         {pushSupported() && syncConfig.vaultId && (
           <button
@@ -51,7 +51,7 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
             }`}
           >
             {on ? <BellRing className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
-            {on ? 'Bildirim açık' : 'Telefona bildirim aç'}
+            {on ? 'Bildirim açık' : 'Bildirim aç'}
           </button>
         )}
       </div>

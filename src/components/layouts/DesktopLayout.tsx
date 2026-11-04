@@ -8,7 +8,8 @@ import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
-import { AskBox } from '../common/AskBox';
+import { OverviewPanel } from '../common/OverviewPanel';
+import { ChartsPanel } from '../common/ChartsPanel';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
 import { monthKeyOf } from '../../utils/budgetMonth';
 import { CashFlowTrendChart } from '../charts/CashFlowTrendChart';
@@ -81,19 +82,9 @@ export const DesktopLayout: React.FC<Props> = ({
         setActiveTab={setActiveTab}
       />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-6 space-y-6">
         {/* Top Headline & Quick Action */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Aile Bütçemiz
-            </h1>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Şifreli · Tüm cihazlarda anında eşitlenir · Ödeme hatırlatmaları
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-3">
             {onOpenReceiptScanner && (
               <button
                 onClick={onOpenReceiptScanner}
@@ -122,158 +113,17 @@ export const DesktopLayout: React.FC<Props> = ({
               <Plus className="w-4 h-4" />
               <span>Yeni İşlem Ekle</span>
             </button>
-          </div>
         </div>
 
-        {(activeTab === 'overview' || activeTab === 'transactions') && (
-          <div className="max-w-xs">
-            <MonthSwitcher />
-          </div>
-        )}
-
-        {/* Executive KPI Strips: sadece Özet'te */}
         {activeTab === 'overview' && (
-        <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Net Bakiye */}
-          <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Net Hane Bakiyesi ({monthLabel(selectedMonth)})
-              </span>
-              <Wallet className="w-4 h-4" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-2xl font-bold font-mono tabular-nums ${
-                monthlyBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'
-              }`}>
-                {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
-              </span>
-            </div>
-            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-1">
-              Gelir - Gider net farkı
-            </span>
-          </div>
-
-          {/* Toplam Gelir */}
-          <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Toplam Gelir
-              </span>
-              <ArrowUpRight className="w-4 h-4 text-sky-600" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono tabular-nums text-sky-600 dark:text-sky-400">
-                +{formatCurrency(monthlyIncome, currency)}
-              </span>
-            </div>
-            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-1">
-              Maaş, prim ve ek gelirler
-            </span>
-          </div>
-
-          {/* Toplam Harcama */}
-          <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Toplam Harcama
-              </span>
-              <ArrowDownRight className="w-4 h-4 text-rose-600" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono tabular-nums text-rose-600 dark:text-rose-400">
-                -{formatCurrency(monthlyExpense, currency)}
-              </span>
-            </div>
-            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-1">
-              {monthlyCardSpend > 0
-                ? `Kartla ayrıca ${formatCurrency(monthlyCardSpend, currency)} (kart borcu ödenince düşer)`
-                : 'Nakit, banka ve kart borcu ödemeleri'}
-            </span>
-          </div>
-
-          {/* Birikim */}
-          <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Birikim ({monthLabel(selectedMonth)})
-              </span>
-              <PiggyBank className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono tabular-nums text-amber-600 dark:text-amber-400">
-                {formatCurrency(monthlySavings, currency)}
-              </span>
-            </div>
-            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-1">
-              Gelirdeki payı: %{monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0}
-            </span>
-          </div>
-        </div>
-        </>
-        )}
-
-        {/* TAB CONTENTS */}
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {selectedMonth === monthKeyOf(new Date()) && <AskBox />}
-            {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
-            {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
-
-            {/* Visual Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Category Donut */}
-              <div className="lg:col-span-5 p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                    Kategori Dağılımı ({monthLabel(selectedMonth)})
-                  </h3>
-                </div>
-                <CategoryDonutChart compact={false} />
-              </div>
-
-              {/* Cash Flow Trend */}
-              <div className="lg:col-span-7 p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                    Nakit Akış Trendi (Son 6 Ay)
-                  </h3>
-                  <span className="text-xs text-neutral-400 font-mono">
-                    Gelir vs Gider
-                  </span>
-                </div>
-                <CashFlowTrendChart />
-              </div>
-            </div>
-
-            {/* Recent Transactions Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                  Son Bütçe Hareketleri
-                </h3>
-                <button
-                  onClick={() => setActiveTab('transactions')}
-                  className="text-xs text-sky-600 dark:text-sky-400 font-medium hover:underline"
-                >
-                  Tüm İşlemleri Gör ({filteredTransactions.length})
-                </button>
-              </div>
-
-              <TransactionTable
-                transactions={filteredTransactions.slice(0, 8)}
-                onEdit={(tx) => {
-                  setEditingTx(tx);
-                  setIsAddTxOpen(true);
-                }}
-              />
-            </div>
-          </div>
+          <OverviewPanel onEditTx={(tx) => { setEditingTx(tx); setIsAddTxOpen(true); }} onSeeAll={() => setActiveTab('transactions')} />
         )}
 
         {activeTab === 'transactions' && (
           <div className="space-y-4">
+            <div className="max-w-xs">
+              <MonthSwitcher />
+            </div>
             <FilterBar />
             <TransactionTable
               transactions={filteredTransactions}
@@ -282,10 +132,16 @@ export const DesktopLayout: React.FC<Props> = ({
                 setIsAddTxOpen(true);
               }}
             />
+            <ChartsPanel />
           </div>
         )}
 
-        {activeTab === 'installments' && <InstallmentsView section="debts" />}
+        {activeTab === 'installments' && (
+          <div className="space-y-8">
+            <InstallmentsView section="debts" />
+            <InstallmentsView section="recurring" />
+          </div>
+        )}
         {activeTab === 'cards' && <InstallmentsView section="cards" />}
         {activeTab === 'goals' && <GoalsView />}
       </main>

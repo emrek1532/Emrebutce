@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { budgetMonthOf, monthKeyOf } from '../../utils/budgetMonth';
 import { minimumPaymentOf, statementDebtOf, periodSpendOf } from '../../utils/cardStatement';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
-import { Wallet } from 'lucide-react';
+import { ChevronDown, Wallet } from 'lucide-react';
 
 const norm = (s: string) => s.toLocaleLowerCase('tr-TR');
 
@@ -77,6 +77,7 @@ export const BudgetPlanCard: React.FC = () => {
     return { income, fixed, loans, cards, spent, saved, free, daily: free / daysLeft, daysLeft, cardPeriod, minimums };
   }, [transactions, recurring, installments, creditCards]);
 
+  const [open, setOpen] = useState(false);
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
   const positive = plan.free >= 0;
   const rows: [string, number][] = [
@@ -91,7 +92,7 @@ export const BudgetPlanCard: React.FC = () => {
     <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
-          <Wallet className="w-4 h-4 text-sky-600" /> Bu Ay Ne Kadar Harcayabilirim?
+          <Wallet className="w-4 h-4 text-sky-600" /> Bu ay harcayabileceğin
         </h3>
         <span className="text-[11px] text-neutral-500">{plan.daysLeft} gün kaldı</span>
       </div>
@@ -109,7 +110,17 @@ export const BudgetPlanCard: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="text-xs space-y-1 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800 text-[11px] font-semibold text-neutral-500"
+      >
+        Nasıl hesaplandı?
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+      <>
+      <div className="text-xs space-y-1">
         <div className="flex justify-between">
           <span className="text-neutral-500">Beklenen gelir</span>
           <span className="font-mono text-sky-700 dark:text-sky-400">+{money(plan.income)}</span>
@@ -131,6 +142,8 @@ export const BudgetPlanCard: React.FC = () => {
         <p className="text-[11px] text-neutral-500">
           Kartla bu dönem harcanan {money(plan.cardPeriod)} bir sonraki ekstreye kalır; bu aya sayılmaz.
         </p>
+      )}
+      </>
       )}
     </div>
   );

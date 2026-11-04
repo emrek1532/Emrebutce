@@ -8,7 +8,8 @@ import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
-import { AskBox } from '../common/AskBox';
+import { OverviewPanel } from '../common/OverviewPanel';
+import { ChartsPanel } from '../common/ChartsPanel';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
 import { monthKeyOf } from '../../utils/budgetMonth';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
@@ -166,109 +167,9 @@ export const TabletLayout: React.FC<Props> = ({
 
       {/* 2-Column Split Workspace */}
       <div className="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-12 gap-6">
-        {/* Left Side Pane (4 cols): sadece Özet'te */}
-        {activeTab === 'overview' && (
-        <div className="col-span-12 lg:col-span-4 space-y-5">
-          <MonthSwitcher />
-          {/* Balance card */}
-          <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1">
-              Net Hane Bütçesi
-            </span>
-            <div className="flex items-baseline justify-between mb-3">
-              <span className={`text-2xl font-bold font-mono ${
-                monthlyBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'
-              }`}>
-                {monthlyBalance >= 0 ? '+' : ''}{formatCurrency(monthlyBalance, currency)}
-              </span>
-              <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400">
-                %{savingsRate} Birikim
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs">
-              <div>
-                <span className="text-neutral-400 text-[10px] block">Aylık Gelir</span>
-                <span className="font-bold font-mono text-sky-600 dark:text-sky-400">
-                  +{formatCurrency(monthlyIncome, currency)}
-                </span>
-              </div>
-              <div>
-                <span className="text-neutral-400 text-[10px] block">Aylık Gider</span>
-                <span className="font-bold font-mono text-rose-600 dark:text-rose-400">
-                  -{formatCurrency(monthlyExpense, currency)}
-                </span>
-                {monthlyCardSpend > 0 && (
-                  <span className="text-[10px] text-neutral-400 block">kartla +{formatCurrency(monthlyCardSpend, currency)}</span>
-                )}
-              </div>
-            </div>
-            {monthlySavings > 0 && (
-              <div className="mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs">
-                <span className="text-neutral-400">Bu ay birikim</span>
-                <span className="font-bold font-mono text-amber-600 dark:text-amber-400">{formatCurrency(monthlySavings, currency)}</span>
-              </div>
-            )}
-          </div>
-
-
-          {/* Family Members list */}
-          <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4 text-neutral-400" />
-              <span>Aile Üyeleri</span>
-            </h4>
-            <div className="space-y-2">
-              {familyMembers.map((m) => (
-                <div key={m.id} className="flex items-center justify-between text-xs py-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
-                    <span className="font-medium text-neutral-800 dark:text-neutral-200">{m.name}</span>
-                  </div>
-                  <span className="text-neutral-400">{m.role}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        )}
-        {/* Right Detail Workspace (8 cols) */}
-        <div className={`col-span-12 ${activeTab === 'overview' ? 'lg:col-span-8' : ''}`}>
+        <div className="col-span-12">
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {selectedMonth === monthKeyOf(new Date()) && <AskBox />}
-            {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
-            {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
-
-              <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-4">
-                  Kategori Harcama Dağılımı
-                </h3>
-                <CategoryDonutChart />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
-                    Son İşlemler
-                  </h3>
-                  <button
-                    onClick={() => setActiveTab('transactions')}
-                    className="text-xs text-sky-600 dark:text-sky-400 font-medium"
-                  >
-                    Tümünü Gör
-                  </button>
-                </div>
-                <TransactionTable
-                  transactions={filteredTransactions.slice(0, 6)}
-                  onEdit={(tx) => {
-                    setEditingTx(tx);
-                    setIsAddTxOpen(true);
-                  }}
-                />
-              </div>
-            </div>
+            <OverviewPanel onEditTx={(tx) => { setEditingTx(tx); setIsAddTxOpen(true); }} onSeeAll={() => setActiveTab('transactions')} />
           )}
 
           {activeTab === 'transactions' && (
@@ -284,10 +185,16 @@ export const TabletLayout: React.FC<Props> = ({
                   setIsAddTxOpen(true);
                 }}
               />
+              <ChartsPanel />
             </div>
           )}
 
-          {activeTab === 'installments' && <InstallmentsView section="debts" />}
+          {activeTab === 'installments' && (
+            <div className="space-y-6">
+              <InstallmentsView section="debts" />
+              <InstallmentsView section="recurring" />
+            </div>
+          )}
         {activeTab === 'cards' && <InstallmentsView section="cards" />}
           {activeTab === 'goals' && <GoalsView />}
         </div>

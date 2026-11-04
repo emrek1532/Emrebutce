@@ -118,7 +118,7 @@ export const CashFlowTrendChart: React.FC = () => {
                 )}
 
                 {/* Bars */}
-                <div className="flex items-end justify-center gap-1 sm:gap-2 w-full max-w-[48px] h-full pb-0.5">
+                <div className="flex items-end justify-center gap-1 sm:gap-2 w-full max-w-[48px] h-full pb-6">
                   {/* Income bar */}
                   <div
                     className="w-1/2 bg-sky-500 rounded-t transition-all duration-300 group-hover:bg-sky-400 shadow-sm"

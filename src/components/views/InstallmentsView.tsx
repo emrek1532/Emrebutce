@@ -5,7 +5,6 @@ import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
 import { StatementImportModal } from '../modals/StatementImportModal';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
-import { UpcomingPayments } from '../common/UpcomingPayments';
 import { budgetMonthOf } from '../../utils/budgetMonth';
 import { minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat, FileText } from 'lucide-react';
@@ -168,7 +167,6 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
         </div>
       )}
 
-      {section === 'recurring' && <UpcomingPayments />}
 
       {/* Düzenli gelir & giderler */}
       {section === 'recurring' && (

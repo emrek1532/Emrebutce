@@ -144,7 +144,7 @@ export const CategoryDonutChart: React.FC<{ compact?: boolean }> = ({ compact = 
                   : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex-1 flex items-center gap-2.5 min-w-0">
                 <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: slice.color }} />
                 <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200 truncate">
                   {slice.category}

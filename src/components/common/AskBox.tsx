@@ -53,7 +53,7 @@ export const AskBox: React.FC = () => {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Sorun: bu ay arkadaş kartlarına ne kadar ödeyeceğim?"
+            placeholder="Bir şey sor…"
             className="flex-1 min-w-0 py-2.5 bg-transparent text-sm outline-none"
           />
         </div>
@@ -61,7 +61,7 @@ export const AskBox: React.FC = () => {
           {busy ? '…' : 'Sor'}
         </button>
       </form>
-      {!answer && !busy && !error && (
+      {!answer && !busy && !error && !q && (
         <div className="flex flex-wrap gap-1.5">
           {EXAMPLES.map((e) => (
             <button key={e} type="button" onClick={() => ask(e)} className="px-2.5 py-1 rounded-full text-[11px] bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300">
