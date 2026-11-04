@@ -42,6 +42,19 @@ function isActive(inst: InstallmentDebt) {
 }
 
 // Aynı ekran üç yerde parça parça kullanılır: Kartlar sekmesi, Borçlar sekmesi ve Özet'teki düzenli gelir/giderler
+// Banka adına göre kart rengi
+const bankGradient = (bank: string) => {
+  const b = bank.toLocaleLowerCase('tr-TR');
+  if (b.includes('garanti')) return 'from-emerald-500 to-teal-700';
+  if (b.includes('deniz')) return 'from-sky-500 to-blue-800';
+  if (b.includes('yapı') || b.includes('yapi') || b.includes('world')) return 'from-indigo-600 to-slate-900';
+  if (b.includes('iş') || b.includes('is bank') || b.includes('maximum')) return 'from-blue-600 to-indigo-900';
+  if (b.includes('akbank') || b.includes('axess') || b.includes('ziraat') || b.includes('halk')) return 'from-rose-500 to-red-800';
+  if (b.includes('qnb') || b.includes('finans') || b.includes('enpara')) return 'from-violet-500 to-purple-800';
+  if (b.includes('vakıf') || b.includes('vakif')) return 'from-amber-500 to-orange-700';
+  return 'from-slate-600 to-slate-900';
+};
+
 export type InstallmentsSection = 'cards' | 'debts' | 'recurring';
 
 export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ section = 'debts' }) => {
@@ -111,9 +124,9 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
               Krediler, yapılandırmalar, Eminevim ve diğer taksitli borçlar; ödeme günleri ve bitişleri otomatik takip edilir.
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 w-full sm:w-auto">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Aylık Taksit Yükü</span>
-            <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(monthlyLoad)}</span>
+          <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-indigo-500 to-violet-600 w-full sm:w-auto min-w-[12rem]">
+            <span className="text-[11px] font-medium text-white/80 block">Aylık taksit yükü</span>
+            <span className="text-2xl font-extrabold font-mono">{money(monthlyLoad)}</span>
           </div>
         </div>
       )}
@@ -130,13 +143,13 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">Toplam Kart Borcu</span>
-              <span className="text-lg font-bold font-mono text-rose-700 dark:text-rose-300">{money(totalCardDebt)}</span>
+            <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-rose-500 to-orange-500 min-w-[10rem]">
+              <span className="text-[11px] font-medium text-white/80 block">Toplam kart borcu</span>
+              <span className="text-xl font-extrabold font-mono">{money(totalCardDebt)}</span>
             </div>
-            <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Kalan Limit</span>
-              <span className="text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(Math.max(0, totalCardLimit - totalCardDebt))}</span>
+            <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-sky-500 to-indigo-600 min-w-[10rem]">
+              <span className="text-[11px] font-medium text-white/80 block">Kalan limit</span>
+              <span className="text-xl font-extrabold font-mono">{money(Math.max(0, totalCardLimit - totalCardDebt))}</span>
             </div>
           </div>
         </div>
@@ -187,17 +200,17 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
 
       {section === 'recurring' && (
         <div className="grid grid-cols-3 gap-2">
-          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Aylık Sabit Gider</span>
-            <span className="text-base sm:text-lg font-bold font-mono text-amber-800 dark:text-amber-300">{money(monthlyFixed)}</span>
+          <div className="p-3 sm:p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-amber-400 to-orange-500 min-w-0">
+            <span className="text-[11px] font-medium text-white/85 block">Sabit gider</span>
+            <span className="text-sm sm:text-xl font-extrabold font-mono block truncate">{money(monthlyFixed)}</span>
           </div>
-          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Aylık Taksit Yükü</span>
-            <span className="text-base sm:text-lg font-bold font-mono text-sky-700 dark:text-sky-300">{money(monthlyLoad)}</span>
+          <div className="p-3 sm:p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-indigo-500 to-violet-600 min-w-0">
+            <span className="text-[11px] font-medium text-white/85 block">Taksit yükü</span>
+            <span className="text-sm sm:text-xl font-extrabold font-mono block truncate">{money(monthlyLoad)}</span>
           </div>
-          <div className="p-3 rounded-xl bg-neutral-900 dark:bg-neutral-100 border border-neutral-900 dark:border-neutral-100">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-300 dark:text-neutral-600 block">Aylık Toplam Yük</span>
-            <span className="text-base sm:text-lg font-bold font-mono text-white dark:text-neutral-900">{money(monthlyFixed + monthlyLoad)}</span>
+          <div className="p-3 sm:p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-slate-700 to-slate-950 min-w-0">
+            <span className="text-[11px] font-medium text-white/80 block">Toplam yük</span>
+            <span className="text-sm sm:text-xl font-extrabold font-mono block truncate">{money(monthlyFixed + monthlyLoad)}</span>
           </div>
         </div>
       )}
@@ -301,52 +314,51 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
               const period = periodSpendOf(card);
               const urgent = stmt > 0 && due.daysLeft <= 3;
               return (
-                <div key={card.id} className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                        {card.bank}
-                      </span>
-                      <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 mt-1.5">
-                        {card.name}
-                        <span className="ml-1.5 text-[11px] font-normal text-neutral-500">· {card.member}</span>
-                      </h4>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button type="button" title="Düzenle" onClick={() => setCardModal({ open: true, card })} className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" title="Sil" onClick={() => confirmDelete(card.name, () => deleteCreditCard(card.id))} className="p-1.5 rounded-md text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-mono">
-                      <span className="text-neutral-500">Borç</span>
-                      <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                        {money(card.currentDebt)}
-                        {card.limit > 0 && <span className="text-neutral-400 font-normal"> / {money(card.limit)}</span>}
-                      </span>
-                    </div>
-                    {card.limit > 0 && (
-                      <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${usage >= 90 ? 'bg-rose-500' : usage >= 70 ? 'bg-amber-500' : 'bg-sky-500'}`}
-                          style={{ width: `${usage}%` }}
-                        />
+                <div key={card.id} className="p-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
+                  <div className={`relative overflow-hidden rounded-xl p-4 text-white bg-gradient-to-br ${bankGradient(card.bank)} shadow-sm`}>
+                    <div className="absolute -right-10 -top-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+                    <div className="relative flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">{card.bank}</span>
+                        <h4 className="text-base font-bold truncate">
+                          {card.name}
+                          <span className="ml-1.5 text-[11px] font-medium text-white/70">· {card.member}</span>
+                        </h4>
                       </div>
-                    )}
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button type="button" title="Düzenle" onClick={() => setCardModal({ open: true, card })} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/15">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button type="button" title="Sil" onClick={() => confirmDelete(card.name, () => deleteCreditCard(card.id))} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/15">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="relative mt-5 flex items-end justify-between gap-2">
+                      <div>
+                        <span className="text-[11px] text-white/70 block">Güncel borç</span>
+                        <span className="text-2xl font-extrabold font-mono tracking-tight">{money(card.currentDebt)}</span>
+                      </div>
+                      {card.limit > 0 && (
+                        <div className="text-right">
+                          <span className="text-[11px] text-white/70 block">Kalan limit</span>
+                          <span className="text-sm font-bold font-mono">{money(Math.max(0, card.limit - card.currentDebt))}</span>
+                        </div>
+                      )}
+                    </div>
                     {card.limit > 0 && (
-                      <div className="flex justify-between text-xs font-mono">
-                        <span className="text-neutral-500">Kalan limit</span>
-                        <span className={`font-semibold ${card.limit - card.currentDebt < card.limit * 0.1 ? 'text-rose-600 dark:text-rose-400' : 'text-sky-700 dark:text-sky-300'}`}>
-                          {money(Math.max(0, card.limit - card.currentDebt))}
-                        </span>
+                      <div className="relative mt-3">
+                        <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${usage >= 90 ? 'bg-rose-300' : usage >= 70 ? 'bg-amber-300' : 'bg-white'}`} style={{ width: `${usage}%` }} />
+                        </div>
+                        <div className="flex justify-between text-[10px] text-white/70 mt-1 font-mono">
+                          <span>%{Math.round(usage)} dolu</span>
+                          <span>Limit {money(card.limit)}</span>
+                        </div>
                       </div>
                     )}
                   </div>
+                  <div className="px-2 pb-2 space-y-3">
 
                   {card.statementTotal !== undefined && card.statementTotal > stmt && (
                     <div className="flex justify-between text-[11px] font-mono text-neutral-500">
@@ -398,6 +410,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                       {due.daysLeft === 0 ? ' (bugün)' : ` (${due.daysLeft} gün)`}
                     </span>
                   </div>
+                  </div>
                 </div>
               );
             })}
@@ -434,13 +447,13 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
               return (
                 <div
                   key={inst.id}
-                  className={`p-4 rounded-xl border bg-white dark:bg-neutral-900 shadow-xs flex flex-col justify-between gap-3 ${
+                  className={`p-5 rounded-2xl border bg-white dark:bg-neutral-900 shadow-xs hover:shadow-sm transition-shadow flex flex-col justify-between gap-3 ${
                     active ? 'border-neutral-200 dark:border-neutral-800' : 'border-sky-200 dark:border-sky-900 opacity-70'
                   }`}
                 >
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
                         {inst.creditor}
                       </span>
                       <div className="flex items-center gap-1">
@@ -465,8 +478,8 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                             {active ? `${inst.remainingInstallments} taksit kaldı` : 'Bitti'}
                           </span>
                         </div>
-                        <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-sky-500 rounded-full" style={{ width: `${Math.min(100, (paid / (totalOf(inst) || 1)) * 100)}%` }} />
+                        <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-indigo-500 to-sky-400 rounded-full" style={{ width: `${Math.min(100, (paid / (totalOf(inst) || 1)) * 100)}%` }} />
                         </div>
                       </div>
                     ) : (
@@ -477,7 +490,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                   <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-end justify-between gap-2">
                     <div>
                       <span className="text-[10px] text-neutral-400 block uppercase">Aylık</span>
-                      <span className="text-base font-bold font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
+                      <span className="text-lg font-extrabold font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
                         {money(currentAmount(inst))}
                       </span>
                       <span className="text-[10px] text-neutral-500 block">
@@ -527,7 +540,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
         <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
           <div className="flex items-center gap-2 mb-3">
             <TrendingDown className="w-4 h-4 text-sky-600" />
-            <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">Borç Bitiş Takvimi</h3>
+            <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">Borç Bitiş Takvimi</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {relief.map((r) => (

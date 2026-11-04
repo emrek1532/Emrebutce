@@ -128,7 +128,7 @@ export const CategoryDonutChart: React.FC<{ compact?: boolean }> = ({ compact = 
       </div>
 
       {/* Legend list */}
-      <div className="w-full flex-1 max-h-64 overflow-y-auto space-y-2 pr-1">
+      <div className={`w-full flex-1 max-h-64 overflow-y-auto space-y-1 pr-1 ${compact ? "max-w-md mx-auto mt-4" : ""}`}>
         {slices.map((slice) => {
           const isHovered = hoveredCategory === slice.category;
           return (

@@ -56,8 +56,8 @@ export const DebtPayoffChart: React.FC = () => {
   return (
     <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider flex items-center gap-2">
-          <TrendingDown className="w-4 h-4 text-sky-600" /> Taksit Yükü Önümüzdeki 24 Ay
+        <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <TrendingDown className="w-4 h-4 text-sky-600" /> Önümüzdeki 24 ayın taksit yükü
         </h3>
         <div className="flex gap-4 text-xs">
           <div>
@@ -74,7 +74,7 @@ export const DebtPayoffChart: React.FC = () => {
         {data.list.map((x) => (
           <div key={x.key} className="flex-1 flex flex-col items-center justify-end h-full group relative">
             <div
-              className="w-full rounded-t bg-sky-500/80 group-hover:bg-sky-600"
+              className="w-full rounded-t-md bg-gradient-to-t from-indigo-500 to-sky-400 group-hover:from-indigo-600 group-hover:to-sky-500"
               style={{ height: `${(x.amount / data.max) * 100}%`, minHeight: x.amount > 0 ? 2 : 0 }}
               title={`${label(x.key)}: ${money(x.amount)}`}
             />
