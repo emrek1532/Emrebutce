@@ -61,7 +61,7 @@ export interface FamilyMember {
 
 export interface BudgetNotification {
   id: string;
-  type: 'limit_warning' | 'limit_exceeded' | 'goal_reached' | 'sync_success' | 'installment_reminder' | 'statement_reminder';
+  type: 'limit_warning' | 'limit_exceeded' | 'goal_reached' | 'sync_success' | 'installment_reminder' | 'statement_reminder' | 'month_summary';
   title: string;
   message: string;
   category?: string;

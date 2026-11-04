@@ -853,6 +853,46 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   }, [creditCards]);
 
+  // Yeni aya girince geçen ayın kısa özeti bildirim olarak düşer (cihaz başına bir kez)
+  useEffect(() => {
+    const prev = shiftMonthKey(monthKeyOf(new Date()), -1);
+    const flag = `cebim_month_summary_${prev}`;
+    try {
+      if (localStorage.getItem(flag)) return;
+    } catch {
+      return;
+    }
+    const list = transactions.filter((t) => budgetMonthOf(t) === prev);
+    if (list.length < 3) return;
+    const toTry = (t: Transaction) => convertCurrency(t.amount, t.currency, 'TRY');
+    const income = list.filter((t) => t.type === 'income').reduce((s, t) => s + toTry(t), 0);
+    const expense = list.filter((t) => t.type === 'expense' && isCashExpense(t)).reduce((s, t) => s + toTry(t), 0);
+    const saved = list.filter((t) => t.type === 'saving').reduce((s, t) => s + toTry(t), 0);
+    const byCat = new Map<string, number>();
+    list.filter((t) => t.type === 'expense').forEach((t) => byCat.set(t.category, (byCat.get(t.category) ?? 0) + toTry(t)));
+    const top = [...byCat.entries()].sort((a, b) => b[1] - a[1])[0];
+    const left = income - expense - saved;
+    const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    const name = MONTHS[Number(prev.slice(5, 7)) - 1];
+    const tl = (v: number) => formatCurrency(Math.abs(v), 'TRY');
+    setNotifications((p) => [
+      {
+        id: `month-${prev}`,
+        type: 'month_summary',
+        title: `${name} özeti: ${left >= 0 ? `${tl(left)} arttı` : `${tl(left)} açık verdi`}`,
+        message: `Gelir ${tl(income)}, gider ${tl(expense)}${saved > 0 ? `, birikim ${tl(saved)}` : ''}.${top ? ` En çok: ${top[0]} (${tl(top[1])}).` : ''}`,
+        timestamp: new Date().toISOString(),
+        read: false
+      },
+      ...p.filter((n) => n.id !== `month-${prev}`)
+    ]);
+    try {
+      localStorage.setItem(flag, '1');
+    } catch {
+      /* yoksay */
+    }
+  }, [transactions]);
+
   // Yeni ekstre kesilen ve henüz yüklenmeyen kartlar için bildirim (kart + ay başına bir kez)
   useEffect(() => {
     const due = creditCards.filter((c) => c.currentDebt > 0 && c.statementCheckedKey !== lastStatementKey(c));

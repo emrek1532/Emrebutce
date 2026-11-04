@@ -156,12 +156,20 @@ async function runCron() {
       .map((r) => ({ r, ...dueInfo(r, t) }))
       .filter((x) => [0, 1, 3].includes(x.days) && x.r.skipMonth !== x.month && x.r.amount > 0)
       .sort((a, b) => a.days - b.days);
-    if (due.length === 0) continue;
+    // Ayın son günü: ay sonu özetine bakma hatırlatması (tutar sunucuda yok, özet uygulamada hesaplanır)
+    const monthEnd = t.d === new Date(Date.UTC(t.y, t.m, 0)).getUTCDate();
+    if (due.length === 0 && !monthEnd) continue;
     const label = (days: number) => (days === 0 ? 'Bugün' : days === 1 ? 'Yarın' : `${days} gün sonra`);
     const total = due.reduce((sum, x) => sum + x.r.amount, 0);
+    const endLine = 'Ay bitiyor: bu ayın özetine Cebim\'de göz atın.';
     const payload = JSON.stringify({
-      title: due.length === 1 ? `${label(due[0].days)}: ${due[0].r.title}` : `Yaklaşan ${due.length} ödeme · ${money(total)}`,
-      body: due.map((x) => `${label(x.days)}: ${x.r.title} ${money(x.r.amount)}`).join('\n'),
+      title:
+        due.length === 0
+          ? 'Ay sonu özeti'
+          : due.length === 1
+          ? `${label(due[0].days)}: ${due[0].r.title}`
+          : `Yaklaşan ${due.length} ödeme · ${money(total)}`,
+      body: [...due.map((x) => `${label(x.days)}: ${x.r.title} ${money(x.r.amount)}`), ...(monthEnd ? [endLine] : [])].join('\n'),
       tag: `cebim-${todayStr}`,
       url: '/'
     });

@@ -4,6 +4,8 @@ import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/b
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
 import { StatementImportModal } from '../modals/StatementImportModal';
+import { DebtPlanner } from './DebtPlanner';
+import { SubscriptionsCard } from '../common/SubscriptionsCard';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
 import { budgetMonthOf } from '../../utils/budgetMonth';
 import { lastStatementKey, minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
@@ -215,6 +217,8 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
         </div>
       )}
 
+
+      {section === 'recurring' && <SubscriptionsCard />}
 
       {/* Düzenli gelir & giderler */}
       {section === 'recurring' && (
@@ -535,6 +539,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
 
       {/* Bitiş takvimi */}
       {section === 'debts' && <DebtPayoffChart />}
+      {section === 'debts' && <DebtPlanner />}
 
       {section === 'debts' && relief.length > 0 && (
         <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
