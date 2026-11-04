@@ -103,7 +103,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
       {section === 'debts' && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+            <h2 className="lg:hidden text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               <span>Borçlar & Taksitler</span>
             </h2>
@@ -121,7 +121,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
       {section === 'cards' && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+            <h2 className="lg:hidden text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               <span>Kredi Kartları</span>
             </h2>

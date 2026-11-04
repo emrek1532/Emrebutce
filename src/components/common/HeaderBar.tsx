@@ -43,68 +43,68 @@ export const HeaderBar: React.FC<Props> = ({
   const unreadCount = notifications.length;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
+    <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-neutral-200/70 dark:border-neutral-800">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Zone 1: Wordmark */}
         <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setActiveTab('overview')}>
-          <div className="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
             <Wallet className="w-4.5 h-4.5" />
           </div>
           <div>
-            <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+            <span className="text-lg font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
               Cebim
             </span>
           </div>
         </div>
 
         {/* Zone 2: Navigation Links (Desktop/Tablet) */}
-        <nav className="hidden lg:flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] items-center gap-3 xl:gap-5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+        <nav className="hidden lg:flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] items-center gap-1 text-[13px] font-semibold text-neutral-600 dark:text-neutral-300">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`whitespace-nowrap transition-colors py-1 ${
+            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
               activeTab === 'overview'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+                ? 'bg-sky-600 text-white shadow-sm'
+                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
             Genel Bakış
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
-            className={`whitespace-nowrap transition-colors py-1 ${
+            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
               activeTab === 'transactions'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+                ? 'bg-sky-600 text-white shadow-sm'
+                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
             Harcama & Gelirler
           </button>
           <button
             onClick={() => setActiveTab('cards')}
-            className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
+            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full flex items-center gap-1 ${
               activeTab === 'cards'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+                ? 'bg-sky-600 text-white shadow-sm'
+                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
             <span>Kartlar</span>
           </button>
           <button
             onClick={() => setActiveTab('installments')}
-            className={`whitespace-nowrap transition-colors py-1 flex items-center gap-1 ${
+            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full flex items-center gap-1 ${
               activeTab === 'installments'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+                ? 'bg-sky-600 text-white shadow-sm'
+                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
             <span>Borçlar</span>
           </button>
           <button
             onClick={() => setActiveTab('goals')}
-            className={`whitespace-nowrap transition-colors py-1 ${
+            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
               activeTab === 'goals'
-                ? 'text-sky-600 dark:text-sky-400 font-bold border-b-2 border-sky-500'
-                : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+                ? 'bg-sky-600 text-white shadow-sm'
+                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
             }`}
           >
             Birikim

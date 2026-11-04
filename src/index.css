@@ -3,16 +3,49 @@
 /* Koyu tema sistem ayarından değil, uygulamadaki tema düğmesinden gelir (varsayılan açık) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-@layer base {
-  :root {
-    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
+/* Görsel tema: yazı tipi, soğuk tonlu gri palet, yumuşak köşe ve gölgeler.
+   Rakamlar da aynı yazı tipiyle, eşit genişlikte (tabular) yazılır. */
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
+  --color-neutral-50: #f6f8fb;
+  --color-neutral-100: #eef2f7;
+  --color-neutral-200: #e3e8ef;
+  --color-neutral-300: #cdd5df;
+  --color-neutral-400: #97a3b6;
+  --color-neutral-500: #697586;
+  --color-neutral-600: #4b5565;
+  --color-neutral-700: #364152;
+  --color-neutral-800: #1e2635;
+  --color-neutral-900: #121926;
+  --color-neutral-950: #0b101b;
+
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.25rem;
+
+  --shadow-xs: 0 1px 2px rgb(15 23 42 / 0.04), 0 2px 8px -2px rgb(15 23 42 / 0.06);
+  --shadow-sm: 0 1px 3px rgb(15 23 42 / 0.06), 0 6px 16px -6px rgb(15 23 42 / 0.10);
+}
+
+@layer base {
   body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image: radial-gradient(1200px 400px at 50% -120px, rgb(14 165 233 / 0.10), transparent 70%);
+    background-repeat: no-repeat;
+  }
+  .dark body {
+    background-image: radial-gradient(1200px 400px at 50% -120px, rgb(14 165 233 / 0.12), transparent 70%);
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.01em;
   }
 }
 

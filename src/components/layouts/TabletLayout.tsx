@@ -71,7 +71,7 @@ export const TabletLayout: React.FC<Props> = ({
   }).length;
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 flex flex-col">
+    <div className="min-h-screen text-neutral-900 dark:text-neutral-100 flex flex-col">
       {/* Top Header */}
       <HeaderBar
         onOpenSync={onOpenSync}
