@@ -88,14 +88,14 @@ export const MobileLayout: React.FC<Props> = ({
   });
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 pb-24 text-neutral-900 dark:text-neutral-100 flex flex-col">
+    <div className="min-h-screen pb-24 text-neutral-900 dark:text-neutral-100 flex flex-col">
       {/* Mobile Sticky Top Header */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('overview')}>
-          <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-sm">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm">
             <Wallet className="w-4 h-4" />
           </div>
-          <h1 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+          <h1 className="text-base font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">
             Cebim
           </h1>
         </div>
@@ -170,7 +170,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('overview')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'overview'
-              ? 'bg-sky-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-sm'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -180,7 +180,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('transactions')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'transactions'
-              ? 'bg-sky-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-sm'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -190,7 +190,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('cards')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
             activeTab === 'cards'
-              ? 'bg-sky-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-sm'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -201,7 +201,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('installments')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
             activeTab === 'installments'
-              ? 'bg-sky-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-sm'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -211,7 +211,7 @@ export const MobileLayout: React.FC<Props> = ({
           onClick={() => setActiveTab('goals')}
           className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
             activeTab === 'goals'
-              ? 'bg-sky-600 text-white shadow-xs'
+              ? 'bg-sky-600 text-white shadow-sm'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}
         >
@@ -303,7 +303,7 @@ export const MobileLayout: React.FC<Props> = ({
             setVoiceStart(false);
             setIsAddTxOpen(true);
           }}
-          className="w-13 h-13 rounded-full bg-slate-900 dark:bg-sky-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+          className="w-13 h-13 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
           title="Yeni İşlem Ekle"
         >
           <Plus className="w-6 h-6" />

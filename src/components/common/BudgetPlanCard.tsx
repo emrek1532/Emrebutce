@@ -103,7 +103,7 @@ export const BudgetPlanCard: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
+    <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-4">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
           <Wallet className="w-4 h-4 text-sky-600" /> {isPast ? 'Ay sonucu' : 'Bu ay harcayabileceğin'}
@@ -113,7 +113,7 @@ export const BudgetPlanCard: React.FC = () => {
       <div className="flex items-end justify-between gap-3">
         <div>
           <span className="text-[11px] text-neutral-500 block">{isPast ? 'Aydan artan' : 'Serbest kalan'}</span>
-          <span className={`text-2xl font-bold font-mono ${positive ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'}`}>
+          <span className={`text-3xl font-extrabold font-mono tracking-tight ${positive ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'}`}>
             {money(plan.free)}
           </span>
         </div>
@@ -124,6 +124,29 @@ export const BudgetPlanCard: React.FC = () => {
           </div>
         )}
       </div>
+      {plan.income > 0 && (
+        <div>
+          <div className="h-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex">
+            {(
+              [
+                [plan.fixed, 'bg-amber-400'],
+                [plan.loans, 'bg-indigo-400'],
+                [plan.minimums, 'bg-rose-400'],
+                [plan.spent + plan.saved, 'bg-sky-300']
+              ] as [number, string][]
+            ).map(([v, c], i) => (
+              <div key={i} className={c} style={{ width: `${Math.min(100, (v / plan.income) * 100)}%` }} />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[10px] text-neutral-500">
+            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-amber-400" />Sabit</span>
+            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-indigo-400" />Taksit</span>
+            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-rose-400" />Kart</span>
+            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-sky-300" />Diğer</span>
+            <span className="ml-auto">Gelirin %{Math.max(0, Math.round((1 - plan.free / plan.income) * 100))}'i ayrıldı</span>
+          </div>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setOpen(!open)}

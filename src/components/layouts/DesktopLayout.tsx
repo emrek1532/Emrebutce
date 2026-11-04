@@ -71,7 +71,7 @@ export const DesktopLayout: React.FC<Props> = ({
   });
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 flex flex-col">
+    <div className="min-h-screen text-neutral-900 dark:text-neutral-100 flex flex-col">
       {/* Top Bar Contract (3 zones) */}
       <HeaderBar
         onOpenSync={onOpenSync}
@@ -84,7 +84,16 @@ export const DesktopLayout: React.FC<Props> = ({
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-6 space-y-6">
         {/* Top Headline & Quick Action */}
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium text-neutral-500">
+              {new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+            <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">
+              {({ overview: 'Genel Bakış', transactions: 'Harcama & Gelirler', cards: 'Kredi Kartları', installments: 'Borçlar', goals: 'Birikim & Hedefler' } as Record<string, string>)[activeTab] ?? ''}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
             {onOpenReceiptScanner && (
               <button
                 onClick={onOpenReceiptScanner}
@@ -108,11 +117,12 @@ export const DesktopLayout: React.FC<Props> = ({
                 setEditingTx(null);
                 setIsAddTxOpen(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-sky-600 dark:hover:bg-sky-700 transition-colors shadow-xs"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Yeni İşlem Ekle</span>
             </button>
+          </div>
         </div>
 
         {activeTab === 'overview' && (
