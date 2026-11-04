@@ -7,6 +7,7 @@ import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
+import { AskBox } from '../common/AskBox';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
 import { monthKeyOf } from '../../utils/budgetMonth';
 import { SavingsGoalCard } from '../charts/SavingsGoalCard';
@@ -277,6 +278,7 @@ export const MobileLayout: React.FC<Props> = ({
               )}
             </div>
 
+            {selectedMonth === monthKeyOf(new Date()) && <AskBox />}
             {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
             {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
 

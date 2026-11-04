@@ -1,9 +1,15 @@
 {
   "name": "emrebutce",
   "compatibility_date": "2026-10-01",
+  // /api/* istekleri (soru-cevap yapay zekâsı) worker/index.ts'de karşılanır, gerisi statik site
+  "main": "worker/index.ts",
+  // Cloudflare Workers AI (günlük ücretsiz kota)
+  "ai": { "binding": "AI" },
   // Vite çıktısı (dist) statik olarak sunulur; SPA rotaları index.html'e düşer.
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
   }
 }

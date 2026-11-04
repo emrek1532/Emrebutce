@@ -8,6 +8,7 @@ import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
+import { AskBox } from '../common/AskBox';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
 import { monthKeyOf } from '../../utils/budgetMonth';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
@@ -236,7 +237,8 @@ export const TabletLayout: React.FC<Props> = ({
         <div className={`col-span-12 ${activeTab === 'overview' ? 'lg:col-span-8' : ''}`}>
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
+              {selectedMonth === monthKeyOf(new Date()) && <AskBox />}
+            {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
             {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
 
               <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
