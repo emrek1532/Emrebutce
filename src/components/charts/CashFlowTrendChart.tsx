@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
-import { budgetMonthOf } from '../../utils/budgetMonth';
+import { budgetMonthOf, isCashExpense } from '../../utils/budgetMonth';
 
 interface MonthData {
   key: string;
@@ -40,7 +40,7 @@ export const CashFlowTrendChart: React.FC = () => {
           const val = convertCurrency(tx.amount, tx.currency, currency);
           if (tx.type === 'income') income += val;
           // Kartlı harcama nakit çıkışı değil; kart borcu ödemesi gider olarak sayılır
-          else if (tx.type === 'expense' && tx.paymentMethod !== 'Kredi Kartı') expense += val;
+          else if (isCashExpense(tx)) expense += val;
         }
       });
 
