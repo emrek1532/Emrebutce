@@ -3,15 +3,16 @@ import { useBudget } from '../../context/BudgetContext';
 import { EXPENSE_CATEGORIES } from '../../data/initialData';
 import { parseStatementLines, parseStatementSummary, pdfLines, StatementLine, StatementSummary } from '../../utils/statementParser';
 import { formatCurrency } from '../../utils/currencies';
+import { lastStatementKey } from '../../utils/cardStatement';
 import { FileText, X } from 'lucide-react';
 
 // Kart/banka ekstresi PDF'inden harcamaları okuyup seçilenleri işlem olarak ekler (cihazda, yapay zekâsız)
-export const StatementImportModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId?: string }> = ({ onClose, initialCardId }) => {
   const { creditCards, familyMembers, importTransactions, updateCreditCard, transactions } = useBudget();
   const [lines, setLines] = useState<StatementLine[] | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [categories, setCategories] = useState<Record<string, string>>({});
-  const [cardId, setCardId] = useState(creditCards[0]?.id ?? '');
+  const [cardId, setCardId] = useState(initialCardId ?? creditCards[0]?.id ?? '');
   const card = creditCards.find((c) => c.id === cardId);
   const cardName = card ? (card.name.toLocaleLowerCase('tr-TR').includes(card.bank.toLocaleLowerCase('tr-TR')) ? card.name : `${card.bank} ${card.name}`) : '';
   // Ekstre özeti: kartın dönem borcu, tarihleri ve limiti bununla güncellenir
@@ -83,6 +84,7 @@ export const StatementImportModal: React.FC<{ onClose: () => void }> = ({ onClos
       statementTotal: total,
       statementDebt: remaining,
       statementKey: cut ? cut.slice(0, 7) : card.statementKey,
+      statementCheckedKey: cut ? cut.slice(0, 7) : lastStatementKey(card),
       statementDay: cut ? Number(cut.slice(8, 10)) : card.statementDay,
       dueDay: due ? Number(due.slice(8, 10)) : card.dueDay,
       limit: summary.limit ?? card.limit,

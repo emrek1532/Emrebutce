@@ -6,7 +6,7 @@ import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/Deb
 import { StatementImportModal } from '../modals/StatementImportModal';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
 import { budgetMonthOf } from '../../utils/budgetMonth';
-import { minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
+import { lastStatementKey, minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat, FileText } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -55,6 +55,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
     deleteInstallment,
     deleteCreditCard,
     payCardDebt,
+    updateCreditCard,
     recurring,
     deleteRecurring,
     transactions
@@ -64,6 +65,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [cardModal, setCardModal] = useState<{ open: boolean; card: CreditCardAccount | null }>({ open: false, card: null });
   const [statementOpen, setStatementOpen] = useState(false);
+  const [statementCard, setStatementCard] = useState<string | undefined>();
   const [instModal, setInstModal] = useState<{ open: boolean; inst: InstallmentDebt | null }>({ open: false, inst: null });
 
   const money = (tryAmount: number) => formatCurrency(convertCurrency(tryAmount, 'TRY', currency), currency);
@@ -140,10 +142,43 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
         </div>
       )}
 
+      {section === 'cards' &&
+        creditCards
+          .filter((c) => c.currentDebt > 0 && c.statementCheckedKey !== lastStatementKey(c))
+          .map((c) => (
+            <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs">
+              <span className="text-amber-800 dark:text-amber-300">
+                <b>{c.name.toLocaleLowerCase('tr-TR').includes(c.bank.toLocaleLowerCase('tr-TR')) ? c.name : `${c.bank} ${c.name}`}</b>: yeni ekstre kesildi (her ayın {c.statementDay}. günü). PDF'ini yükleyince borç ve harcamalar güncellenir.
+              </span>
+              <span className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateCreditCard({ ...c, statementCheckedKey: lastStatementKey(c) })}
+                  className="px-2.5 py-1.5 rounded-lg text-amber-800 dark:text-amber-300 font-semibold"
+                >
+                  Gerek yok
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatementCard(c.id);
+                    setStatementOpen(true);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-amber-600 text-white font-semibold"
+                >
+                  Yükle
+                </button>
+              </span>
+            </div>
+          ))}
+
       {section === 'cards' && (
         <button
           type="button"
-          onClick={() => setStatementOpen(true)}
+          onClick={() => {
+            setStatementCard(undefined);
+            setStatementOpen(true);
+          }}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-sky-300 dark:border-sky-800 text-sm font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
         >
           <FileText className="w-4 h-4" /> Ekstre PDF'i yükle (harcamalar + kart borcu)
@@ -509,7 +544,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
       <CreditCardModal isOpen={cardModal.open} editCard={cardModal.card} onClose={() => setCardModal({ open: false, card: null })} />
       <RecurringModal isOpen={recModal.open} editItem={recModal.item} onClose={() => setRecModal({ open: false, item: null })} />
       <InstallmentModal isOpen={instModal.open} editInstallment={instModal.inst} onClose={() => setInstModal({ open: false, inst: null })} />
-      {statementOpen && <StatementImportModal onClose={() => setStatementOpen(false)} />}
+      {statementOpen && <StatementImportModal initialCardId={statementCard} onClose={() => setStatementOpen(false)} />}
     </div>
   );
 };

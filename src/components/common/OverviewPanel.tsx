@@ -122,7 +122,7 @@ export const OverviewPanel: React.FC<{ onEditTx: (tx: Transaction) => void; onSe
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
       <div className="space-y-4">
         {summary}
-        {isCurrent && <BudgetPlanCard />}
+        <BudgetPlanCard />
       </div>
       <div className="space-y-4">
         {isCurrent && <UpcomingPayments />}
