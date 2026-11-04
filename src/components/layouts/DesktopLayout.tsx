@@ -8,6 +8,7 @@ import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
+import { AskBox } from '../common/AskBox';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
 import { monthKeyOf } from '../../utils/budgetMonth';
 import { CashFlowTrendChart } from '../charts/CashFlowTrendChart';
@@ -216,6 +217,7 @@ export const DesktopLayout: React.FC<Props> = ({
         {/* TAB CONTENTS */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
+            {selectedMonth === monthKeyOf(new Date()) && <AskBox />}
             {selectedMonth === monthKeyOf(new Date()) && <BudgetPlanCard />}
             {selectedMonth === monthKeyOf(new Date()) && <InstallmentsView section="recurring" />}
 
