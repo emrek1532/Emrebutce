@@ -54,9 +54,6 @@ export const HeaderBar: React.FC<Props> = ({
             <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
               Cebim
             </span>
-            <span className="hidden sm:inline-block text-[11px] text-neutral-400 font-medium ml-2">
-              Aile Finans & Bütçe
-            </span>
           </div>
         </div>
 
