@@ -3,6 +3,8 @@ import { useBudget } from '../../context/BudgetContext';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { CashFlowTrendChart } from '../charts/CashFlowTrendChart';
 import { monthLabel } from './MonthSwitcher';
+import { CategoryLimitsCard } from './CategoryLimitsCard';
+import { MonthReportCard } from './MonthReportCard';
 
 const card = 'p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs';
 
@@ -10,7 +12,9 @@ const card = 'p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 
 export const ChartsPanel: React.FC = () => {
   const { selectedMonth } = useBudget();
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <MonthReportCard />
+      <CategoryLimitsCard />
       <div className={card}>
         <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">Harcama dağılımı · {monthLabel(selectedMonth)}</h3>
         <CategoryDonutChart compact />

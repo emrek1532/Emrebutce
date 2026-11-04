@@ -10,12 +10,26 @@ const norm = (s: string) => s.toLocaleLowerCase('tr-TR');
 // "Bu ay ne kadar harcayabilirim?" — nakit akışına göre ay planı:
 // beklenen gelir − (sabit giderler + taksitler + kart ekstreleri + kartsız diğer harcamalar) = serbest para
 export const BudgetPlanCard: React.FC = () => {
-  const { transactions, recurring, installments, creditCards, currency } = useBudget();
+  const { transactions, recurring, installments, creditCards, currency, selectedMonth } = useBudget();
+  const isPast = selectedMonth !== monthKeyOf(new Date());
 
   const plan = useMemo(() => {
-    const month = monthKeyOf(new Date());
+    const month = isPast ? selectedMonth : monthKeyOf(new Date());
     const thisMonth = transactions.filter((t) => budgetMonthOf(t) === month);
     const toTry = (t: { amount: number; currency: any }) => convertCurrency(t.amount, t.currency, 'TRY');
+    if (isPast) {
+      // Geçmiş ay: tahmin yok, yalnızca gerçekleşenler
+      const sumOf = (f: (t: (typeof thisMonth)[number]) => boolean) => thisMonth.filter(f).reduce((s, t) => s + toTry(t), 0);
+      const cashOut = (t: (typeof thisMonth)[number]) => t.type === 'expense' && (t.paymentMethod !== 'Kredi Kartı' || !!t.installmentInfo);
+      const income = sumOf((t) => t.type === 'income');
+      const fixed = sumOf((t) => cashOut(t) && t.id.startsWith('rec-'));
+      const loans = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && !!t.installmentInfo);
+      const minimums = sumOf((t) => cashOut(t) && /kart borcu ödemesi/i.test(t.description));
+      const spent = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && !t.installmentInfo && !/kart borcu ödemesi/i.test(t.description));
+      const saved = sumOf((t) => t.type === 'saving');
+      const free = income - fixed - loans - minimums - spent - saved;
+      return { income, fixed, loans, cards: minimums, spent, saved, free, daily: 0, daysLeft: 0, cardPeriod: 0, minimums };
+    }
     const byCard = (creditor: string) =>
       creditCards.some((c) => norm(creditor).includes(norm(c.bank)) || norm(creditor).includes(norm(c.name)));
 
@@ -75,7 +89,7 @@ export const BudgetPlanCard: React.FC = () => {
     const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1;
     const cardPeriod = creditCards.reduce((s, c) => s + periodSpendOf(c), 0);
     return { income, fixed, loans, cards, spent, saved, free, daily: free / daysLeft, daysLeft, cardPeriod, minimums };
-  }, [transactions, recurring, installments, creditCards]);
+  }, [transactions, recurring, installments, creditCards, isPast, selectedMonth]);
 
   const [open, setOpen] = useState(false);
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
@@ -83,7 +97,7 @@ export const BudgetPlanCard: React.FC = () => {
   const rows: [string, number][] = [
     ['Sabit giderler', plan.fixed],
     ['Taksitler', plan.loans],
-    ['Kart asgari ödemeleri', plan.minimums],
+    [isPast ? 'Kart ödemeleri' : 'Kart asgari ödemeleri', plan.minimums],
     ['Diğer harcamalar', plan.spent],
     ...(plan.saved > 0 ? ([['Birikime ayrılan', plan.saved]] as [string, number][]) : [])
   ];
@@ -92,18 +106,18 @@ export const BudgetPlanCard: React.FC = () => {
     <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
-          <Wallet className="w-4 h-4 text-sky-600" /> Bu ay harcayabileceğin
+          <Wallet className="w-4 h-4 text-sky-600" /> {isPast ? 'Ay sonucu' : 'Bu ay harcayabileceğin'}
         </h3>
-        <span className="text-[11px] text-neutral-500">{plan.daysLeft} gün kaldı</span>
+        {!isPast && <span className="text-[11px] text-neutral-500">{plan.daysLeft} gün kaldı</span>}
       </div>
       <div className="flex items-end justify-between gap-3">
         <div>
-          <span className="text-[11px] text-neutral-500 block">Serbest kalan</span>
+          <span className="text-[11px] text-neutral-500 block">{isPast ? 'Aydan artan' : 'Serbest kalan'}</span>
           <span className={`text-2xl font-bold font-mono ${positive ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400'}`}>
             {money(plan.free)}
           </span>
         </div>
-        {positive && (
+        {positive && !isPast && (
           <div className="text-right">
             <span className="text-[11px] text-neutral-500 block">Günlük</span>
             <span className="text-lg font-bold font-mono text-neutral-900 dark:text-neutral-100">{money(plan.daily)}</span>
@@ -122,7 +136,7 @@ export const BudgetPlanCard: React.FC = () => {
       <>
       <div className="text-xs space-y-1">
         <div className="flex justify-between">
-          <span className="text-neutral-500">Beklenen gelir</span>
+          <span className="text-neutral-500">{isPast ? 'Gelir' : 'Beklenen gelir'}</span>
           <span className="font-mono text-sky-700 dark:text-sky-400">+{money(plan.income)}</span>
         </div>
         {rows.map(([label, value]) => (
@@ -132,7 +146,7 @@ export const BudgetPlanCard: React.FC = () => {
           </div>
         ))}
       </div>
-      {plan.cards > plan.minimums && (
+      {!isPast && plan.cards > plan.minimums && (
         <p className="text-[11px] text-amber-700 dark:text-amber-400">
           Kartlara yalnızca asgari ödemeler sayıldı. Ekstrelerin tamamını öderseniz {money(plan.cards - plan.minimums)} daha gider; kalan ekstre
           sonraki aya faizle devreder.

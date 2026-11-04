@@ -61,7 +61,7 @@ export interface FamilyMember {
 
 export interface BudgetNotification {
   id: string;
-  type: 'limit_warning' | 'limit_exceeded' | 'goal_reached' | 'sync_success' | 'installment_reminder';
+  type: 'limit_warning' | 'limit_exceeded' | 'goal_reached' | 'sync_success' | 'installment_reminder' | 'statement_reminder';
   title: string;
   message: string;
   category?: string;
@@ -109,6 +109,8 @@ export interface CreditCardAccount {
   // Ekstre kesildiğindeki toplam (asgari ödeme bundan hesaplanır)
   statementTotal?: number;
   statementKey?: string;
+  // Ekstresi yüklenen (ya da "gerek yok" denen) son ekstre ayı; hatırlatma bununla susar
+  statementCheckedKey?: string;
   notes?: string;
 }
 

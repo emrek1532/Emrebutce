@@ -176,6 +176,7 @@ const LS_SYNC_DIRTY = 'ailve_sync_dirty_v5';
 const LS_SYNC_BASE = 'ailve_sync_base_v5';
 const LS_THEME = 'cebim_theme_v6';
 const LS_NOTIFICATIONS = 'ailve_notifications_v5';
+const LS_DISMISSED = 'cebim_dismissed_notifications';
 const LS_DEVICE = 'ailve_device_mode_v5';
 
 export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -852,6 +853,32 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   }, [creditCards]);
 
+  // Yeni ekstre kesilen ve henüz yüklenmeyen kartlar için bildirim (kart + ay başına bir kez)
+  useEffect(() => {
+    const due = creditCards.filter((c) => c.currentDebt > 0 && c.statementCheckedKey !== lastStatementKey(c));
+    if (due.length === 0) return;
+    let dismissed: string[] = [];
+    try {
+      dismissed = JSON.parse(localStorage.getItem(LS_DISMISSED) || '[]');
+    } catch {
+      /* yoksay */
+    }
+    setNotifications((prev) => {
+      const ids = new Set([...prev.map((n) => n.id), ...dismissed]);
+      const add: BudgetNotification[] = due
+        .map((c) => ({
+          id: `stmt-${c.id}-${lastStatementKey(c)}`,
+          type: 'statement_reminder' as const,
+          title: `Yeni ekstre: ${c.name.toLocaleLowerCase('tr-TR').includes(c.bank.toLocaleLowerCase('tr-TR')) ? c.name : `${c.bank} ${c.name}`}`,
+          message: `Hesap kesildi. Kartlar sekmesinden ekstre PDF'ini yükleyin; borç ve harcamalar güncellensin.`,
+          timestamp: new Date().toISOString(),
+          read: false
+        }))
+        .filter((n) => !ids.has(n.id));
+      return add.length ? [...add, ...prev] : prev;
+    });
+  }, [creditCards]);
+
   // Eski varsayılan isim "Şakir (Ben)" -> "Emre". Buluttan eski adla gelen veri de düzeltilir;
   // değişiklik normal eşitlemeyle diğer cihazlara gider.
   useEffect(() => {
@@ -1432,11 +1459,23 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (tx) deleteTransaction(tx.id);
   };
 
+  // Kapatılan ekstre hatırlatmaları yeniden eklenmesin
+  const rememberDismissed = (ids: string[]) => {
+    try {
+      const old: string[] = JSON.parse(localStorage.getItem(LS_DISMISSED) || '[]');
+      localStorage.setItem(LS_DISMISSED, JSON.stringify([...new Set([...old, ...ids.filter((i) => i.startsWith('stmt-'))])].slice(-100)));
+    } catch {
+      /* yoksay */
+    }
+  };
+
   const dismissNotification = (id: string) => {
+    rememberDismissed([id]);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const clearAllNotifications = () => {
+    rememberDismissed(notifications.map((n) => n.id));
     setNotifications([]);
   };
 
