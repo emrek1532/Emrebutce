@@ -60,6 +60,7 @@ export const MobileLayout: React.FC<Props> = ({
     toggleDarkMode,
     monthlyIncome,
     monthlyExpense,
+    monthlyCardSpend,
     monthlySavings,
     monthlyBalance,
     savingsRate,
@@ -262,6 +263,9 @@ export const MobileLayout: React.FC<Props> = ({
                     <span className="text-xs font-bold font-mono text-rose-600 dark:text-rose-400">
                       -{formatCurrency(monthlyExpense, currency)}
                     </span>
+                    {monthlyCardSpend > 0 && (
+                      <span className="text-[10px] text-neutral-400 block">kartla +{formatCurrency(monthlyCardSpend, currency)}</span>
+                    )}
                   </div>
                 </div>
               </div>

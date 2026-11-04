@@ -348,10 +348,8 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                         const s = raw.trim().replace(/\s/g, '');
                         const amount = s.includes(',') ? Number(s.replace(/\./g, '').replace(',', '.')) : /^\d{1,3}(\.\d{3})+$/.test(s) ? Number(s.replace(/\./g, '')) : Number(s);
                         if (!(amount > 0)) return alert('Geçerli bir tutar girin.');
-                        const record = window.confirm(
-                          'Bu ödeme gider olarak da kaydedilsin mi?\n\nKartla yaptığınız harcamaları uygulamaya tek tek girmediyseniz "Tamam" deyin. Girdiyseniz "İptal" deyin; aksi halde aynı harcama iki kez sayılır.'
-                        );
-                        payCardDebt(card.id, amount, record);
+                        // Kartlı harcamalar net bakiyeden düşülmediği için kart ödemesi her zaman gider olarak kaydedilir
+                        payCardDebt(card.id, amount, true);
                       }}
                       className="w-full py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
                     >

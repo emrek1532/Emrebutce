@@ -39,7 +39,8 @@ export const CashFlowTrendChart: React.FC = () => {
         if (budgetMonthOf(tx) === key) {
           const val = convertCurrency(tx.amount, tx.currency, currency);
           if (tx.type === 'income') income += val;
-          else if (tx.type === 'expense') expense += val;
+          // Kartlı harcama nakit çıkışı değil; kart borcu ödemesi gider olarak sayılır
+          else if (tx.type === 'expense' && tx.paymentMethod !== 'Kredi Kartı') expense += val;
         }
       });
 

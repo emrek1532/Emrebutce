@@ -45,6 +45,7 @@ export const DesktopLayout: React.FC<Props> = ({
     selectedMonth,
     monthlyIncome,
     monthlyExpense,
+    monthlyCardSpend,
     monthlySavings,
     monthlyBalance,
     savingsRate,
@@ -185,7 +186,9 @@ export const DesktopLayout: React.FC<Props> = ({
               </span>
             </div>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block mt-1">
-              Kira, fatura ve günlük harcamalar
+              {monthlyCardSpend > 0
+                ? `Kartla ayrıca ${formatCurrency(monthlyCardSpend, currency)} (kart borcu ödenince düşer)`
+                : 'Nakit, banka ve kart borcu ödemeleri'}
             </span>
           </div>
 
