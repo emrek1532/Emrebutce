@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { Currency, PaymentMethod, Transaction, TransactionType } from '../../types/budget';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, SAVING_CATEGORIES } from '../../data/initialData';
-import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle, Mic, Square, PiggyBank } from 'lucide-react';
+import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle, Mic, Square, PiggyBank, MessageSquareText } from 'lucide-react';
+import { parseBankSms } from '../../utils/smsParser';
+import { learnedCategory } from '../../utils/categoryMemory';
 import { isVoiceSupported, listenOnce, parseVoiceTransaction, VoiceSession } from '../../utils/voiceTransaction';
 
 interface Props {
@@ -11,15 +13,22 @@ interface Props {
   editTransaction?: Transaction | null;
   // Pencere açılır açılmaz dinlemeye başla (mikrofon kısayolu)
   startWithVoice?: boolean;
+  // Paylaşılan SMS gibi dışarıdan gelen hazır alanlar (yeni işlemde)
+  prefill?: Partial<Pick<Transaction, 'type' | 'amount' | 'description' | 'date' | 'paymentMethod' | 'cardId'>> | null;
 }
 
 export const AddTransactionModal: React.FC<Props> = ({
   isOpen,
   onClose,
   editTransaction,
-  startWithVoice
+  startWithVoice,
+  prefill
 }) => {
-  const { addTransaction, updateTransaction, familyMembers, savingsGoals, creditCards, currency: activeCurrency } = useBudget();
+  const { addTransaction, updateTransaction, familyMembers, savingsGoals, creditCards, transactions, currency: activeCurrency } = useBudget();
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [smsOpen, setSmsOpen] = useState(false);
+  const [smsText, setSmsText] = useState('');
+  const [smsNote, setSmsNote] = useState<string | null>(null);
 
   const [type, setType] = useState<TransactionType>(editTransaction?.type || 'expense');
   const [amount, setAmount] = useState<string>(editTransaction ? String(editTransaction.amount) : '');
@@ -59,8 +68,48 @@ export const AddTransactionModal: React.FC<Props> = ({
     setIsRecurring(editTransaction?.isRecurring || false);
     setGoalId(editTransaction?.goalId || '');
     setCardId(editTransaction ? editTransaction.cardId || '' : creditCards[0]?.id || '');
+    setCategoryTouched(!!editTransaction);
+    setSmsOpen(false);
+    setSmsText('');
+    setSmsNote(null);
+    if (!editTransaction && prefill) applyDraft(prefill);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, editTransaction]);
+  }, [isOpen, editTransaction, prefill]);
+
+  // Açıklamaya göre geçmişten kategori öner (kullanıcı kategoriyi elle seçmediyse)
+  const suggestCategory = (desc: string, t: TransactionType) => {
+    const learned = learnedCategory(desc, transactions, t, categoriesFor(t));
+    if (learned) setCategory(learned);
+  };
+
+  const applyDraft = (d: NonNullable<Props['prefill']>) => {
+    const t = d.type || 'expense';
+    setType(t);
+    setCategory(categoriesFor(t)[0]);
+    setCategoryTouched(false);
+    if (d.amount != null) setAmount(String(d.amount));
+    if (d.date) setDate(d.date);
+    if (d.description) {
+      setDescription(d.description);
+      suggestCategory(d.description, t);
+    }
+    if (d.paymentMethod) setPaymentMethod(d.paymentMethod);
+    if (d.cardId) setCardId(d.cardId);
+  };
+
+  const fillFromSms = (text: string) => {
+    const d = parseBankSms(text, creditCards);
+    applyDraft({
+      type: d.type,
+      amount: d.amount ?? undefined,
+      description: d.description,
+      date: d.date,
+      paymentMethod: d.type === 'expense' ? (d.isCard ? 'Kredi Kartı' : 'Havale/EFT') : undefined,
+      cardId: d.cardId
+    });
+    setSmsNote(d.amount === null ? 'Tutar bulunamadı, elle girin.' : 'SMS okundu — kontrol edip kaydedin.');
+    setSmsOpen(false);
+  };
 
   const selectType = (t: TransactionType) => {
     setType(t);
@@ -179,6 +228,41 @@ export const AddTransactionModal: React.FC<Props> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+          {/* Banka SMS'inden doldur */}
+          {!editTransaction && (
+            <div className="space-y-2">
+              {!smsOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setSmsOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl border border-dashed border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300"
+                >
+                  <MessageSquareText className="w-4 h-4" /> Banka SMS'inden doldur
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <textarea
+                    autoFocus
+                    rows={3}
+                    value={smsText}
+                    onChange={(e) => setSmsText(e.target.value)}
+                    placeholder="Bankadan gelen harcama SMS'ini buraya yapıştırın"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800"
+                  />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setSmsOpen(false)} className="flex-1 py-2 text-xs font-semibold rounded-lg border border-neutral-300 dark:border-neutral-700">
+                      Vazgeç
+                    </button>
+                    <button type="button" disabled={!smsText.trim()} onClick={() => fillFromSms(smsText)} className="flex-1 py-2 text-xs font-semibold rounded-lg bg-sky-600 text-white disabled:opacity-50">
+                      Doldur
+                    </button>
+                  </div>
+                </div>
+              )}
+              {smsNote && <p className="text-[11px] text-center text-sky-700 dark:text-sky-300">{smsNote}</p>}
+            </div>
+          )}
+
           {/* Sesli giriş */}
           {isVoiceSupported() && (
             <div className="space-y-2">
@@ -297,6 +381,7 @@ export const AddTransactionModal: React.FC<Props> = ({
               placeholder="Örn: Haftalık market alışverişi, Kira vb."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onBlur={(e) => !categoryTouched && !editTransaction && suggestCategory(e.target.value, type)}
               className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
@@ -309,7 +394,10 @@ export const AddTransactionModal: React.FC<Props> = ({
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setCategoryTouched(true);
+                }}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               >
                 {currentCategoryList.map((cat) => (

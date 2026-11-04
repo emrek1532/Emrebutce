@@ -4,6 +4,7 @@ import { EXPENSE_CATEGORIES } from '../../data/initialData';
 import { parseStatementLines, parseStatementSummary, pdfLines, StatementLine, StatementSummary } from '../../utils/statementParser';
 import { formatCurrency } from '../../utils/currencies';
 import { lastStatementKey } from '../../utils/cardStatement';
+import { learnedCategory } from '../../utils/categoryMemory';
 import { FileText, X } from 'lucide-react';
 
 // Kart/banka ekstresi PDF'inden harcamaları okuyup seçilenleri işlem olarak ekler (cihazda, yapay zekâsız)
@@ -46,7 +47,8 @@ export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId
       }
       setLines(parsed);
       setSelected(Object.fromEntries(parsed.map((l) => [l.key, !l.likelyNotExpense])));
-      setCategories(Object.fromEntries(parsed.map((l) => [l.key, l.category])));
+      // Daha önce aynı yerden yapılan harcamanın kategorisi varsa o önerilir
+      setCategories(Object.fromEntries(parsed.map((l) => [l.key, learnedCategory(l.description, transactions, 'expense', EXPENSE_CATEGORIES) ?? l.category])));
     } catch (e: any) {
       if (e?.name === 'PasswordException') {
         const pw = window.prompt('PDF şifreli. Şifresini girin (genelde T.C. kimlik no / doğum tarihi):');

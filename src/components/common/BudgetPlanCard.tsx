@@ -10,7 +10,9 @@ const norm = (s: string) => s.toLocaleLowerCase('tr-TR');
 // "Bu ay ne kadar harcayabilirim?" — nakit akışına göre ay planı:
 // beklenen gelir − (sabit giderler + taksitler + kart ekstreleri + kartsız diğer harcamalar) = serbest para
 export const BudgetPlanCard: React.FC = () => {
-  const { transactions, recurring, installments, creditCards, currency, selectedMonth } = useBudget();
+  const { transactions, recurring, installments, creditCards, currency, selectedMonth, savingsGoals, familyMembers, addTransaction } = useBudget();
+  const [goalId, setGoalId] = useState('');
+  const [savedNow, setSavedNow] = useState(false);
   const isPast = selectedMonth !== monthKeyOf(new Date());
 
   const plan = useMemo(() => {
@@ -94,6 +96,26 @@ export const BudgetPlanCard: React.FC = () => {
   const [open, setOpen] = useState(false);
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
   const positive = plan.free >= 0;
+  // Gelir yattıysa serbest kalanın yaklaşık %30'u birikime önerilir (500 ₺'ye yuvarlanır)
+  const incomeArrived = !isPast && transactions.some((t) => t.type === 'income' && budgetMonthOf(t) === monthKeyOf(new Date()));
+  const suggestion = Math.floor((plan.free * 0.3) / 500) * 500;
+  const showSuggestion = incomeArrived && suggestion >= 500 && plan.saved === 0 && !savedNow;
+  const saveSuggestion = () => {
+    const goal = savingsGoals.find((g) => g.id === goalId);
+    addTransaction({
+      type: 'saving',
+      amount: suggestion,
+      currency: 'TRY',
+      category: 'Birikim',
+      member: familyMembers[0]?.name || 'Ortak',
+      date: new Date().toISOString().slice(0, 10),
+      description: goal ? `${goal.title} birikimi` : 'Aylık birikim',
+      paymentMethod: 'Havale/EFT',
+      isRecurring: false,
+      goalId: goal?.id
+    });
+    setSavedNow(true);
+  };
   const rows: [string, number][] = [
     ['Sabit giderler', plan.fixed],
     ['Taksitler', plan.loans],
@@ -144,6 +166,30 @@ export const BudgetPlanCard: React.FC = () => {
             <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-rose-400" />Kart</span>
             <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-sky-300" />Diğer</span>
             <span className="ml-auto">Gelirin %{Math.max(0, Math.round((1 - plan.free / plan.income) * 100))}'i ayrıldı</span>
+          </div>
+        </div>
+      )}
+      {showSuggestion && (
+        <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-3 space-y-2">
+          <p className="text-xs text-amber-900 dark:text-amber-200">
+            Gelir yattı. Bu ay <b className="font-mono">{money(suggestion)}</b> birikime ayırabilirsin (serbest kalanın ~%30'u).
+          </p>
+          <div className="flex gap-2">
+            <select
+              value={goalId}
+              onChange={(e) => setGoalId(e.target.value)}
+              className="flex-1 min-w-0 text-xs py-1.5 px-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-white dark:bg-neutral-800"
+            >
+              <option value="">Genel birikim</option>
+              {savingsGoals.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.title}
+                </option>
+              ))}
+            </select>
+            <button type="button" onClick={saveSuggestion} className="px-3 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white">
+              Ayır
+            </button>
           </div>
         </div>
       )}
