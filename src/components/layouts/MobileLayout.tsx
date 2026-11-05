@@ -8,6 +8,7 @@ import { TransactionTable } from '../common/TransactionTable';
 import { CategoryDonutChart } from '../charts/CategoryDonutChart';
 import { BudgetPlanCard } from '../common/BudgetPlanCard';
 import { OverviewPanel } from '../common/OverviewPanel';
+import { TABS, useActiveTab } from '../../utils/activeTab';
 import { TxHeader } from '../common/TxHeader';
 import { ChartsPanel } from '../common/ChartsPanel';
 import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
@@ -46,14 +47,12 @@ interface Props {
   onOpenSync: () => void;
   onOpenNotifications: () => void;
   onOpenShare: () => void;
-  onOpenReceiptScanner?: () => void;
 }
 
 export const MobileLayout: React.FC<Props> = ({
   onOpenSync,
   onOpenNotifications,
-  onOpenShare,
-  onOpenReceiptScanner
+  onOpenShare
 }) => {
   const {
     selectedMonth,
@@ -75,7 +74,7 @@ export const MobileLayout: React.FC<Props> = ({
     categorySpendingMap
   } = useBudget();
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [activeTab, setActiveTab] = useActiveTab();
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
   const [voiceStart, setVoiceStart] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
@@ -102,18 +101,6 @@ export const MobileLayout: React.FC<Props> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Currency selector */}
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as any)}
-            className="text-[11px] font-semibold py-1 px-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800"
-          >
-            <option value="TRY">₺ TRY</option>
-            <option value="USD">$ USD</option>
-            <option value="EUR">€ EUR</option>
-            <option value="GBP">£ GBP</option>
-          </select>
-
           {/* Share / Install on Phone */}
           <button
             onClick={onOpenShare}
@@ -165,59 +152,19 @@ export const MobileLayout: React.FC<Props> = ({
         </div>
       </header>
 
-      {/* Horizontal Scrollable Quick Category Navigation Strip */}
-      <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xs border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'overview'
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          Özet
-        </button>
-        <button
-          onClick={() => setActiveTab('transactions')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'transactions'
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          İşlemler
-        </button>
-        <button
-          onClick={() => setActiveTab('cards')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
-            activeTab === 'cards'
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          <CreditCard className="w-3 h-3" />
-          <span>Kartlar</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('installments')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
-            activeTab === 'installments'
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          <span>Borçlar</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('goals')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'goals'
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-          }`}
-        >
-          Birikim
-        </button>
+      {/* Sekmeler */}
+      <div className="sticky top-14 z-20 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xs border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+              activeTab === t.id ? 'bg-sky-600 text-white shadow-sm' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
+            }`}
+          >
+            {t.short}
+          </button>
+        ))}
       </div>
 
       {/* Main Scrollable Content */}
@@ -240,6 +187,12 @@ export const MobileLayout: React.FC<Props> = ({
               }}
               compact={true}
             />
+          </div>
+        )}
+
+        {activeTab === 'reports' && (
+          <div className="space-y-4">
+            <TxHeader />
             <ChartsPanel />
           </div>
         )}

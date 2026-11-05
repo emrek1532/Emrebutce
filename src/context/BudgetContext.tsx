@@ -11,7 +11,6 @@ import {
   AssetSnapshot,
   BudgetNotification,
   Currency,
-  DeviceMode,
   CloudVaultPayload
 } from '../types/budget';
 import {
@@ -73,7 +72,6 @@ interface BudgetContextValue {
   currency: Currency;
   notifications: BudgetNotification[];
   syncConfig: SyncConfig;
-  deviceMode: DeviceMode;
   effectiveDevice: 'mobile' | 'tablet' | 'desktop';
   darkMode: boolean;
 
@@ -123,7 +121,6 @@ interface BudgetContextValue {
   undoInstallmentPayment: (id: string) => void;
   isInstallmentPaidThisMonth: (id: string) => boolean;
   setCurrency: (c: Currency) => void;
-  setDeviceMode: (m: DeviceMode) => void;
   toggleDarkMode: () => void;
   dismissNotification: (id: string) => void;
   clearAllNotifications: () => void;
@@ -177,7 +174,6 @@ const LS_SYNC_BASE = 'ailve_sync_base_v5';
 const LS_THEME = 'cebim_theme_v6';
 const LS_NOTIFICATIONS = 'ailve_notifications_v5';
 const LS_DISMISSED = 'cebim_dismissed_notifications';
-const LS_DEVICE = 'ailve_device_mode_v5';
 
 export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -231,10 +227,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   });
 
-  const [currency, setCurrencyState] = useState<Currency>(() => {
-    const saved = localStorage.getItem(LS_CURRENCY) as Currency;
-    return saved || 'TRY';
-  });
+  // Gösterim para birimi her zaman TL (seçici kaldırıldı; eski kayıtlı seçim yok sayılır)
+  const [currency, setCurrencyState] = useState<Currency>('TRY');
 
   const [notifications, setNotifications] = useState<BudgetNotification[]>(() => {
     const saved = localStorage.getItem(LS_NOTIFICATIONS);
@@ -266,9 +260,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return saved === 'dark';
   });
 
-  // Görünüm her zaman ekran genişliğine göre otomatik seçilir
-  const [deviceMode, setDeviceModeState] = useState<DeviceMode>('auto');
-
   const [windowWidth, setWindowWidth] = useState<number>(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1200
   );
@@ -288,14 +279,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   // Compute effective device
-  const effectiveDevice: 'mobile' | 'tablet' | 'desktop' = useMemo(() => {
-    if (deviceMode !== 'auto') {
-      return deviceMode;
-    }
-    if (windowWidth < 640) return 'mobile';
-    if (windowWidth < 1024) return 'tablet';
-    return 'desktop';
-  }, [deviceMode, windowWidth]);
+  // Görünüm ekran genişliğine göre seçilir
+  const effectiveDevice: 'mobile' | 'tablet' | 'desktop' = windowWidth < 640 ? 'mobile' : windowWidth < 1024 ? 'tablet' : 'desktop';
 
   // Dark mode effect
   useEffect(() => {
@@ -347,7 +332,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [assetHistory]);
 
   useEffect(() => {
-    localStorage.setItem(LS_CURRENCY, currency);
+    localStorage.removeItem(LS_CURRENCY);
   }, [currency]);
 
   useEffect(() => {
@@ -358,22 +343,21 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem(LS_SYNC, JSON.stringify(syncConfig));
   }, [syncConfig]);
 
-  useEffect(() => {
-    localStorage.setItem(LS_DEVICE, deviceMode);
-  }, [deviceMode]);
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
   const setCurrency = (c: Currency) => setCurrencyState(c);
-  const setDeviceMode = (m: DeviceMode) => setDeviceModeState(m);
 
   // Güncel döviz kurları: değişince tutarlar yeniden hesaplansın
   const [ratesVersion, setRatesVersion] = useState(0);
+  // Kurlar yalnızca TL dışı bir işlem varsa alınır (gereksiz istek atılmaz)
+  const needsRates = transactions.some((t) => t.currency !== 'TRY');
   useEffect(() => {
+    if (!needsRates) return;
     refreshRates().then((changed) => {
       if (changed) setRatesVersion((v) => v + 1);
     });
-  }, []);
+  }, [needsRates]);
 
   // Özette gösterilen ay (YYYY-MM); varsayılan bu ay, önceki aylara geçilebilir
   const [selectedMonth, setSelectedMonth] = useState<string>(() => monthKeyOf(new Date()));
@@ -1582,7 +1566,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     syncConfig,
     selectedMonth,
     setSelectedMonth,
-    deviceMode,
     effectiveDevice,
     darkMode,
     filterQuery,
@@ -1628,7 +1611,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     undoInstallmentPayment,
     isInstallmentPaidThisMonth: (id: string) => Boolean(getInstallmentPaymentThisMonth(id)),
     setCurrency,
-    setDeviceMode,
     toggleDarkMode,
     dismissNotification,
     clearAllNotifications,

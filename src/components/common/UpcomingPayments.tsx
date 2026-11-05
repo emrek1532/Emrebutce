@@ -55,6 +55,11 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
           </button>
         )}
       </div>
+      {!pushSupported() && /iphone|ipad|ipod/i.test(navigator.userAgent) && (
+        <p className="text-[11px] text-amber-700 dark:text-amber-400">
+          iPhone'da bildirim için Safari'de Paylaş → "Ana Ekrana Ekle" ile Cebim'i ana ekrana ekleyip oradan açın.
+        </p>
+      )}
       {list.length === 0 ? (
         <p className="text-xs text-neutral-500">Önümüzdeki 7 günde ödeme görünmüyor.</p>
       ) : (

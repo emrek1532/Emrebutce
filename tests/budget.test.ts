@@ -1,0 +1,48 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { minimumPaymentOf, minimumRateOf, periodSpendOf, lastStatementKey } from '../src/utils/cardStatement';
+import { budgetMonthOf, isCashExpense, shiftMonthKey } from '../src/utils/budgetMonth';
+import { simulate } from '../src/utils/debtPlan';
+
+test('asgari ödeme: limit 100 binin altında %20, üstünde %40', () => {
+  const card: any = { limit: 17500, currentDebt: 14415.64, statementDebt: 14415.64, statementTotal: 14415.64 };
+  assert.equal(minimumRateOf(card), 0.2);
+  assert.equal(minimumPaymentOf(card), 2883.13);
+  assert.equal(minimumRateOf({ ...card, limit: 150000 }), 0.4);
+  // Ekstrenin bir kısmı ödenince kalan asgari azalır
+  assert.equal(minimumPaymentOf({ ...card, statementDebt: 12415.64 }), 883.13);
+  assert.equal(periodSpendOf({ ...card, currentDebt: 15515.64 }), 1100);
+});
+
+test('ekstre ayı kesim gününe göre', () => {
+  assert.equal(lastStatementKey({ statementDay: 27 }, new Date(2026, 10, 4)), '2026-10');
+  assert.equal(lastStatementKey({ statementDay: 3 }, new Date(2026, 10, 4)), '2026-11');
+});
+
+test('bütçe ayı ve nakit gider kuralı', () => {
+  assert.equal(shiftMonthKey('2026-01', -1), '2025-12');
+  assert.equal(budgetMonthOf({ date: '2026-10-30', budgetMonth: '2026-11' }), '2026-11');
+  assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Kredi Kartı' } as any), false);
+  assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Kredi Kartı', installmentInfo: { installmentId: 'x' } } as any), true);
+  assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Nakit' } as any), true);
+});
+
+test('borç planı: fazladan ödeme borçsuz kalmayı öne çeker', () => {
+  const debts = [
+    { id: 'a', title: 'A', balance: 3000, monthly: 1000, start: 0 },
+    { id: 'b', title: 'B', balance: 12000, monthly: 1000, start: 0 }
+  ];
+  const base = simulate(debts, 0);
+  const plan = simulate(debts, 1000);
+  assert.equal(base.months, 12);
+  assert.ok(plan.months < base.months);
+  assert.equal(Math.round(base.totalPaid), 15000);
+});
+
+test('borç planı: faizli kredide erken kapatma faiz kazandırır', () => {
+  const debts = [{ id: 'k', title: 'Kredi', balance: 24 * 1000, monthly: 1000, start: 0, rate: 0.03, count: 24 }];
+  const base = simulate(debts, 0);
+  const plan = simulate(debts, 1000);
+  assert.ok(Math.abs(base.totalPaid - 24000) < 1);
+  assert.ok(plan.totalPaid < base.totalPaid - 1000);
+});

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { buildReminders, pushEnabled, syncRemindersIfChanged } from './utils/paymentReminders';
 import { BudgetProvider, useBudget } from './context/BudgetContext';
 import { MobileLayout } from './components/layouts/MobileLayout';
-import { TabletLayout } from './components/layouts/TabletLayout';
 import { DesktopLayout } from './components/layouts/DesktopLayout';
 import { CloudSyncModal } from './components/modals/CloudSyncModal';
 import { NotificationsDrawer } from './components/modals/NotificationsDrawer';
@@ -64,12 +63,6 @@ const AppContent: React.FC = () => {
       {/* Render dedicated layout based on current or selected viewport */}
       {effectiveDevice === 'mobile' ? (
         <MobileLayout
-          onOpenSync={() => setIsSyncModalOpen(true)}
-          onOpenNotifications={() => setIsNotificationsOpen(true)}
-          onOpenShare={() => setIsShareModalOpen(true)}
-        />
-      ) : effectiveDevice === 'tablet' ? (
-        <TabletLayout
           onOpenSync={() => setIsSyncModalOpen(true)}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           onOpenShare={() => setIsShareModalOpen(true)}
