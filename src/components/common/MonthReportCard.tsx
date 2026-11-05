@@ -39,15 +39,15 @@ export const MonthReportCard: React.FC = () => {
 
   const money = (v: number) => formatCurrency(Math.abs(v), currency);
   const diff = report.total - report.totalBefore;
+  // Geçen ay kaydı yoksa karşılaştırılacak bir şey yok: kart gösterilmez
+  if (!report.hasBefore) return null;
 
   return (
     <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
       <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
         <Scale className="w-4 h-4 text-sky-600" /> Geçen aya göre
       </h3>
-      {!report.hasBefore ? (
-        <p className="text-xs text-neutral-500">{monthLabel(report.prev)} için harcama kaydı yok, karşılaştırma yapılamıyor.</p>
-      ) : (
+      {(
         <>
           <p className="text-xs text-neutral-600 dark:text-neutral-300">
             Toplam harcama {monthLabel(report.prev)}

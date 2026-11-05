@@ -89,8 +89,7 @@ export const DebtPayoffChart: React.FC = () => {
         ))}
       </div>
       <p className="text-[11px] text-neutral-500">
-        Sütunlar her ay ödenecek toplam taksiti gösterir; üzerine gelince tutar görünür. Kredi faizleri bilinmediği için erken kapatma
-        kazancı hesaplanmaz.
+        Sütunlar her ay ödenecek toplam taksiti gösterir; üzerine gelince tutar görünür. Erken kapatmanın etkisi için aşağıdaki planı kullanın.
       </p>
     </section>
   );

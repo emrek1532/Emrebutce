@@ -116,7 +116,7 @@ export const CategoryDonutChart: React.FC<{ compact?: boolean }> = ({ compact = 
         {/* Center Info */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
           <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400 truncate max-w-[140px]">
-            {activeSlice ? activeSlice.category : 'Toplam Gider'}
+            {activeSlice ? activeSlice.category : 'Gider (kart dahil)'}
           </span>
           <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono tabular-nums">
             {formatCurrency(activeSlice ? activeSlice.amount : totalExpense, currency)}

@@ -32,8 +32,10 @@ export const CURRENCY_CONFIG: Record<
 
 export function formatCurrency(amount: number, currency: Currency = 'TRY'): string {
   const config = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.TRY;
+  // Küsuratlı tutar her zaman iki haneli yazılır (43.545,6 değil 43.545,60)
+  const hasCents = Math.abs(Math.round(amount * 100) - Math.round(amount) * 100) > 0;
   const formattedNumber = new Intl.NumberFormat('tr-TR', {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: hasCents ? 2 : 0,
     maximumFractionDigits: 2
   }).format(amount);
 

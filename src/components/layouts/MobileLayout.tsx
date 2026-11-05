@@ -1,47 +1,16 @@
-import { txTone } from '../../utils/txStyle';
 import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { ActiveTab, Transaction } from '../../types/budget';
-import { formatCurrency, convertCurrency } from '../../utils/currencies';
+import { Transaction } from '../../types/budget';
 import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
-import { CategoryDonutChart } from '../charts/CategoryDonutChart';
-import { BudgetPlanCard } from '../common/BudgetPlanCard';
 import { OverviewPanel } from '../common/OverviewPanel';
 import { TABS, useActiveTab } from '../../utils/activeTab';
 import { TxHeader } from '../common/TxHeader';
 import { ChartsPanel } from '../common/ChartsPanel';
-import { MonthSwitcher, monthLabel } from '../common/MonthSwitcher';
-import { monthKeyOf } from '../../utils/budgetMonth';
-import { SavingsGoalCard } from '../charts/SavingsGoalCard';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
-import { AddGoalModal } from '../modals/AddGoalModal';
-import { AssetsSection } from '../views/AssetsSection';
+import { GoalsView } from '../views/GoalsView';
 import { InstallmentsView } from '../views/InstallmentsView';
-import {
-  LayoutGrid,
-  Receipt,
-  PieChart,
-  Target,
-  Sliders,
-  Plus,
-  ArrowUpRight,
-  ArrowDownRight,
-  AlertTriangle,
-  AlertOctagon,
-  ShieldCheck,
-  Bell,
-  Sun,
-  Moon,
-  TrendingUp,
-  Smartphone,
-  CreditCard,
-  Sparkles,
-  Mic,
-  X,
-  Download,
-  Wallet
-} from 'lucide-react';
+import { Plus, ShieldCheck, Bell, Sun, Moon, Smartphone, Wallet } from 'lucide-react';
 
 interface Props {
   onOpenSync: () => void;
@@ -54,38 +23,11 @@ export const MobileLayout: React.FC<Props> = ({
   onOpenNotifications,
   onOpenShare
 }) => {
-  const {
-    selectedMonth,
-    currency,
-    setCurrency,
-    darkMode,
-    toggleDarkMode,
-    monthlyIncome,
-    monthlyExpense,
-    monthlyCardSpend,
-    monthlySavings,
-    monthlyBalance,
-    savingsRate,
-    filteredTransactions,
-    categoryLimits,
-    savingsGoals,
-    notifications,
-    syncConfig,
-    categorySpendingMap
-  } = useBudget();
+  const { darkMode, toggleDarkMode, filteredTransactions, notifications, syncConfig } = useBudget();
 
   const [activeTab, setActiveTab] = useActiveTab();
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
-  const [voiceStart, setVoiceStart] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-  const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
-
-  // Check critical limit alerts
-  const criticalAlerts = categoryLimits.filter((l) => {
-    const spent = categorySpendingMap[l.category] || 0;
-    const limitVal = convertCurrency(l.monthlyLimit, l.currency, currency);
-    return limitVal > 0 && (spent / limitVal) * 100 >= l.alertThresholdPercent;
-  });
 
   return (
     <div className="min-h-screen pb-24 text-neutral-900 dark:text-neutral-100 flex flex-col">
@@ -145,6 +87,7 @@ export const MobileLayout: React.FC<Props> = ({
           {/* Dark Mode */}
           <button
             onClick={toggleDarkMode}
+            title={darkMode ? 'Aydınlık Mod' : 'Karanlık Mod'}
             className="p-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-neutral-600" />}
@@ -153,10 +96,13 @@ export const MobileLayout: React.FC<Props> = ({
       </header>
 
       {/* Sekmeler */}
-      <div className="sticky top-14 z-20 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xs border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+      <div className="sticky top-14 z-20 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xs border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] shrink-0 pr-10 [mask-image:linear-gradient(to_right,black_85%,transparent)]">
         {TABS.map((t) => (
           <button
             key={t.id}
+            ref={(el) => {
+              if (el && activeTab === t.id) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }}
             onClick={() => setActiveTab(t.id)}
             className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
               activeTab === t.id ? 'bg-sky-600 text-white shadow-sm' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
@@ -171,7 +117,7 @@ export const MobileLayout: React.FC<Props> = ({
       <main className="flex-1 p-4 pb-28 space-y-4 max-w-lg mx-auto w-full">
 
         {activeTab === 'overview' && (
-          <OverviewPanel onEditTx={(tx) => { setEditingTx(tx); setIsAddTxOpen(true); }} onSeeAll={() => setActiveTab('transactions')} />
+          <OverviewPanel onEditTx={(tx) => { setEditingTx(tx); setIsAddTxOpen(true); }} />
         )}
 
         {/* TAB 2: TRANSACTIONS */}
@@ -199,31 +145,7 @@ export const MobileLayout: React.FC<Props> = ({
 
 
         {/* TAB 4: GOALS */}
-        {activeTab === 'goals' && (
-          <div className="space-y-4">
-            <AssetsSection />
-
-            <div className="flex items-center justify-between pt-2">
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
-                Birikim Hedefleri
-              </h3>
-              <button
-                onClick={() => setIsAddGoalOpen(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 text-white"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Hedef Ekle</span>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {savingsGoals.map((goal) => (
-                <SavingsGoalCard key={goal.id} goal={goal} />
-              ))}
-            </div>
-          </div>
-        )}
-
+        {activeTab === 'goals' && <GoalsView />}
 
         {/* TAB: INSTALLMENTS & DEBTS */}
         {activeTab === 'installments' && (
@@ -237,44 +159,20 @@ export const MobileLayout: React.FC<Props> = ({
         {/* TAB: SIMULATOR */}
       </main>
 
-      {/* Floating Bottom Quick Action Buttons */}
-      <div className="fixed bottom-6 right-4 z-40 flex flex-col items-center gap-3">
-        <button
-          onClick={() => {
-            setEditingTx(null);
-            setVoiceStart(true);
-            setIsAddTxOpen(true);
-          }}
-          className="w-12 h-12 rounded-full bg-sky-600 hover:bg-sky-700 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-          title="Sesle İşlem Ekle"
-        >
-          <Mic className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={() => {
-            setEditingTx(null);
-            setVoiceStart(false);
-            setIsAddTxOpen(true);
-          }}
-          className="w-13 h-13 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-          title="Yeni İşlem Ekle"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      </div>
+      {/* Yeni işlem (sesle ekleme pencerenin içindeki mikrofon düğmesinde) */}
+      <button
+        onClick={() => {
+          setEditingTx(null);
+          setIsAddTxOpen(true);
+        }}
+        className="fixed bottom-6 right-4 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-2xl shadow-sky-600/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        title="Yeni İşlem Ekle"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
 
       {/* Modals */}
-      <AddTransactionModal
-        isOpen={isAddTxOpen}
-        onClose={() => setIsAddTxOpen(false)}
-        editTransaction={editingTx}
-        startWithVoice={voiceStart}
-      />
-      <AddGoalModal
-        isOpen={isAddGoalOpen}
-        onClose={() => setIsAddGoalOpen(false)}
-      />
+      <AddTransactionModal isOpen={isAddTxOpen} onClose={() => setIsAddTxOpen(false)} editTransaction={editingTx} />
     </div>
   );
 };

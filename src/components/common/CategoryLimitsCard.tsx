@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { EXPENSE_CATEGORIES } from '../../data/initialData';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
-import { Gauge, Trash2 } from 'lucide-react';
+import { Gauge, Plus, Trash2 } from 'lucide-react';
 
 const COLORS = ['#0EA5E9', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444', '#3B82F6', '#EC4899'];
 
@@ -12,6 +12,7 @@ export const CategoryLimitsCard: React.FC = () => {
   const free = EXPENSE_CATEGORIES.filter((c) => !categoryLimits.some((l) => l.category === c));
   const [cat, setCat] = useState('');
   const [amount, setAmount] = useState('');
+  const [adding, setAdding] = useState(false);
   const money = (v: number) => formatCurrency(v, currency);
   const num = (t: string) => Number(t.replace(/\./g, '').replace(',', '.'));
 
@@ -30,13 +31,21 @@ export const CategoryLimitsCard: React.FC = () => {
     });
     setAmount('');
     setCat('');
+    setAdding(false);
   };
 
   return (
     <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
-      <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
-        <Gauge className="w-4 h-4 text-sky-600" /> Kategori sınırları
-      </h3>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
+          <Gauge className="w-4 h-4 text-sky-600" /> Kategori sınırları
+        </h3>
+        {free.length > 0 && !adding && (
+          <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1 text-xs font-semibold text-sky-600 dark:text-sky-400">
+            <Plus className="w-3.5 h-3.5" /> Sınır ekle
+          </button>
+        )}
+      </div>
       {categoryLimits.length === 0 && (
         <p className="text-xs text-neutral-500">Örneğin "Market & Gıda ayda en fazla 8.000 ₺" deyin; %80'e gelince ve aşınca bildirim gelir.</p>
       )}
@@ -80,7 +89,7 @@ export const CategoryLimitsCard: React.FC = () => {
           );
         })}
       </ul>
-      {free.length > 0 && (
+      {free.length > 0 && adding && (
         <form onSubmit={add} className="flex gap-2 pt-1">
           <select
             value={cat || free[0]}
@@ -100,6 +109,9 @@ export const CategoryLimitsCard: React.FC = () => {
           />
           <button type="submit" className="px-3 text-xs font-semibold rounded-lg bg-sky-600 text-white">
             Ekle
+          </button>
+          <button type="button" onClick={() => setAdding(false)} className="px-2 text-xs text-neutral-500">
+            Vazgeç
           </button>
         </form>
       )}
