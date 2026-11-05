@@ -6,7 +6,7 @@ import { monthLabel } from './MonthSwitcher';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // İşlemler sekmesinin üst şeridi: ay seçici + filtredeki işlemlerin gelir/gider toplamı
-export const TxHeader: React.FC = () => {
+export const TxHeader: React.FC<{ cards?: boolean }> = ({ cards }) => {
   const { selectedMonth, setSelectedMonth, filteredTransactions, currency } = useBudget();
   const current = monthKeyOf(new Date());
   const isCurrent = selectedMonth === current;
@@ -15,6 +15,26 @@ export const TxHeader: React.FC = () => {
   const income = sum('income');
   const expense = sum('expense');
   const money = (v: number) => formatCurrency(v, currency);
+  if (cards) {
+    // Bilgisayar: ay üst çubuktan seçilir; burada yalnızca filtredeki toplamlar
+    return (
+      <div className="grid grid-cols-3 gap-4">
+        {(
+          [
+            ['Gelir', money(income), 'from-emerald-400 to-teal-600'],
+            ['Gider (kart dahil)', money(expense), 'from-rose-400 to-pink-600'],
+            ['Kayıt', String(filteredTransactions.length), 'from-sky-500 to-indigo-700']
+          ] as const
+        ).map(([label, value, g]) => (
+          <div key={label} className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-sm bg-gradient-to-br ${g}`}>
+            <div className="absolute -right-8 -top-10 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+            <span className="relative text-xs font-medium text-white/85 block">{label}</span>
+            <span className="relative text-2xl font-extrabold font-mono block truncate">{value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
   const nav = 'p-1.5 rounded-lg text-white/80 hover:bg-white/15 disabled:opacity-30';
   return (
     <div className="relative overflow-hidden rounded-2xl p-4 text-white shadow-sm bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-700 flex flex-wrap items-center justify-between gap-3">
@@ -33,7 +53,7 @@ export const TxHeader: React.FC = () => {
           </button>
         )}
       </div>
-      <div className="relative grid grid-cols-3 gap-2 w-full sm:w-auto">
+      <div className="relative grid grid-cols-[1fr_1fr_auto] gap-2 w-full sm:w-auto">
         {(
           [
             ['Gelir', money(income), 'bg-emerald-300'],
@@ -41,12 +61,12 @@ export const TxHeader: React.FC = () => {
             ['Kayıt', String(filteredTransactions.length), 'bg-white']
           ] as const
         ).map(([label, value, dot]) => (
-          <div key={label} className="rounded-xl bg-white/15 px-3 py-2 min-w-0 sm:min-w-[7.5rem]">
+          <div key={label} className="rounded-xl bg-white/15 px-2.5 py-2 min-w-0 sm:min-w-[7.5rem]" title={label === 'Gider' ? 'Kartla yapılanlar dahil' : undefined}>
             <span className="text-[11px] text-white/80 flex items-center gap-1.5">
               <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
               {label}
             </span>
-            <span className="text-sm font-bold font-mono block truncate">{value}</span>
+            <span className="text-[13px] sm:text-sm font-bold font-mono block whitespace-nowrap">{value}</span>
           </div>
         ))}
       </div>

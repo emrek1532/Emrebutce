@@ -15,7 +15,7 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
   const [on, setOn] = useState(pushEnabled());
   const [busy, setBusy] = useState(false);
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
-  const when = (d: number) => (d === 0 ? 'Bugün' : d === 1 ? 'Yarın' : `${d} gün`);
+  const when = (d: number) => (d === 0 ? 'Bugün' : d === 1 ? 'Yarın' : `${d} Gün`);
 
   const toggle = async () => {
     setBusy(true);
@@ -36,11 +36,11 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
   };
 
   return (
-    <div className={`rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 ${compact ? 'p-3' : 'p-4'} space-y-2`}>
+    <div className={`rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs ${compact ? 'p-3' : 'p-5'} space-y-3`}>
       <div className="flex items-center justify-between gap-2">
-        <h4 className="whitespace-nowrap text-sm font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
-          <CalendarClock className="w-4 h-4 text-rose-500" /> Yaklaşan ödemeler
-        </h4>
+        <h3 className="whitespace-nowrap text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <CalendarClock className="w-5 h-5 text-sky-600" /> Yaklaşan Ödemeler
+        </h3>
         {pushSupported() && syncConfig.vaultId && (
           <button
             type="button"
@@ -65,12 +65,16 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
       ) : (
         <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
           {list.map((r) => (
-            <li key={r.id} className="py-1.5 flex items-center justify-between gap-2 text-xs">
-              <span className="min-w-0 truncate">
-                <span className={`inline-block w-14 font-semibold ${r.days <= 1 ? 'text-rose-600' : 'text-amber-600'}`}>{when(r.days)}</span>
-                <span className="text-neutral-800 dark:text-neutral-200">{r.title}</span>
+            <li key={r.id} className="py-2.5 flex items-center gap-3 text-sm">
+              <span
+                className={`w-16 shrink-0 text-center text-xs font-bold py-1 rounded-lg ${
+                  r.days <= 1 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400'
+                }`}
+              >
+                {when(r.days)}
               </span>
-              <span className="font-mono font-semibold text-neutral-900 dark:text-neutral-100 shrink-0">{money(r.amount)}</span>
+              <span className="flex-1 min-w-0 text-neutral-800 dark:text-neutral-200 leading-snug">{r.title}</span>
+              <span className="font-mono font-bold text-neutral-900 dark:text-neutral-100 shrink-0">{money(r.amount)}</span>
             </li>
           ))}
         </ul>

@@ -92,23 +92,6 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
 
-  // Biten taksitlerin aylık bütçede açacağı yer, bitiş ayına göre
-  const reliefByMonth = new Map<string, { label: string; amount: number; titles: string[] }>();
-  activeInstallments
-    .filter((i) => totalOf(i) && i.endDate)
-    .forEach((i) => {
-      const [y, m] = i.endDate.split('-').map(Number);
-      const key = `${y}-${String(m).padStart(2, '0')}`;
-      const entry = reliefByMonth.get(key) || { label: `${MONTHS[m - 1]} ${y}`, amount: 0, titles: [] };
-      entry.amount += currentAmount(i);
-      entry.titles.push(i.title);
-      reliefByMonth.set(key, entry);
-    });
-  const relief = Array.from(reliefByMonth.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(0, 6)
-    .map(([, v]) => v);
-
   const confirmDelete = (label: string, action: () => void) => {
     if (window.confirm(`"${label}" silinsin mi?`)) action();
   };
@@ -116,20 +99,29 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
   return (
     <div className="space-y-6">
       {section === 'debts' && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="sm:hidden text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-              <span>Borçlar & Taksitler</span>
-            </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Krediler, yapılandırmalar, Eminevim ve diğer taksitli borçlar; ödeme günleri ve bitişleri otomatik takip edilir.
-            </p>
+        <div className="space-y-3">
+          <h2 className="sm:hidden text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+            <TrendingDown className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+            <span>Borçlar & Taksitler</span>
+          </h2>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            {(
+              [
+                ['Taksit yükü', monthlyLoad, 'from-indigo-500 to-violet-600'],
+                ['Sabit gider', monthlyFixed, 'from-amber-400 to-orange-500'],
+                ['Toplam aylık yük', monthlyFixed + monthlyLoad, 'from-slate-700 to-slate-950']
+              ] as const
+            ).map(([label, value, g]) => (
+              <div key={label} className={`relative overflow-hidden p-3 sm:p-5 rounded-2xl text-white shadow-sm bg-gradient-to-br ${g} min-w-0`}>
+                <div className="absolute -right-8 -bottom-10 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+                <span className="relative text-[11px] sm:text-xs font-medium text-white/85 block">{label}</span>
+                <span className="relative text-sm sm:text-2xl font-extrabold font-mono block truncate">{money(value)}</span>
+              </div>
+            ))}
           </div>
-          <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-indigo-500 to-violet-600 w-full sm:w-auto min-w-[12rem]">
-            <span className="text-[11px] font-medium text-white/80 block">Aylık taksit yükü</span>
-            <span className="text-2xl font-extrabold font-mono">{money(monthlyLoad)}</span>
-          </div>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Krediler, yapılandırmalar, Eminevim ve diğer taksitli borçlar; ödeme günleri ve bitişleri otomatik takip edilir.
+          </p>
         </div>
       )}
 
@@ -199,24 +191,6 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
           <FileText className="w-4 h-4" /> Ekstre PDF'i yükle (harcamalar + kart borcu)
         </button>
       )}
-
-      {section === 'recurring' && (
-        <div className="grid grid-cols-3 gap-2">
-          <div className="p-3 sm:p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-amber-400 to-orange-500 min-w-0">
-            <span className="text-[11px] font-medium text-white/85 block">Sabit gider</span>
-            <span className="text-sm sm:text-xl font-extrabold font-mono block truncate">{money(monthlyFixed)}</span>
-          </div>
-          <div className="p-3 sm:p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-indigo-500 to-violet-600 min-w-0">
-            <span className="text-[11px] font-medium text-white/85 block">Taksit yükü</span>
-            <span className="text-sm sm:text-xl font-extrabold font-mono block truncate">{money(monthlyLoad)}</span>
-          </div>
-          <div className="p-3 sm:p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-slate-700 to-slate-950 min-w-0">
-            <span className="text-[11px] font-medium text-white/80 block">Toplam yük</span>
-            <span className="text-sm sm:text-xl font-extrabold font-mono block truncate">{money(monthlyFixed + monthlyLoad)}</span>
-          </div>
-        </div>
-      )}
-
 
       {section === 'recurring' && <SubscriptionsCard />}
 
@@ -540,24 +514,6 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
       {/* Bitiş takvimi */}
       {section === 'debts' && <DebtPayoffChart />}
       {section === 'debts' && <DebtPlanner />}
-
-      {section === 'debts' && relief.length > 0 && (
-        <section className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingDown className="w-4 h-4 text-sky-600" />
-            <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">Borç Bitiş Takvimi</h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {relief.map((r) => (
-              <div key={r.label} className="p-3 rounded-xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/40 dark:bg-sky-950/20">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">{r.label}</span>
-                <span className="text-sm font-bold font-mono text-sky-700 dark:text-sky-300 block mt-0.5">+{money(r.amount)} / ay rahatlama</span>
-                <span className="text-[11px] text-neutral-500 block mt-0.5">{r.titles.join(', ')} bitiyor</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <CreditCardModal isOpen={cardModal.open} editCard={cardModal.card} onClose={() => setCardModal({ open: false, card: null })} />
       <RecurringModal isOpen={recModal.open} editItem={recModal.item} onClose={() => setRecModal({ open: false, item: null })} />

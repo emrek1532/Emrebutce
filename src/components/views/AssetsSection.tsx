@@ -66,17 +66,18 @@ export const AssetsSection: React.FC = () => {
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-          <Coins className="w-4 h-4 text-amber-500" /> Birikimlerim
+          <Coins className="w-4 h-4 text-amber-500" /> Varlıklarım
         </h3>
         <button
           type="button"
           onClick={() => setEditing('new')}
           className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white"
         >
-          <Plus className="w-4 h-4" /> Birikim Ekle
+          <Plus className="w-4 h-4" /> Varlık Ekle
         </button>
       </div>
 
+      {rows.length > 0 && (
       <div className="p-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs">
         <div className="relative overflow-hidden rounded-xl p-4 text-white bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 shadow-sm">
         <div className="absolute -right-12 -top-14 w-44 h-44 rounded-full bg-white/15 pointer-events-none" />
@@ -115,6 +116,8 @@ export const AssetsSection: React.FC = () => {
         {error && <p className="mt-2 text-[11px] text-rose-600">{error} — son bilinen fiyatlar gösteriliyor.</p>}
         </div>
       </div>
+
+      )}
 
       {rows.length === 0 ? (
         <p className="p-4 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 text-xs text-neutral-500 text-center">

@@ -9,12 +9,9 @@ const norm = (s: string) => s.toLocaleLowerCase('tr-TR');
 
 // "Bu ay ne kadar harcayabilirim?" — nakit akışına göre ay planı:
 // beklenen gelir − (sabit giderler + taksitler + kart ekstreleri + kartsız diğer harcamalar) = serbest para
-export const BudgetPlanCard: React.FC = () => {
-  const { transactions, recurring, installments, creditCards, currency, selectedMonth, savingsGoals, familyMembers, addTransaction } = useBudget();
-  const [goalId, setGoalId] = useState('');
-  const [savedNow, setSavedNow] = useState(false);
+export function useBudgetPlan() {
+  const { transactions, recurring, installments, creditCards, selectedMonth } = useBudget();
   const isPast = selectedMonth !== monthKeyOf(new Date());
-
   const plan = useMemo(() => {
     const month = isPast ? selectedMonth : monthKeyOf(new Date());
     const thisMonth = transactions.filter((t) => budgetMonthOf(t) === month);
@@ -93,7 +90,15 @@ export const BudgetPlanCard: React.FC = () => {
     return { income, fixed, loans, cards, spent, saved, free, daily: free / daysLeft, daysLeft, cardPeriod, minimums };
   }, [transactions, recurring, installments, creditCards, isPast, selectedMonth]);
 
-  const [open, setOpen] = useState(false);
+  return { plan, isPast };
+}
+
+export const BudgetPlanCard: React.FC<{ defaultOpen?: boolean }> = ({ defaultOpen = false }) => {
+  const { transactions, currency, savingsGoals, familyMembers, addTransaction } = useBudget();
+  const [goalId, setGoalId] = useState('');
+  const [savedNow, setSavedNow] = useState(false);
+  const { plan, isPast } = useBudgetPlan();
+  const [open, setOpen] = useState(defaultOpen);
   const money = (tl: number) => formatCurrency(convertCurrency(tl, 'TRY', currency), currency);
   const positive = plan.free >= 0;
   // Gelir yattıysa serbest kalanın yaklaşık %30'u birikime önerilir (500 ₺'ye yuvarlanır)
