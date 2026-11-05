@@ -1,145 +1,50 @@
 import React from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { Currency, DeviceMode } from '../../types/budget';
-import { CURRENCY_CONFIG } from '../../utils/currencies';
-import {
-  ShieldCheck,
-  Bell,
-  Sun,
-  Moon,
-  Smartphone,
-  Sparkles,
-  Cloud,
-  CheckCircle2,
-  Wallet
-} from 'lucide-react';
+import { TABS, useActiveTab } from '../../utils/activeTab';
+import { ShieldCheck, Bell, Sun, Moon, Smartphone, Wallet } from 'lucide-react';
 
 interface Props {
   onOpenSync: () => void;
   onOpenNotifications: () => void;
   onOpenShare: () => void;
-  onOpenReceiptScanner?: () => void;
-  activeTab: string;
-  setActiveTab: (tab: any) => void;
 }
 
-export const HeaderBar: React.FC<Props> = ({
-  onOpenSync,
-  onOpenNotifications,
-  onOpenShare,
-  onOpenReceiptScanner,
-  activeTab,
-  setActiveTab
-}) => {
-  const {
-    currency,
-    setCurrency,
-    darkMode,
-    toggleDarkMode,
-    syncConfig,
-    notifications
-  } = useBudget();
-
+// Tablet ve bilgisayar üst çubuğu: logo, sekmeler (geniş ekranda), paylaş/eşitleme/bildirim/tema
+export const HeaderBar: React.FC<Props> = ({ onOpenSync, onOpenNotifications, onOpenShare }) => {
+  const { darkMode, toggleDarkMode, syncConfig, notifications } = useBudget();
+  const [activeTab, setActiveTab] = useActiveTab();
   const unreadCount = notifications.length;
+  const iconBtn =
+    'relative p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors';
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-neutral-200/70 dark:border-neutral-800">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Zone 1: Wordmark */}
-        <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setActiveTab('overview')}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+        <button type="button" className="flex items-center gap-3 shrink-0" onClick={() => setActiveTab('overview')}>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center shadow-sm">
             <Wallet className="w-4.5 h-4.5" />
           </div>
-          <div>
-            <span className="text-lg font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
-              Cebim
-            </span>
-          </div>
-        </div>
+          <span className="text-lg font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">Cebim</span>
+        </button>
 
-        {/* Zone 2: Navigation Links (Desktop/Tablet) */}
         <nav className="hidden lg:flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] items-center gap-1 text-[13px] font-semibold text-neutral-600 dark:text-neutral-300">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
-              activeTab === 'overview'
-                ? 'bg-sky-600 text-white shadow-sm'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            Genel Bakış
-          </button>
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
-              activeTab === 'transactions'
-                ? 'bg-sky-600 text-white shadow-sm'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            Harcama & Gelirler
-          </button>
-          <button
-            onClick={() => setActiveTab('cards')}
-            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full flex items-center gap-1 ${
-              activeTab === 'cards'
-                ? 'bg-sky-600 text-white shadow-sm'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            <span>Kartlar</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('installments')}
-            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full flex items-center gap-1 ${
-              activeTab === 'installments'
-                ? 'bg-sky-600 text-white shadow-sm'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            <span>Borçlar</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('goals')}
-            className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
-              activeTab === 'goals'
-                ? 'bg-sky-600 text-white shadow-sm'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            Birikim
-          </button>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className={`whitespace-nowrap transition-colors px-3.5 py-2 rounded-full ${
+                activeTab === t.id
+                  ? 'bg-sky-600 text-white shadow-sm'
+                  : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </nav>
 
-        {/* Zone 3: Actions & Controls */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Quick Receipt OCR Scan */}
-          {onOpenReceiptScanner && (
-            <button
-              onClick={onOpenReceiptScanner}
-              title="Fiş / Fatura Tara & Otomatik Ekle"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Fiş Tara</span>
-            </button>
-          )}
-
-          {/* Currency Switcher */}
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as Currency)}
-            className="px-2 py-1.5 text-xs font-semibold rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none"
-            title="Para Birimi Değiştir"
-          >
-            {Object.keys(CURRENCY_CONFIG).map((cur) => (
-              <option key={cur} value={cur}>
-                {CURRENCY_CONFIG[cur as Currency].symbol} {cur}
-              </option>
-            ))}
-          </select>
-
-          {/* Share & Install on Phone */}
           <button
             onClick={onOpenShare}
             title="Linki Paylaş"
@@ -149,7 +54,6 @@ export const HeaderBar: React.FC<Props> = ({
             <span className="hidden sm:inline">Linki Paylaş</span>
           </button>
 
-          {/* Cloud Sync Button */}
           <button
             onClick={onOpenSync}
             title="Eşitleme ve Yedek"
@@ -157,11 +61,7 @@ export const HeaderBar: React.FC<Props> = ({
           >
             <ShieldCheck
               className={`w-3.5 h-3.5 ${
-                syncConfig.status === 'error'
-                  ? 'text-rose-500'
-                  : syncConfig.status === 'syncing'
-                  ? 'text-amber-500 animate-pulse'
-                  : 'text-sky-600 dark:text-sky-400'
+                syncConfig.status === 'error' ? 'text-rose-500' : syncConfig.status === 'syncing' ? 'text-amber-500 animate-pulse' : 'text-sky-600 dark:text-sky-400'
               }`}
             />
             <span className="hidden md:inline text-[11px]">
@@ -169,12 +69,7 @@ export const HeaderBar: React.FC<Props> = ({
             </span>
           </button>
 
-          {/* Notifications Bell */}
-          <button
-            onClick={onOpenNotifications}
-            title="Bütçe Bildirimleri"
-            className="relative p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors"
-          >
+          <button onClick={onOpenNotifications} title="Bildirimler" className={iconBtn}>
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
@@ -183,16 +78,27 @@ export const HeaderBar: React.FC<Props> = ({
             )}
           </button>
 
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            title={darkMode ? 'Aydınlık Mod' : 'Karanlık Mod'}
-            className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors"
-          >
+          <button onClick={toggleDarkMode} title={darkMode ? 'Aydınlık Mod' : 'Karanlık Mod'} className={iconBtn}>
             {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-neutral-600" />}
           </button>
         </div>
       </div>
+
+      {/* Tablet: sekmeler ikinci satırda */}
+      <nav className="lg:hidden flex gap-1 overflow-x-auto [scrollbar-width:none] px-4 sm:px-6 pb-2 text-[13px] font-semibold text-neutral-600 dark:text-neutral-300">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setActiveTab(t.id)}
+            className={`whitespace-nowrap px-3.5 py-1.5 rounded-full transition-colors ${
+              activeTab === t.id ? 'bg-sky-600 text-white shadow-sm' : 'bg-neutral-100 dark:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
     </header>
   );
 };

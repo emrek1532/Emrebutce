@@ -93,6 +93,8 @@ export interface InstallmentDebt {
   notes?: string;
   isVariableSchedule?: boolean;
   schedule?: InstallmentScheduleItem[];
+  // Aylık faiz oranı (%), biliniyorsa; borç planında erken kapatma kazancı için
+  monthlyInterestRate?: number;
 }
 
 export interface CreditCardAccount {
@@ -190,14 +192,4 @@ export interface EncryptedSyncData {
   clientInfo?: string;
 }
 
-export type DeviceMode = 'auto' | 'mobile' | 'tablet' | 'desktop';
-export type ActiveTab =
-  | 'overview'
-  | 'transactions'
-  | 'installments'
-  | 'cards'
-  | 'simulator'
-  | 'analytics'
-  | 'limits'
-  | 'goals'
-  | 'cloud';
+export type ActiveTab = 'overview' | 'transactions' | 'reports' | 'installments' | 'cards' | 'goals';

@@ -213,10 +213,12 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
   const [paymentDay, setPaymentDay] = useState('10');
   const [startDate, setStartDate] = useState(firstOfThisMonth());
   const [notes, setNotes] = useState('');
+  const [rate, setRate] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
     setTitle(editInstallment?.title ?? '');
+    setRate(editInstallment?.monthlyInterestRate ? String(editInstallment.monthlyInterestRate).replace('.', ',') : '');
     setCreditor(editInstallment?.creditor ?? '');
     setMember(editInstallment?.member ?? familyMembers[0]?.name ?? 'Ortak');
     setMonthlyAmount(editInstallment ? String(editInstallment.monthlyAmount) : '');
@@ -255,7 +257,8 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
       startDate,
       endDate: total ? addMonths(startDate, total - 1, day) : '',
       category: 'Borç & Kredi',
-      notes: notes.trim() || undefined
+      notes: notes.trim() || undefined,
+      monthlyInterestRate: toNumber(rate) > 0 ? toNumber(rate) : undefined
     };
     if (editInstallment?.schedule) {
       // Değişken ödeme planında tutarlar ve dönemler plandan gelir; yalnızca bilgileri güncelle
@@ -265,7 +268,8 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
         creditor: inst.creditor,
         member: inst.member,
         paymentDayOfMonth: inst.paymentDayOfMonth,
-        notes: inst.notes
+        notes: inst.notes,
+        monthlyInterestRate: inst.monthlyInterestRate
       });
     } else if (editInstallment) updateInstallment({ ...editInstallment, ...inst });
     else addInstallment(inst);
@@ -313,6 +317,10 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({ isOpen, onCl
             <label className={labelClass}>Ödeme günü</label>
             <input className={inputClass} type="number" min={1} max={31} value={paymentDay} onChange={(e) => setPaymentDay(e.target.value)} />
           </div>
+        </div>
+        <div>
+          <label className={labelClass}>Aylık faiz oranı (%) — biliyorsanız, ör. 3,49</label>
+          <input className={inputClass} inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="Boş bırakılabilir" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>

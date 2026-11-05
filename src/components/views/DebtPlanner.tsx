@@ -1,57 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import type { InstallmentDebt } from '../../types/budget';
+import { simulate, toPlanDebt, type PlanDebt } from '../../utils/debtPlan';
 import { monthKeyOf, shiftMonthKey } from '../../utils/budgetMonth';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { monthLabel } from '../common/MonthSwitcher';
 import { Rocket } from 'lucide-react';
-
-interface Debt {
-  id: string;
-  title: string;
-  balance: number;
-  monthly: number;
-  // Bu ayın taksiti ödendiyse ödemeler gelecek aydan başlar
-  start: number;
-}
-
-const remainingOf = (i: InstallmentDebt) =>
-  i.schedule ? i.schedule.filter((s) => !s.paid).reduce((s, x) => s + x.amount, 0) : (i.remainingInstallments ?? 0) * i.monthlyAmount;
-const monthlyOf = (i: InstallmentDebt) => (i.schedule ? Math.max(0, ...i.schedule.filter((s) => !s.paid).map((s) => s.amount)) : i.monthlyAmount);
-
-// Ay ay ödeme: her borç kendi taksitini öder; fazladan para (ve biten borçlardan boşa çıkan taksitler,
-// "kartopu" yöntemi) kalanı en az olan borca gider. Faiz bilinmediği için faizsiz hesaplanır.
-function simulate(debts: Debt[], extra: number) {
-  const bal = new Map(debts.map((d) => [d.id, d.balance]));
-  const done = new Map<string, number>();
-  let month = 0;
-  while ([...bal.values()].some((b) => b > 0.01) && month < 600) {
-    let pool = extra;
-    for (const d of debts) {
-      const b = bal.get(d.id)!;
-      if (month < d.start) continue;
-      if (b <= 0.01) {
-        if (extra > 0) pool += d.monthly; // biten borcun taksiti kartopuna eklenir
-        continue;
-      }
-      const pay = Math.min(d.monthly, b);
-      bal.set(d.id, b - pay);
-      if (extra > 0) pool += d.monthly - pay;
-    }
-    // Fazladan parayı kalanı en az olan borçtan başlayarak dağıt
-    const open = debts.filter((d) => bal.get(d.id)! > 0.01 && month >= d.start).sort((a, b) => bal.get(a.id)! - bal.get(b.id)!);
-    for (const d of open) {
-      if (pool <= 0) break;
-      const b = bal.get(d.id)!;
-      const pay = Math.min(pool, b);
-      bal.set(d.id, b - pay);
-      pool -= pay;
-    }
-    for (const d of debts) if (!done.has(d.id) && bal.get(d.id)! <= 0.01) done.set(d.id, month);
-    month++;
-  }
-  return { months: month, done };
-}
 
 export const DebtPlanner: React.FC = () => {
   const { installments, currency, isInstallmentPaidThisMonth } = useBudget();
@@ -59,11 +12,11 @@ export const DebtPlanner: React.FC = () => {
   const [excluded, setExcluded] = useState<Record<string, boolean>>({});
   const extra = Number(extraText.replace(/\./g, '').replace(',', '.')) || 0;
 
-  const debts = useMemo<Debt[]>(
+  const debts = useMemo<PlanDebt[]>(
     () =>
       installments
         .filter((i) => (i.schedule ? i.schedule.some((s) => !s.paid) : !!i.totalInstallments && (i.remainingInstallments ?? 0) > 0))
-        .map((i) => ({ id: i.id, title: i.title, balance: remainingOf(i), monthly: monthlyOf(i), start: isInstallmentPaidThisMonth(i.id) ? 1 : 0 }))
+        .map((i) => toPlanDebt(i, isInstallmentPaidThisMonth(i.id)))
         .filter((d) => d.balance > 0 && d.monthly > 0),
     [installments, isInstallmentPaidThisMonth]
   );
@@ -76,7 +29,7 @@ export const DebtPlanner: React.FC = () => {
     const plan = simulate(included, extra);
     const fixedPlan = simulate(fixed, 0);
     const done = new Map([...plan.done, ...fixedPlan.done]);
-    return { base, months: Math.max(plan.months, fixedPlan.months), done };
+    return { base, months: Math.max(plan.months, fixedPlan.months), done, interestSaved: base.totalPaid - plan.totalPaid - fixedPlan.totalPaid };
   }, [debts, extra, excluded]);
 
   if (debts.length === 0) return null;
@@ -116,6 +69,12 @@ export const DebtPlanner: React.FC = () => {
         </div>
       </div>
 
+      {extra > 0 && result.interestSaved > 1 && (
+        <p className="text-xs rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 p-3">
+          Faiz kazancı: yaklaşık <b className="font-mono">{money(result.interestSaved)}</b> daha az ödersiniz.
+        </p>
+      )}
+
       <ul className="text-xs divide-y divide-neutral-100 dark:divide-neutral-800">
         {debts.map((d) => {
           const m = result.done.get(d.id);
@@ -142,8 +101,8 @@ export const DebtPlanner: React.FC = () => {
       </ul>
       <p className="text-[11px] text-neutral-500">
         Fazladan para önce kalanı en az olan borca gider; o bitince onun taksiti de sıradakine eklenir (kartopu yöntemi). Erken
-        ödenemeyen borçların (ör. Eminevim) işaretini kaldırın. Faiz bilinmediği için hesap faizsizdir; kredilerde erken kapatma
-        ayrıca faiz indirimi sağlar.
+        ödenemeyen borçların (ör. Eminevim) işaretini kaldırın. Faiz oranı girilmiş kredilerde (taksiti düzenle → aylık faiz)
+        erken kapatmanın faiz kazancı da hesaplanır; oranı girilmeyenler faizsiz sayılır.
       </p>
     </section>
   );
