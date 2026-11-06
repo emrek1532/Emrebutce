@@ -57,7 +57,16 @@ function matchDate(line: string): { len: number; y: number; m: number; d: number
   }
   return null;
 }
-const AMOUNT = /(-|\+)?\s?(\d{1,3}(?:\.\d{3})*,\d{2})\s*(TL|₺|TRY)?\s*(-|\+|B|A)?\s*$/i;
+// Tutar hem Türkçe (1.213,86) hem İngilizce (1,213.86 — İş Bankası) biçiminde olabilir
+const AMOUNT = /(-|\+)?\s?(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s*(TL|₺|TRY)?\s*(-|\+|B|A)?\s*$/i;
+
+/** "1.213,86" ve "1,213.86" → 1213.86 (son ayraçtan sonraki iki hane küsurattır) */
+export function parseAmount(s: string): number {
+  const t = s.trim();
+  const dec = t.slice(-3, -2);
+  const int = t.slice(0, -3).replace(/[.,]/g, '');
+  return Number(`${int}.${t.slice(-2)}`) * (dec === '.' || dec === ',' ? 1 : NaN);
+}
 const NOT_EXPENSE = /(ödeme|odeme|tahsilat|iade|önceki dönem|onceki donem|devreden|faiz|kdv|bsmv|ekstre|toplam|asgari|limit|bonus|puan|kazan)/i;
 
 // Bankaların ekstrede harcamaları grupladığı başlıklar → kategori
@@ -80,6 +89,12 @@ const MERCHANT_HINTS: Array<[RegExp, string]> = [
 
 export function parseStatementLines(lines: string[]): StatementLine[] {
   const out: StatementLine[] = [];
+  // İşaret kuralı bankaya göre değişir: Garanti'de harcama işaretsiz, ödeme "+"; İş Bankası'nda harcama "-", ödeme "+".
+  // Tarihli satırların çoğu "-" ile bitiyorsa "-" harcama demektir.
+  const suffix = (l: string) => l.replace(/\s+/g, ' ').trim().match(AMOUNT)?.[4];
+  const dated = lines.filter((l) => matchDate(l.replace(/\s+/g, ' ').trim()));
+  const minusCount = dated.filter((l) => suffix(l) === '-').length;
+  const minusIsDebit = minusCount > 0 && minusCount >= dated.filter((l) => suffix(l) === '+').length;
   const seen = new Map<string, number>();
   let sectionCategory: string | null = null;
   for (const raw of lines) {
@@ -100,15 +115,25 @@ export function parseStatementLines(lines: string[]): StatementLine[] {
     const month = d.m;
     const day = d.d;
     if (month < 1 || month > 12 || day < 1 || day > 31) continue;
-    const amount = Number(a[2].replace(/\./g, '').replace(',', '.'));
+    const amount = parseAmount(a[2]);
     if (!(amount > 0)) continue;
     let description = line.slice(d.len, line.length - a[0].length).trim();
     // Açıklamanın başında ikinci bir tarih (işlem/valör) varsa at
     const second = matchDate(description);
     if (second) description = description.slice(second.len).trim();
+    description = description
+      // Taksitli satırda toplam tutar ("5,399.97 TL"), puan bilgisi, maskeli kart no ve sondaki ülke kodu
+      .replace(/\s+\d{1,3}(?:[.,]\d{3})*[.,]\d{2}\s*(TL|₺|TRY)\s*$/i, '')
+      .replace(/\s*KAZANILAN\s+\S*PUAN\S*\s*:?\s*[\d.,]*/gi, '')
+      .replace(/\s*\d{4}\*+\d{4}/g, '')
+      .replace(/\s+TR$/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     description = description || 'Kart harcaması';
-    // Garanti vb. ekstrelerde tutarın sonundaki "+" karta yapılan ödeme/iade (alacak) demektir
-    const negative = a[1] === '-' || a[4] === '-' || a[4] === '+' || /^[A]$/i.test(a[4] ?? '');
+    // Karta yapılan ödeme/iade (alacak): Garanti'de "+" ya da "-", İş Bankası'nda "+"
+    const negative = minusIsDebit
+      ? a[4] === '+' || a[1] === '+' || /^[A]$/i.test(a[4] ?? '')
+      : a[1] === '-' || a[4] === '-' || a[4] === '+' || /^[A]$/i.test(a[4] ?? '');
     const inst = description.match(/(\d{1,2})\s*\/\s*(\d{1,2})\s*(taksit|tks)?/i);
     const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const base = `${date}|${description}|${amount}`;
@@ -138,8 +163,8 @@ export interface StatementSummary {
   bankHint?: string; // PDF'te geçen banka adı
 }
 
-const toAmount = (s: string) => Number(s.replace(/\./g, '').replace(',', '.'));
-const AMT = '(\\d{1,3}(?:\\.\\d{3})*,\\d{2})';
+const toAmount = parseAmount;
+const AMT = '(\\d{1,3}(?:[.,]\\d{3})*[.,]\\d{2})';
 const DATE_ANY = '(\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|\\d{1,2}\\s+[A-Za-zÇĞİÖŞÜçğıöşü]+\\s+\\d{4})';
 
 function dateFrom(text: string): string | undefined {
@@ -157,7 +182,7 @@ export function parseStatementSummary(lines: string[]): StatementSummary {
     return undefined;
   };
   const debt = find(['Dönem Borcunuz', 'Dönem Borcu', 'Toplam Borcunuz', 'Hesap Özeti Borcu', 'Ekstre Borcu'], AMT);
-  const min = find(['Min\\.? Ödeme Tutarı', 'Minimum Ödeme Tutarı', 'Asgari Ödeme Tutarı', 'Min\\.? Ödeme Tutarınız'], AMT);
+  const min = find(['Min\\.? Ödeme Tutarı', 'Minimum Ödeme Tutarı', 'Asgari Ödeme Tutarı', 'Min\\.? Ödeme Tutarınız', 'Ödenmesi Gereken Asgari Tutar'], AMT);
   const limit = find(['Kart Limiti', 'Kredi Kartı Limiti', 'Toplam Limit'], AMT);
   const cut = find(['Hesap Kesim Tarihi', 'Ekstre Kesim Tarihi', 'Hesap Özeti Tarihi'], DATE_ANY);
   const due = find(['Son Ödeme Tarihi'], DATE_ANY);
