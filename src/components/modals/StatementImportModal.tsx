@@ -36,8 +36,20 @@ export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId
       setSummary(sum);
       if (sum.statementDebt !== undefined) setDebtText(sum.statementDebt.toLocaleString('tr-TR', { minimumFractionDigits: 2 }));
       // Ekstredeki bankaya uyan kartı seç
-      const hint = sum.bankHint?.toLocaleLowerCase('tr-TR').replace(/\s/g, '');
-      const match = hint ? creditCards.find((c) => `${c.bank}${c.name}`.toLocaleLowerCase('tr-TR').replace(/\s/g, '').includes(hint)) : undefined;
+      // "isbank" ↔ "İş Bankası" eşleşsin diye Türkçe harfler sadeleştirilir
+      const fold = (t: string) =>
+        t
+          .toLocaleLowerCase('tr-TR')
+          .replace(/[\s.]/g, '')
+          .replace(/ş/g, 's')
+          .replace(/ı/g, 'i')
+          .replace(/ç/g, 'c')
+          .replace(/ğ/g, 'g')
+          .replace(/ö/g, 'o')
+          .replace(/ü/g, 'u')
+          .replace(/bankasi/g, 'bank');
+      const hint = sum.bankHint ? fold(sum.bankHint) : undefined;
+      const match = hint ? creditCards.find((c) => fold(`${c.bank}${c.name}`).includes(hint)) : undefined;
       const target = match ?? card;
       if (match) setCardId(match.id);
       // Aynı ekstre daha önce işlendiyse o dönemde yapılan ödemeyi öner
