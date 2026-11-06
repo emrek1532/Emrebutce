@@ -832,7 +832,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCreditCards((prev) =>
       prev.map((c) => {
         const key = lastStatementKey(c);
-        return c.statementKey === key ? c : { ...c, statementDebt: c.currentDebt, statementTotal: c.currentDebt, statementKey: key };
+        return c.statementKey === key ? c : { ...c, statementDebt: c.currentDebt, statementTotal: c.currentDebt, statementKey: key, statementMinimum: undefined };
       })
     );
   }, [creditCards]);

@@ -52,3 +52,14 @@ test('Garanti biçimi bozulmadı: işaretsiz harcama, "+" ödeme', () => {
     ]
   );
 });
+
+test('kart: ekstredeki asgari ve gelecek taksitler limitten düşer', async () => {
+  const { availableLimitOf, minimumPaymentOf } = await import('../src/utils/cardStatement');
+  const rows = parseStatementLines(ISBANK);
+  const future = rows.reduce((s, l) => s + (l.installment ? l.amount * (l.installment.total - l.installment.current) : 0), 0);
+  assert.equal(future, 1800); // 4/6 → 2 taksit × 900
+  const card = { id: 'c', bank: 'İş Bankası', name: 'Maximum', member: 'x', limit: 15000, currentDebt: 12345.67, statementDay: 5, dueDay: 16, statementDebt: 12345.67, statementTotal: 12345.67, statementMinimum: 2469.13, futureInstallments: future };
+  assert.equal(minimumPaymentOf(card), 2469.13);
+  assert.equal(availableLimitOf(card), 854.33);
+  assert.equal(availableLimitOf({ ...card, limit: 13000 }), -1145.67);
+});

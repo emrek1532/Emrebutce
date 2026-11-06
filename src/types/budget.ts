@@ -113,6 +113,10 @@ export interface CreditCardAccount {
   statementKey?: string;
   // Ekstresi yüklenen (ya da "gerek yok" denen) son ekstre ayı; hatırlatma bununla susar
   statementCheckedKey?: string;
+  // Ekstrede yazan asgari ödeme (varsa hesaplanan yerine bu kullanılır)
+  statementMinimum?: number;
+  // Henüz ekstreye girmemiş taksitlerin toplamı; banka bunu limitten düşer
+  futureInstallments?: number;
   notes?: string;
 }
 

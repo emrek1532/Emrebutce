@@ -102,6 +102,9 @@ export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId
       statementDay: cut ? Number(cut.slice(8, 10)) : card.statementDay,
       dueDay: due ? Number(due.slice(8, 10)) : card.dueDay,
       limit: summary.limit ?? card.limit,
+      statementMinimum: summary.minimumPayment,
+      // Ekstredeki taksitlerin kalanları (ör. 4/6 → 2 taksit daha) kullanılabilir limitten düşer
+      futureInstallments: Math.round((lines ?? []).reduce((s, l) => s + (l.installment ? l.amount * (l.installment.total - l.installment.current) : 0), 0) * 100) / 100,
       // Güncel borç = ekstreden kalan + kesimden SONRA bu kartla yapılan harcamalar (dönem içi)
       currentDebt: Math.round((remaining + periodAfterCut) * 100) / 100
     });

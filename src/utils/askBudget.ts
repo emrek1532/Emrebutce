@@ -2,7 +2,7 @@
 // kalemlerin ve hangi ölçünün sorulduğunu seçer, toplamı burada kesin olarak hesaplarız.
 import type { CreditCardAccount, InstallmentDebt, RecurringItem, Transaction } from '../types/budget';
 import { budgetMonthOf, monthKeyOf, shiftMonthKey } from './budgetMonth';
-import { minimumPaymentOf, statementDebtOf } from './cardStatement';
+import { availableLimitOf, minimumPaymentOf, statementDebtOf } from './cardStatement';
 
 export type AskMetric = 'buAy' | 'gelecekAy' | 'kalanToplam' | 'asgari' | 'kalanLimit' | 'tutar' | 'bitis' | 'yok';
 
@@ -65,7 +65,7 @@ export function buildAskItems(
         buAy: statementDebtOf(c),
         kalanToplam: c.currentDebt,
         asgari: minimumPaymentOf(c),
-        kalanLimit: Math.max(0, c.limit - c.currentDebt)
+        kalanLimit: availableLimitOf(c)
       }
     });
   }
