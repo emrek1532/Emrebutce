@@ -8,7 +8,7 @@ import { DebtPlanner } from './DebtPlanner';
 import { SubscriptionsCard } from '../common/SubscriptionsCard';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
 import { budgetMonthOf } from '../../utils/budgetMonth';
-import { lastStatementKey, minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
+import { availableLimitOf, lastStatementKey, minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat, FileText } from 'lucide-react';
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -91,6 +91,8 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
   const monthlyFixed = recurring.filter((r) => r.active && r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
+  // Limit girilmiş kartların kullanılabilir limiti (gelecek taksitler düşülür, eksi olabilir)
+  const totalAvailable = creditCards.filter((c) => c.limit > 0).reduce((sum, c) => sum + availableLimitOf(c), 0);
 
   const confirmDelete = (label: string, action: () => void) => {
     if (window.confirm(`"${label}" silinsin mi?`)) action();
@@ -143,7 +145,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
             </div>
             <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-sky-500 to-indigo-600 min-w-[10rem]">
               <span className="text-[11px] font-medium text-white/80 block">Kalan limit</span>
-              <span className="text-xl font-extrabold font-mono">{money(Math.max(0, totalCardLimit - totalCardDebt))}</span>
+              <span className="text-xl font-extrabold font-mono">{money(totalAvailable)}</span>
             </div>
           </div>
         </div>
@@ -264,7 +266,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
             Kartlarım
             {totalCardLimit > 0 && (
               <span className="ml-2 text-xs font-normal text-neutral-500">
-                Limit doluluğu %{Math.round((totalCardDebt / totalCardLimit) * 100)}
+                Limit doluluğu %{Math.round(((totalCardLimit - totalAvailable) / totalCardLimit) * 100)}
               </span>
             )}
           </h3>
@@ -285,7 +287,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {creditCards.map((card) => {
-              const usage = card.limit > 0 ? Math.min(100, (card.currentDebt / card.limit) * 100) : 0;
+              const usage = card.limit > 0 ? Math.min(100, ((card.limit - availableLimitOf(card)) / card.limit) * 100) : 0;
               const due = nextDayOfMonth(card.dueDay);
               const stmt = statementDebtOf(card);
               const minimum = minimumPaymentOf(card);
@@ -320,7 +322,12 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                       {card.limit > 0 && (
                         <div className="text-right">
                           <span className="text-[11px] text-white/70 block">Kalan limit</span>
-                          <span className="text-sm font-bold font-mono">{money(Math.max(0, card.limit - card.currentDebt))}</span>
+                          <span className={`text-sm font-bold font-mono ${availableLimitOf(card) < 0 ? 'text-rose-200' : ''}`}>{money(availableLimitOf(card))}</span>
+                          {(card.futureInstallments ?? 0) > 0 && (
+                            <span className="text-[10px] text-white/70 block" title="Henüz ekstreye girmemiş taksitler bankada limitten düşer">
+                              gelecek taksit {money(card.futureInstallments!)}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

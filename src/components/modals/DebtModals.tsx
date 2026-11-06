@@ -117,7 +117,8 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
     // Ekstre borcu elle değiştiyse asgari hesabı yeni tutardan başlar
     card.statementTotal =
       editCard && editCard.statementDebt === card.statementDebt ? editCard.statementTotal ?? card.statementDebt : card.statementDebt;
-    if (editCard) updateCreditCard({ ...editCard, ...card });
+    const sameStatement = !!editCard && editCard.statementDebt === card.statementDebt;
+    if (editCard) updateCreditCard({ ...editCard, ...card, statementMinimum: sameStatement ? editCard.statementMinimum : undefined });
     else addCreditCard(card);
     onClose();
   };

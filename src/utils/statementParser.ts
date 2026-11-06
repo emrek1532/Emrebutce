@@ -160,6 +160,8 @@ export interface StatementSummary {
   statementDebt?: number; // dönem borcu
   minimumPayment?: number;
   limit?: number;
+  // Ekstredeki taksitli işlemlerin henüz gelmemiş taksitleri toplamı
+  futureInstallments?: number;
   bankHint?: string; // PDF'te geçen banka adı
 }
 
