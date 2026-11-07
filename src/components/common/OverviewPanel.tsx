@@ -19,12 +19,12 @@ export const OverviewPanel: React.FC<{ onEditTx: (tx: Transaction) => void }> = 
         <MonthSelect />
       </div>
       <StatCards />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
-        <div className={isCurrent ? 'lg:col-span-7' : 'lg:col-span-12'}>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-5 items-start">
+        <div className={isCurrent ? 'xl:col-span-7' : 'xl:col-span-12'}>
           <MonthSummaryCard />
         </div>
         {isCurrent && (
-          <div className="lg:col-span-5">
+          <div className="xl:col-span-5">
             <UpcomingPayments />
           </div>
         )}

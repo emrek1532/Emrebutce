@@ -38,7 +38,7 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
   return (
     <div className={`rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs ${compact ? 'p-3' : 'p-5'} space-y-3`}>
       <div className="flex items-center justify-between gap-2">
-        <h3 className="whitespace-nowrap text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+        <h3 className="min-w-0 truncate text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
           <CalendarClock className="w-5 h-5 text-sky-600" /> Yaklaşan Ödemeler
         </h3>
         {pushSupported() && syncConfig.vaultId && (
@@ -46,7 +46,7 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
             type="button"
             disabled={busy}
             onClick={toggle}
-            className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg disabled:opacity-50 ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg disabled:opacity-50 ${
               on ? 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800' : 'bg-sky-600 text-white'
             }`}
           >
