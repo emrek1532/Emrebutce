@@ -45,6 +45,7 @@ export const StatCards: React.FC = () => {
       first = {
         label: 'Toplam Varlıklarım',
         value: total,
+        // Yüzde yuvarlanınca 0 çıkan küçük değişimde rozet gösterilmez (tutar alt satırda yazar)
         change: base ? pctChange(total, base.total) : null,
         sub: base && Math.abs(diff) >= 1 ? `Geçen aya göre ${diff > 0 ? '+' : '−'}${money(Math.abs(diff))}` : 'Altın, döviz ve TL birikimi',
         icon: <Landmark className="w-5 h-5" />,
@@ -95,7 +96,7 @@ export const StatCards: React.FC = () => {
   }, [transactions, selectedMonth, assets, assetHistory]);
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {stats.map((s) => (
         <div
           key={s.label}
@@ -105,7 +106,7 @@ export const StatCards: React.FC = () => {
           {s.chart}
           <div className="relative flex items-start justify-between gap-2">
             <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">{s.icon}</div>
-            {s.change !== null && Math.abs(s.change) < 1000 && (
+            {s.change !== null && s.change !== 0 && Math.abs(s.change) < 1000 && (
               <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/20 whitespace-nowrap" title="Geçen aya göre">
                 {s.change >= 0 ? '↑' : '↓'} %{Math.abs(s.change)}
               </span>
@@ -113,7 +114,7 @@ export const StatCards: React.FC = () => {
           </div>
           <div className="relative mt-2 sm:mt-3">
             <span className="text-[11px] sm:text-xs font-medium text-white/85 block">{s.label}</span>
-            <span className="text-lg sm:text-2xl font-extrabold font-mono tracking-tight block truncate">
+            <span className="text-lg sm:text-2xl lg:text-xl 2xl:text-2xl font-extrabold font-mono tracking-tight block truncate">
               {s.sign && s.value > 0 ? '+' : ''}
               {money(s.value)}
             </span>

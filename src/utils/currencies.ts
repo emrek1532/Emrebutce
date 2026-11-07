@@ -39,7 +39,7 @@ export function formatCurrency(amount: number, currency: Currency = 'TRY'): stri
     maximumFractionDigits: 2
   }).format(amount);
 
-  return `${formattedNumber} ${config.symbol}`;
+  return `${formattedNumber}\u00A0${config.symbol}`;
 }
 
 export function convertCurrency(

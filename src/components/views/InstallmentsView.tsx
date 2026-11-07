@@ -128,24 +128,26 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
       )}
 
       {section === 'cards' && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-3">
           <div>
             <h2 className="sm:hidden text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               <span>Kredi Kartları</span>
             </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            <p className="sm:hidden text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
               Ekstre borcu, asgari ödeme, dönem içi harcama ve kalan limit. Yeni ekstre gelince PDF'ini yükleyin.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-            <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-rose-500 to-orange-500 min-w-[10rem]">
-              <span className="text-[11px] font-medium text-white/80 block">Toplam kart borcu</span>
-              <span className="text-xl font-extrabold font-mono">{money(totalCardDebt)}</span>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 order-first">
+            <div className="relative overflow-hidden p-4 sm:p-5 rounded-2xl text-white shadow-sm bg-gradient-to-br from-rose-500 to-orange-500 min-w-0">
+              <div className="absolute -right-8 -bottom-10 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+              <span className="relative text-[11px] sm:text-xs font-medium text-white/80 block">Toplam kart borcu</span>
+              <span className="relative text-lg sm:text-2xl font-extrabold font-mono block truncate">{money(totalCardDebt)}</span>
             </div>
-            <div className="p-4 rounded-2xl text-white shadow-sm bg-gradient-to-br from-sky-500 to-indigo-600 min-w-[10rem]">
-              <span className="text-[11px] font-medium text-white/80 block">Kalan limit</span>
-              <span className="text-xl font-extrabold font-mono">{money(totalAvailable)}</span>
+            <div className="relative overflow-hidden p-4 sm:p-5 rounded-2xl text-white shadow-sm bg-gradient-to-br from-sky-500 to-indigo-600 min-w-0">
+              <div className="absolute -right-8 -bottom-10 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+              <span className="relative text-[11px] sm:text-xs font-medium text-white/80 block">Kalan limit</span>
+              <span className={`relative text-lg sm:text-2xl font-extrabold font-mono block truncate ${totalAvailable < 0 ? 'text-rose-100' : ''}`}>{money(totalAvailable)}</span>
             </div>
           </div>
         </div>
@@ -285,7 +287,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
             Henüz kart eklenmedi. "Kart Ekle" ile bankayı, limiti, güncel borcu ve son ödeme gününü girin.
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
             {creditCards.map((card) => {
               const usage = card.limit > 0 ? Math.min(100, ((card.limit - availableLimitOf(card)) / card.limit) * 100) : 0;
               const due = nextDayOfMonth(card.dueDay);
@@ -317,7 +319,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                     <div className="relative mt-5 flex items-end justify-between gap-2">
                       <div>
                         <span className="text-[11px] text-white/70 block">Güncel borç</span>
-                        <span className="text-2xl font-extrabold font-mono tracking-tight">{money(card.currentDebt)}</span>
+                        <span className="text-2xl font-extrabold font-mono tracking-tight whitespace-nowrap">{money(card.currentDebt)}</span>
                       </div>
                       {card.limit > 0 && (
                         <div className="text-right">
@@ -424,7 +426,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
             Henüz taksit eklenmedi. Taksitli alışverişlerinizi, kredilerinizi ve yapılandırmalarınızı "Taksit Ekle" ile girin.
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
             {installments.map((inst) => {
               const active = isActive(inst);
               const paid = inst.paidInstallments ?? 0;

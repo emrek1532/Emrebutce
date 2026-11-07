@@ -61,13 +61,13 @@ export const MonthSummaryCard: React.FC = () => {
   ];
   const up = now.balance >= 0;
   return (
-    <div className={`${homeCard} p-5`}>
+    <div className={`${homeCard} p-5 @container`}>
       <CardTitle
         icon={<BarChart3 className="w-5 h-5 text-sky-600" />}
         title="Aylık Özet"
         action={<span className="text-xs font-semibold px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700">{monthLabel(selectedMonth)}</span>}
       />
-      <div className="flex flex-col md:flex-row items-center gap-5">
+      <div className="grid grid-cols-1 @md:grid-cols-[auto_1fr] @3xl:grid-cols-[auto_1fr_13rem] items-center gap-5">
         <Donut
           size={168}
           stroke={24}
@@ -80,19 +80,19 @@ export const MonthSummaryCard: React.FC = () => {
           <span className="text-base font-extrabold font-mono text-neutral-900 dark:text-neutral-100">{money(now.income)}</span>
           <span className="text-[11px] text-neutral-500">Gelir</span>
         </Donut>
-        <ul className="flex-1 w-full space-y-2.5">
+        <ul className="w-full @md:max-w-sm min-w-0 space-y-2.5 justify-self-center">
           {rows.map(([label, value, color]) => (
             <li key={label} className="flex items-center justify-between gap-3 text-sm">
               <span className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
                 <i className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
                 {label}
               </span>
-              <span className="font-bold font-mono text-neutral-900 dark:text-neutral-100">{money(value)}</span>
+              <span className="font-bold font-mono text-neutral-900 dark:text-neutral-100 whitespace-nowrap">{money(value)}</span>
             </li>
           ))}
           {now.card > 0 && <li className="text-[11px] text-neutral-400">Kartla {money(now.card)} harcandı; ekstre ödenince gidere girer.</li>}
         </ul>
-        <div className="w-full md:w-48 shrink-0 rounded-2xl bg-gradient-to-b from-sky-50 to-indigo-50 dark:from-sky-950/40 dark:to-indigo-950/40 p-4 text-center">
+        <div className="w-full @md:col-span-2 @3xl:col-span-1 rounded-2xl bg-gradient-to-b from-sky-50 to-indigo-50 dark:from-sky-950/40 dark:to-indigo-950/40 p-4 text-center">
           <span className="text-xs font-medium text-neutral-500 flex items-center justify-center gap-1">
             {up ? <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> : <TrendingDown className="w-3.5 h-3.5 text-rose-500" />} Aylık Denge
           </span>
@@ -134,12 +134,12 @@ export const SpendingCard: React.FC = () => {
     return { slices, total: sorted.reduce((s, [, v]) => s + v, 0) };
   }, [transactions, selectedMonth]);
   return (
-    <div className={`${homeCard} p-5 h-full`}>
+    <div className={`${homeCard} p-5 h-full @container`}>
       <CardTitle icon={<PieChart className="w-5 h-5 text-sky-600" />} title="Harcama Dağılımı" action={<LinkBtn onClick={() => setActiveTab('reports')}>Raporlar</LinkBtn>} />
       {total === 0 ? (
         <p className="text-xs text-neutral-500 py-6 text-center">Bu ay harcama yok.</p>
       ) : (
-        <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center gap-4">
+        <div className="flex flex-col @md:flex-row items-center gap-4">
           <Donut size={128} stroke={20} segments={slices.map(([, v], i) => ({ value: v, color: PALETTE[i % PALETTE.length] }))}>
             <span className="text-sm font-extrabold font-mono text-neutral-900 dark:text-neutral-100">{money(total)}</span>
             <span className="text-[10px] text-neutral-500">Gider (kart dahil)</span>
@@ -150,7 +150,7 @@ export const SpendingCard: React.FC = () => {
                 <i className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
                 <span className="flex-1 min-w-0 truncate text-neutral-700 dark:text-neutral-300">{cat}</span>
                 <span className="text-neutral-400 font-mono w-9 text-right">%{Math.round((v / total) * 100)}</span>
-                <span className="font-bold font-mono text-neutral-900 dark:text-neutral-100">{money(v)}</span>
+                <span className="font-bold font-mono text-neutral-900 dark:text-neutral-100 whitespace-nowrap">{money(v)}</span>
               </li>
             ))}
           </ul>
