@@ -1,3 +1,4 @@
+import { useDrill } from '../../utils/drill';
 import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { Transaction } from '../../types/budget';
@@ -46,6 +47,7 @@ const LinkBtn: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({
 // Aylık Özet: gelirin gidere, birikime ve kalana nasıl bölündüğü + aylık denge
 export const MonthSummaryCard: React.FC = () => {
   const { transactions, selectedMonth } = useBudget();
+  const drill = useDrill();
   const { now, change, series } = useMemo(() => {
     const isCurrent = selectedMonth === monthKeyOf(new Date());
     const now = monthTotals(transactions, selectedMonth);
@@ -82,7 +84,11 @@ export const MonthSummaryCard: React.FC = () => {
         </Donut>
         <ul className="w-full @md:max-w-sm min-w-0 space-y-2.5 justify-self-center">
           {rows.map(([label, value, color]) => (
-            <li key={label} className="flex items-center justify-between gap-3 text-sm">
+            <li
+              key={label}
+              className="flex items-center justify-between gap-3 text-sm cursor-pointer rounded-lg -mx-1.5 px-1.5 py-0.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+              onClick={() => drill(label === 'Gelir' ? { type: 'income' } : label === 'Gider' ? { type: 'expense' } : label === 'Birikim' ? { type: 'saving' } : {})}
+            >
               <span className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
                 <i className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
                 {label}
@@ -121,6 +127,7 @@ const PALETTE = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#94A3B8'];
 // Harcama Dağılımı: en çok harcanan 4 kategori + diğer (kartla yapılanlar dahil)
 export const SpendingCard: React.FC = () => {
   const { transactions, selectedMonth } = useBudget();
+  const drill = useDrill();
   const { slices, total } = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of transactions) {
@@ -146,7 +153,12 @@ export const SpendingCard: React.FC = () => {
           </Donut>
           <ul className="flex-1 w-full min-w-0 space-y-2">
             {slices.map(([cat, v], i) => (
-              <li key={cat} className="flex items-center gap-2 text-xs">
+              <li
+                key={cat}
+                className={`flex items-center gap-2 text-xs rounded-lg -mx-1.5 px-1.5 py-1 ${cat === 'Diğer' && slices.length > 5 ? '' : 'cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/60'}`}
+                onClick={() => (cat === 'Diğer' && slices.length > 5 ? drill({ type: 'expense' }) : drill({ type: 'expense', category: cat }))}
+                title="Bu kategorinin harcamalarını gör"
+              >
                 <i className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
                 <span className="flex-1 min-w-0 truncate text-neutral-700 dark:text-neutral-300">{cat}</span>
                 <span className="text-neutral-400 font-mono w-9 text-right">%{Math.round((v / total) * 100)}</span>

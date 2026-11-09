@@ -112,7 +112,7 @@ export const GuideView: React.FC = () => (
       />
       <Row
         what="Kart borcunu ödedim"
-        where="Kartlar → ilgili kart → Borç Öde (Yeni İşlem ile GİRME)"
+        where="Kartlar → karta dokun → Borç öde (asgari / tamamı / başka tutar). Yeni İşlem ile GİRME"
         effect="Kartın borcu düşer, ödeme gider olarak kaydedilir ve Kalan Bakiye'den düşer. Harcama dağılımında ikinci kez sayılmaz."
       />
       <Row
@@ -158,6 +158,16 @@ export const GuideView: React.FC = () => (
         <li>☐ Taksit/kredi/arkadaş kartı ödeyince Borçlar → Bu ayı öde.</li>
         <li>☐ Ay sonunda Raporlar'a bak: geçen aya göre neler arttı, kategori sınırları.</li>
         <li>☐ Kart limitleri bankadakiyle tutmuyorsa kartı düzenle → bankadaki kullanılabilir limit.</li>
+      </ul>
+    </Section>
+
+    <Section icon={<ListChecks className="w-5 h-5 text-sky-600" />} title="Dokun ve git (kısayollar)">
+      <ul className="space-y-1.5">
+        <li>• <b>Özet'teki renkli kutular:</b> Gelir / Gider / Birikim kutusuna dokun → o ayın ilgili işlemleri filtreli açılır.</li>
+        <li>• <b>Harcama Dağılımı, Kim ne harcadı, Geçen aya göre:</b> bir kategoriye ya da kişiye dokun → o harcamalar listelenir.</li>
+        <li>• <b>Yaklaşan Ödemeler:</b> taksitin yanındaki <b>Öde</b> → bu ay ödendi olarak işlenir; satıra dokun → Kartlar/Borçlar açılır.</li>
+        <li>• <b>Kredi kartı:</b> karta dokun → detay: borç, limit, asgari, hızlı ödeme (asgari / ekstrenin tamamı / başka tutar), ekstre yükleme, düzenleme ve son harcamalar.</li>
+        <li>• <b>Taksit, düzenli gider, işlem satırı:</b> dokun → düzenle.</li>
       </ul>
     </Section>
 

@@ -4,6 +4,7 @@ import { CreditCardAccount, InstallmentDebt, RecurringItem } from '../../types/b
 import { formatCurrency, convertCurrency } from '../../utils/currencies';
 import { CreditCardModal, InstallmentModal, RecurringModal } from '../modals/DebtModals';
 import { StatementImportModal } from '../modals/StatementImportModal';
+import { CardDetailSheet } from './CardDetailSheet';
 import { DebtPlanner } from './DebtPlanner';
 import { SubscriptionsCard } from '../common/SubscriptionsCard';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
@@ -45,7 +46,7 @@ function isActive(inst: InstallmentDebt) {
 
 // Aynı ekran üç yerde parça parça kullanılır: Kartlar sekmesi, Borçlar sekmesi ve Özet'teki düzenli gelir/giderler
 // Banka adına göre kart rengi
-const bankGradient = (bank: string) => {
+export const bankGradient = (bank: string) => {
   const b = bank.toLocaleLowerCase('tr-TR');
   if (b.includes('garanti')) return 'from-emerald-500 to-teal-700';
   if (b.includes('deniz')) return 'from-sky-500 to-blue-800';
@@ -81,6 +82,9 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
   const [cardModal, setCardModal] = useState<{ open: boolean; card: CreditCardAccount | null }>({ open: false, card: null });
   const [statementOpen, setStatementOpen] = useState(false);
   const [statementCard, setStatementCard] = useState<string | undefined>();
+  // Dokunulan kartın detay penceresi
+  const [detailCardId, setDetailCardId] = useState<string | null>(null);
+  const detailCard = creditCards.find((c) => c.id === detailCardId) ?? null;
   const [instModal, setInstModal] = useState<{ open: boolean; inst: InstallmentDebt | null }>({ open: false, inst: null });
 
   const money = (tryAmount: number) => formatCurrency(convertCurrency(tryAmount, 'TRY', currency), currency);
@@ -233,7 +237,12 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
               const posted = transactions.some((t) => t.id.startsWith(`rec-${r.id}-`) && budgetMonthOf(t) === monthKey);
               const skipped = r.skipMonths?.includes(monthKey);
               return (
-                <div key={r.id} className={`px-4 py-3 flex items-center justify-between gap-3 ${r.active ? '' : 'opacity-50'}`}>
+                <div
+                  key={r.id}
+                  onClick={() => setRecModal({ open: true, item: r })}
+                  title="Düzenlemek için dokun"
+                  className={`px-4 py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50 ${r.active ? '' : 'opacity-50'}`}
+                >
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">{r.title}</div>
                     <div className="text-[11px] text-neutral-500">
@@ -252,10 +261,10 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                       {r.type === 'income' ? '+' : '-'}
                       {money(r.amount)}
                     </span>
-                    <button type="button" title="Düzenle" onClick={() => setRecModal({ open: true, item: r })} className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                    <button type="button" title="Düzenle" onClick={(e) => { e.stopPropagation(); setRecModal({ open: true, item: r }); }} className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button type="button" title="Sil" onClick={() => confirmDelete(r.title, () => deleteRecurring(r.id))} className="p-1.5 rounded-md text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
+                    <button type="button" title="Sil" onClick={(e) => { e.stopPropagation(); confirmDelete(r.title, () => deleteRecurring(r.id)); }} className="p-1.5 rounded-md text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -304,7 +313,14 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
               const urgent = stmt > 0 && due.daysLeft <= 3;
               return (
                 <div key={card.id} className="p-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-3">
-                  <div className={`relative overflow-hidden rounded-xl p-4 text-white bg-gradient-to-br ${bankGradient(card.bank)} shadow-sm`}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    title="Kart detayını aç"
+                    onClick={() => setDetailCardId(card.id)}
+                    onKeyDown={(e) => e.key === 'Enter' && setDetailCardId(card.id)}
+                    className={`relative overflow-hidden rounded-xl p-4 text-white bg-gradient-to-br ${bankGradient(card.bank)} shadow-sm cursor-pointer transition-transform active:scale-[0.99] hover:shadow-md`}
+                  >
                     <div className="absolute -right-10 -top-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
                     <div className="relative flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -315,10 +331,10 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                         </h4>
                       </div>
                       <div className="flex items-center gap-0.5 shrink-0">
-                        <button type="button" title="Düzenle" onClick={() => setCardModal({ open: true, card })} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/15">
+                        <button type="button" title="Düzenle" onClick={(e) => { e.stopPropagation(); setCardModal({ open: true, card }); }} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/15">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" title="Sil" onClick={() => confirmDelete(card.name, () => deleteCreditCard(card.id))} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/15">
+                        <button type="button" title="Sil" onClick={(e) => { e.stopPropagation(); confirmDelete(card.name, () => deleteCreditCard(card.id)); }} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/15">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -384,18 +400,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                   {card.currentDebt > 0 && (
                     <button
                       type="button"
-                      onClick={() => {
-                        const raw = window.prompt(
-                          `${card.bank} ${card.name} için ödediğiniz tutar (₺):\nEkstre: ${money(stmt)} · Asgari: ${money(minimum)}`,
-                          String(stmt || card.currentDebt)
-                        );
-                        if (!raw) return;
-                        const s = raw.trim().replace(/\s/g, '');
-                        const amount = s.includes(',') ? Number(s.replace(/\./g, '').replace(',', '.')) : /^\d{1,3}(\.\d{3})+$/.test(s) ? Number(s.replace(/\./g, '')) : Number(s);
-                        if (!(amount > 0)) return alert('Geçerli bir tutar girin.');
-                        // Kartlı harcamalar net bakiyeden düşülmediği için kart ödemesi her zaman gider olarak kaydedilir
-                        payCardDebt(card.id, amount, true);
-                      }}
+                      onClick={() => setDetailCardId(card.id)}
                       className="w-full py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
                     >
                       Borç Öde
@@ -447,7 +452,9 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
               return (
                 <div
                   key={inst.id}
-                  className={`p-5 rounded-2xl border bg-white dark:bg-neutral-900 shadow-xs hover:shadow-sm transition-shadow flex flex-col justify-between gap-3 ${
+                  onClick={() => setInstModal({ open: true, inst })}
+                  title="Düzenlemek için dokun"
+                  className={`p-5 rounded-2xl border bg-white dark:bg-neutral-900 shadow-xs hover:shadow-sm transition-shadow flex flex-col justify-between gap-3 cursor-pointer ${
                     active ? 'border-neutral-200 dark:border-neutral-800' : 'border-sky-200 dark:border-sky-900 opacity-70'
                   }`}
                 >
@@ -457,10 +464,10 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                         {inst.creditor}
                       </span>
                       <div className="flex items-center gap-1">
-                        <button type="button" title="Düzenle" onClick={() => setInstModal({ open: true, inst })} className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        <button type="button" title="Düzenle" onClick={(e) => { e.stopPropagation(); setInstModal({ open: true, inst }); }} className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" title="Sil" onClick={() => confirmDelete(inst.title, () => deleteInstallment(inst.id))} className="p-1.5 rounded-md text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
+                        <button type="button" title="Sil" onClick={(e) => { e.stopPropagation(); confirmDelete(inst.title, () => deleteInstallment(inst.id)); }} className="p-1.5 rounded-md text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -506,7 +513,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                         </span>
                         <button
                           type="button"
-                          onClick={() => undoInstallmentPayment(inst.id)}
+                          onClick={(e) => { e.stopPropagation(); undoInstallmentPayment(inst.id); }}
                           className="text-[10px] text-neutral-500 hover:text-rose-600 underline"
                         >
                           Geri al
@@ -516,7 +523,7 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                       active && (
                         <button
                           type="button"
-                          onClick={() => markInstallmentPaid(inst.id)}
+                          onClick={(e) => { e.stopPropagation(); markInstallmentPaid(inst.id); }}
                           className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -537,6 +544,22 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
       {section === 'debts' && <DebtPayoffChart />}
       {section === 'debts' && <DebtPlanner />}
 
+      {detailCard && (
+        <CardDetailSheet
+          card={detailCard}
+          gradient={bankGradient(detailCard.bank)}
+          onClose={() => setDetailCardId(null)}
+          onEdit={() => {
+            setDetailCardId(null);
+            setCardModal({ open: true, card: detailCard });
+          }}
+          onStatement={() => {
+            setDetailCardId(null);
+            setStatementCard(detailCard.id);
+            setStatementOpen(true);
+          }}
+        />
+      )}
       <CreditCardModal isOpen={cardModal.open} editCard={cardModal.card} onClose={() => setCardModal({ open: false, card: null })} />
       <RecurringModal isOpen={recModal.open} editItem={recModal.item} onClose={() => setRecModal({ open: false, item: null })} />
       <InstallmentModal isOpen={instModal.open} editInstallment={instModal.inst} onClose={() => setInstModal({ open: false, inst: null })} />

@@ -3,6 +3,11 @@
 Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sağ üstte) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
 
+## 1.4.0 — 9 Kasım 2026
+- Dokunulabilir arayüz: Özet kutuları, kategori/kişi satırları ve "geçen aya göre" ilgili işlemleri filtreli açar; Yaklaşan Ödemeler'de taksit için "Öde"
+- Kredi kartına dokununca detay penceresi: borç, limit, asgari, hızlı ödeme (asgari / ekstrenin tamamı / başka tutar), ekstre yükleme, düzenleme, son harcamalar
+- Taksit, düzenli gider ve işlem satırına dokununca düzenleme açılır
+
 ## 1.3.0 — 9 Kasım 2026
 - Kullanım Kılavuzu (Diğer menüsü / sol menü): neyi nereye girmeli, rakamlar nasıl hesaplanır, aylık rutin, sık sorulanlar
 - Kart borcu ödemesi harcama dağılımlarında (kategori, kişi, sınır, Akıllı Öneri) artık iki kez sayılmıyor

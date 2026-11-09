@@ -5,6 +5,8 @@ import { monthKeyOf, shiftMonthKey } from '../../utils/budgetMonth';
 import { cachedPrices, unitPrice } from '../../utils/assetPrices';
 import { formatCurrency } from '../../utils/currencies';
 import { MiniBars, Sparkline } from './Donut';
+import { useDrill } from '../../utils/drill';
+import { setActiveTab } from '../../utils/activeTab';
 import { ArrowDownRight, ArrowUpRight, Landmark, PiggyBank, Wallet } from 'lucide-react';
 
 interface Stat {
@@ -16,11 +18,15 @@ interface Stat {
   icon: React.ReactNode;
   gradient: string;
   chart: React.ReactNode;
+  // Dokununca açılacak yer
+  tap: () => void;
+  hint: string;
 }
 
 // Genel Bakış'ın üstündeki dört renkli kutu: varlık/birikim, gelir, gider, kalan
 export const StatCards: React.FC = () => {
   const { transactions, selectedMonth, assets, assetHistory } = useBudget();
+  const drill = useDrill();
   const money = (v: number) => formatCurrency(v, 'TRY');
 
   const stats = useMemo<Stat[]>(() => {
@@ -50,7 +56,9 @@ export const StatCards: React.FC = () => {
         sub: base && Math.abs(diff) >= 1 ? `Geçen aya göre ${diff > 0 ? '+' : '−'}${money(Math.abs(diff))}` : 'Altın, döviz ve TL birikimi',
         icon: <Landmark className="w-5 h-5" />,
         gradient: 'from-sky-500 via-blue-600 to-indigo-700',
-        chart: <Sparkline values={assetHistory.slice(-30).map((s) => s.total)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-14 opacity-40 sm:opacity-80" />
+        chart: <Sparkline values={assetHistory.slice(-30).map((s) => s.total)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-14 opacity-40 sm:opacity-80" />,
+        tap: () => setActiveTab('goals'),
+        hint: 'Varlıklarını gör'
       };
     } else {
       first = {
@@ -60,7 +68,9 @@ export const StatCards: React.FC = () => {
         sub: now.income > 0 ? `Gelirin %${Math.round((now.saving / now.income) * 100)}'i` : undefined,
         icon: <PiggyBank className="w-5 h-5" />,
         gradient: 'from-sky-500 via-blue-600 to-indigo-700',
-        chart: <MiniBars values={series.map((m) => m.saving)} className="absolute right-4 bottom-0 h-12" />
+        chart: <MiniBars values={series.map((m) => m.saving)} className="absolute right-4 bottom-0 h-12" />,
+        tap: () => drill({ type: 'saving' }),
+        hint: 'Birikim işlemlerini gör'
       };
     }
     return [
@@ -71,7 +81,9 @@ export const StatCards: React.FC = () => {
         change: pctChange(now.income, prev.income),
         icon: <ArrowUpRight className="w-5 h-5" />,
         gradient: 'from-emerald-400 to-teal-600',
-        chart: <MiniBars values={series.map((m) => m.income)} className="absolute right-4 bottom-0 h-12" />
+        chart: <MiniBars values={series.map((m) => m.income)} className="absolute right-4 bottom-0 h-12" />,
+        tap: () => drill({ type: 'income' }),
+        hint: 'Gelirleri gör'
       },
       {
         label: 'Toplam Gider',
@@ -80,7 +92,9 @@ export const StatCards: React.FC = () => {
         sub: now.card > 0 ? `+ kartla ${money(now.card)}` : undefined,
         icon: <ArrowDownRight className="w-5 h-5" />,
         gradient: 'from-rose-400 to-pink-600',
-        chart: <MiniBars values={series.map((m) => m.expense)} className="absolute right-4 bottom-0 h-12" />
+        chart: <MiniBars values={series.map((m) => m.expense)} className="absolute right-4 bottom-0 h-12" />,
+        tap: () => drill({ type: 'expense' }),
+        hint: 'Giderleri gör'
       },
       {
         label: 'Kalan Bakiye',
@@ -90,7 +104,9 @@ export const StatCards: React.FC = () => {
         sub: 'Gelir − gider − birikim',
         icon: <Wallet className="w-5 h-5" />,
         gradient: 'from-violet-500 to-purple-700',
-        chart: <Sparkline values={series.map((m) => m.balance)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-12 opacity-40 sm:opacity-80" />
+        chart: <Sparkline values={series.map((m) => m.balance)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-12 opacity-40 sm:opacity-80" />,
+        tap: () => drill(),
+        hint: 'Bu ayın tüm işlemlerini gör'
       }
     ];
   }, [transactions, selectedMonth, assets, assetHistory]);
@@ -98,9 +114,12 @@ export const StatCards: React.FC = () => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {stats.map((s) => (
-        <div
+        <button
+          type="button"
           key={s.label}
-          className={`relative overflow-hidden rounded-2xl p-3.5 sm:p-5 text-white shadow-sm bg-gradient-to-br ${s.gradient} min-h-[7.5rem] sm:min-h-[8.5rem]`}
+          onClick={s.tap}
+          title={s.hint}
+          className={`relative overflow-hidden text-left rounded-2xl p-3.5 sm:p-5 text-white shadow-sm bg-gradient-to-br ${s.gradient} min-h-[7.5rem] sm:min-h-[8.5rem] transition-transform hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]`}
         >
           <div className="absolute -right-10 -top-12 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
           {s.chart}
@@ -120,7 +139,7 @@ export const StatCards: React.FC = () => {
             </span>
             {s.sub && <span className="text-[10px] sm:text-[11px] text-white/80 block sm:truncate sm:max-w-[75%] leading-snug">{s.sub}</span>}
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );

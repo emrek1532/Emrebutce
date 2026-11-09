@@ -1,3 +1,4 @@
+import { setActiveTab } from '../../utils/activeTab';
 import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { buildReminders, disablePush, enablePush, pushEnabled, pushSupported, upcoming } from '../../utils/paymentReminders';
@@ -6,7 +7,7 @@ import { BellRing, BellOff, CalendarClock } from 'lucide-react';
 
 // Önümüzdeki 7 gün içindeki ödemeler + telefon bildirimi aç/kapa
 export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) => {
-  const { creditCards, installments, recurring, transactions, currency, syncConfig } = useBudget();
+  const { creditCards, installments, recurring, transactions, currency, syncConfig, markInstallmentPaid } = useBudget();
   const reminders = useMemo(
     () => buildReminders({ creditCards, installments, recurring, transactions }),
     [creditCards, installments, recurring, transactions]
@@ -65,7 +66,12 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
       ) : (
         <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
           {list.map((r) => (
-            <li key={r.id} className="py-2.5 flex items-center gap-3 text-sm">
+            <li
+              key={r.id}
+              className="py-2.5 flex items-center gap-3 text-sm cursor-pointer rounded-lg -mx-1.5 px-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+              onClick={() => setActiveTab(r.id.startsWith('card-') ? 'cards' : 'installments')}
+              title={r.id.startsWith('card-') ? 'Kartı aç' : 'Borçlar\'da aç'}
+            >
               <span
                 className={`w-16 shrink-0 text-center text-xs font-bold py-1 rounded-lg ${
                   r.days <= 1 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400'
@@ -75,6 +81,18 @@ export const UpcomingPayments: React.FC<{ compact?: boolean }> = ({ compact }) =
               </span>
               <span className="flex-1 min-w-0 text-neutral-800 dark:text-neutral-200 leading-snug">{r.title}</span>
               <span className="font-mono font-bold text-neutral-900 dark:text-neutral-100 shrink-0">{money(r.amount)}</span>
+              {r.id.startsWith('inst-') && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`${r.title} bu ay ödendi olarak işaretlensin mi? (${money(r.amount)} gider olarak eklenir)`)) markInstallmentPaid(r.id.slice(5));
+                  }}
+                  className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800"
+                >
+                  Öde
+                </button>
+              )}
             </li>
           ))}
         </ul>
