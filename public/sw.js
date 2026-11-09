@@ -1,5 +1,5 @@
 // Cebim PWA Service Worker
-const CACHE_NAME = 'cebim-v4';
+const CACHE_NAME = 'cebim-v1.1.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -2,6 +2,7 @@ import React from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { ActiveTab } from '../../types/budget';
 import { TABS, useActiveTab } from '../../utils/activeTab';
+import { APP_VERSION } from '../../version';
 import { ArrowLeftRight, BarChart3, CreditCard, Home, Landmark, PiggyBank, ShieldCheck, Smartphone, Wallet, ArrowRight } from 'lucide-react';
 
 const ICONS: Record<ActiveTab, React.ElementType> = {
@@ -73,6 +74,9 @@ export const Sidebar: React.FC<{ onOpenSync: () => void; onOpenShare: () => void
           Bağla <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+      <p className="mt-auto xl:mt-3 text-center text-[10px] font-medium text-neutral-400" title="Uygulama sürümü">
+        <span className="hidden xl:inline">Cebim </span>v{APP_VERSION}
+      </p>
     </aside>
   );
 };
