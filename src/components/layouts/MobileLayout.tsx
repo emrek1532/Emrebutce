@@ -54,7 +54,7 @@ export const MobileLayout: React.FC<Props> = ({
   return (
     <div className="min-h-screen text-neutral-900 dark:text-neutral-100 flex flex-col">
       {/* Üst çubuk: logo, sürüm, bildirim */}
-      <header className="sticky top-0 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] flex items-center justify-between">
         <button type="button" className="flex items-center gap-2" onClick={() => go('overview')}>
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center">
             <Wallet className="w-4 h-4" />
@@ -81,7 +81,7 @@ export const MobileLayout: React.FC<Props> = ({
       </header>
 
       {/* Main Scrollable Content */}
-      <main className="flex-1 p-4 pb-36 space-y-4 max-w-lg mx-auto w-full">
+      <main className="flex-1 p-4 pb-[calc(9rem+env(safe-area-inset-bottom))] space-y-4 max-w-lg mx-auto w-full">
 
         {activeTab === 'overview' && (
           <OverviewPanel onEditTx={(tx) => { setEditingTx(tx); setIsAddTxOpen(true); }} />
@@ -141,7 +141,7 @@ export const MobileLayout: React.FC<Props> = ({
       )}
 
       {/* Alt menü */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 pb-[max(env(safe-area-inset-bottom),0.25rem)]">
         <div className="max-w-lg mx-auto grid grid-cols-6">
           {[...NAV, { id: 'more' as const, label: 'Diğer', icon: LayoutGrid }].map((n) => {
             const active = n.id === 'more' ? inMore || moreOpen : activeTab === n.id && !moreOpen;
