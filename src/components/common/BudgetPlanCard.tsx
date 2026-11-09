@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { budgetMonthOf, monthKeyOf } from '../../utils/budgetMonth';
+import { budgetMonthOf, isCashExpense, monthKeyOf } from '../../utils/budgetMonth';
 import { minimumPaymentOf, statementDebtOf, periodSpendOf } from '../../utils/cardStatement';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { ChevronDown, Wallet } from 'lucide-react';
@@ -27,15 +27,16 @@ export function useBudgetPlan() {
       const spent = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && !t.installmentInfo && !/kart borcu ödemesi/i.test(t.description));
       const saved = sumOf((t) => t.type === 'saving');
       const free = income - fixed - loans - minimums - spent - saved;
-      return { income, fixed, loans, cards: minimums, spent, saved, free, daily: 0, daysLeft: 0, cardPeriod: 0, minimums };
+      const paidOut = fixed + loans + minimums + spent;
+      return { income, received: income, incomePending: 0, paidOut, balance: free, pending: 0, fixed, loans, cards: minimums, spent, saved, free, daily: 0, daysLeft: 0, cardPeriod: 0, minimums };
     }
     const byCard = (creditor: string) =>
       creditCards.some((c) => norm(creditor).includes(norm(c.bank)) || norm(creditor).includes(norm(c.name)));
 
-    // Gelir: düzenli gelirlerin tamamı (henüz yatmamış olsa da) + bu ay girilen diğer gelirler
-    const recurringIncome = recurring.filter((r) => r.active && r.type === 'income').reduce((s, r) => s + r.amount, 0);
-    // Elle girilmiş gelir bir düzenli gelirle aynıysa (yakın tutar) o zaten düzenli gelirde sayıldı
+    // Beklenen gelir: düzenli gelirlerin tamamı (henüz yatmamış olsa da) + bu ay girilen diğer gelirler
     const recurringIncomes = recurring.filter((r) => r.active && r.type === 'income');
+    const recurringIncome = recurringIncomes.reduce((s, r) => s + r.amount, 0);
+    // Elle girilmiş gelir bir düzenli gelirle aynıysa (yakın tutar) o zaten düzenli gelirde sayıldı
     const otherIncome = thisMonth
       .filter(
         (t) =>
@@ -46,48 +47,45 @@ export function useBudgetPlan() {
       .reduce((s, t) => s + toTry(t), 0);
     const income = recurringIncome + otherIncome;
 
-    // Kartla ödenmeyen sabit giderler (kartla ödenenler ekstrenin içinde)
-    const fixed = recurring
-      .filter((r) => r.active && r.type === 'expense' && r.paymentMethod !== 'Kredi Kartı')
-      .reduce((s, r) => s + r.amount, 0);
+    // ---- Şu ana kadar olan (gerçekleşen) ----
+    const received = thisMonth.filter((t) => t.type === 'income').reduce((s, t) => s + toTry(t), 0);
+    // Hesaptan çıkan her şey: kartlı alışveriş hariç (o kart ödemesiyle çıkar)
+    const paidOut = thisMonth.filter((t) => isCashExpense(t)).reduce((s, t) => s + toTry(t), 0);
+    const saved = thisMonth.filter((t) => t.type === 'saving').reduce((s, t) => s + toTry(t), 0);
+    // Elindeki para: bu ay gelen − ödenen − birikime ayrılan (ana sayfadaki "Kalan Bakiye" ile aynı)
+    const balance = received - paidOut - saved;
+    const incomePending = Math.max(0, income - received);
 
-    // Kartla ödenmeyen aktif taksitler
+    // ---- Daha ödenecek olanlar (ödendikçe buradan düşer) ----
+    const fixed = recurring
+      .filter(
+        (r) =>
+          r.active &&
+          r.type === 'expense' &&
+          r.paymentMethod !== 'Kredi Kartı' &&
+          !r.skipMonths?.includes(month) &&
+          !thisMonth.some((t) => t.id === `rec-${r.id}-${month}`)
+      )
+      .reduce((s, r) => s + r.amount, 0);
+    // Kartla ödenmeyen, bu ay henüz ödenmemiş taksitler
     const loans = installments
       .filter((i) => {
         const total = i.schedule ? i.schedule.length : i.totalInstallments;
-        return (!total || (i.remainingInstallments ?? 0) > 0 || thisMonth.some((t) => t.installmentInfo?.installmentId === i.id)) && !byCard(i.creditor);
+        const active = !total || (i.remainingInstallments ?? 0) > 0;
+        const paid = thisMonth.some((t) => t.installmentInfo?.installmentId === i.id);
+        return active && !paid && !byCard(i.creditor);
       })
-      .reduce((s, i) => {
-        const paid = thisMonth.find((t) => t.installmentInfo?.installmentId === i.id);
-        return s + (paid ? toTry(paid) : i.schedule ? i.schedule.find((x) => !x.paid)?.amount ?? 0 : i.monthlyAmount);
-      }, 0);
+      .reduce((s, i) => s + (i.schedule ? i.schedule.find((x) => !x.paid)?.amount ?? 0 : i.monthlyAmount), 0);
+    // Kartlar: kalan asgari ödemeler (ödeme yapıldıkça azalır)
+    const minimums = creditCards.reduce((s, c) => s + minimumPaymentOf(c), 0);
+    const cards = creditCards.reduce((s, c) => s + statementDebtOf(c), 0);
+    const pending = fixed + loans + minimums;
 
-    // Bu ay ödenecek kart ekstreleri (kalan) + bu ay yapılmış ekstre ödemeleri
-    const cardPayments = thisMonth
-      .filter((t) => t.type === 'expense' && /kart borcu ödemesi/i.test(t.description))
-      .reduce((s, t) => s + toTry(t), 0);
-    const cards = creditCards.reduce((s, c) => s + statementDebtOf(c), 0) + cardPayments;
-
-    // Kartsız yapılan diğer harcamalar (düzenli, taksit ve kart ödemesi hariç)
-    const spent = thisMonth
-      .filter(
-        (t) =>
-          t.type === 'expense' &&
-          t.paymentMethod !== 'Kredi Kartı' &&
-          !t.id.startsWith('rec-') &&
-          !t.installmentInfo &&
-          !/kart borcu ödemesi/i.test(t.description)
-      )
-      .reduce((s, t) => s + toTry(t), 0);
-    const saved = thisMonth.filter((t) => t.type === 'saving').reduce((s, t) => s + toTry(t), 0);
-
-    // Kartlar için plana yalnızca asgari ödemeler girer: kalan asgari + bu ay yapılmış kart ödemeleri
-    const minimums = creditCards.reduce((s, c) => s + minimumPaymentOf(c), 0) + cardPayments;
-    const free = income - fixed - loans - minimums - spent - saved;
+    const free = balance + incomePending - pending;
     const now = new Date();
     const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1;
     const cardPeriod = creditCards.reduce((s, c) => s + periodSpendOf(c), 0);
-    return { income, fixed, loans, cards, spent, saved, free, daily: free / daysLeft, daysLeft, cardPeriod, minimums };
+    return { income, received, incomePending, paidOut, balance, pending, fixed, loans, cards, spent: 0, saved, free, daily: free / daysLeft, daysLeft, cardPeriod, minimums };
   }, [transactions, recurring, installments, creditCards, isPast, selectedMonth]);
 
   return { plan, isPast };
@@ -121,13 +119,21 @@ export const BudgetPlanCard: React.FC<{ defaultOpen?: boolean }> = ({ defaultOpe
     });
     setSavedNow(true);
   };
-  const rows: [string, number][] = [
-    ['Sabit giderler', plan.fixed],
-    ['Taksitler', plan.loans],
-    [isPast ? 'Kart ödemeleri' : 'Kart asgari ödemeleri', plan.minimums],
-    ['Diğer harcamalar', plan.spent],
-    ...(plan.saved > 0 ? ([['Birikime ayrılan', plan.saved]] as [string, number][]) : [])
-  ];
+  const rows: [string, number][] = isPast
+    ? [
+        ['Sabit giderler', plan.fixed],
+        ['Taksitler', plan.loans],
+        ['Kart ödemeleri', plan.minimums],
+        ['Diğer harcamalar', plan.spent],
+        ...(plan.saved > 0 ? ([['Birikime ayrılan', plan.saved]] as [string, number][]) : [])
+      ]
+    : [
+        ['Bu ay ödenenler (hesaptan çıkan)', plan.paidOut],
+        ...(plan.saved > 0 ? ([['Birikime ayrılan', plan.saved]] as [string, number][]) : []),
+        ['Bekleyen sabit giderler', plan.fixed],
+        ['Bekleyen taksitler', plan.loans],
+        ['Bekleyen kart asgari ödemeleri', plan.minimums]
+      ];
 
   return (
     <div className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs space-y-4">
@@ -151,28 +157,46 @@ export const BudgetPlanCard: React.FC<{ defaultOpen?: boolean }> = ({ defaultOpe
           </div>
         )}
       </div>
-      {plan.income > 0 && (
-        <div>
-          <div className="h-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex">
-            {(
-              [
-                [plan.fixed, 'bg-amber-400'],
-                [plan.loans, 'bg-indigo-400'],
-                [plan.minimums, 'bg-rose-400'],
-                [plan.spent + plan.saved, 'bg-sky-300']
-              ] as [number, string][]
-            ).map(([v, c], i) => (
-              <div key={i} className={c} style={{ width: `${Math.min(100, (v / plan.income) * 100)}%` }} />
-            ))}
+      {!isPast && (
+        <>
+          {/* Elindeki para − bekleyen ödemeler: ödeme yapınca ikisi birlikte azalır, serbest kalan değişmez */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl bg-sky-50 dark:bg-sky-950/40 p-2">
+              <span className="text-[10px] text-neutral-500 block">Elindeki para</span>
+              <span className="text-sm font-bold font-mono text-neutral-900 dark:text-neutral-100">{money(plan.balance)}</span>
+            </div>
+            <div className="rounded-xl bg-rose-50 dark:bg-rose-950/40 p-2">
+              <span className="text-[10px] text-neutral-500 block">Bekleyen ödeme</span>
+              <span className="text-sm font-bold font-mono text-rose-600 dark:text-rose-400">−{money(plan.pending)}</span>
+            </div>
+            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 p-2">
+              <span className="text-[10px] text-neutral-500 block">Gelecek gelir</span>
+              <span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">+{money(plan.incomePending)}</span>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[10px] text-neutral-500">
-            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-amber-400" />Sabit</span>
-            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-indigo-400" />Taksit</span>
-            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-rose-400" />Kart</span>
-            <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-sky-300" />Diğer</span>
-            <span className="ml-auto">Gelirin %{Math.max(0, Math.round((1 - plan.free / plan.income) * 100))}'i ayrıldı</span>
-          </div>
-        </div>
+          {plan.income > 0 && (
+            <div>
+              <div className="h-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex">
+                {(
+                  [
+                    [plan.paidOut + plan.saved, 'bg-sky-500'],
+                    [plan.fixed, 'bg-amber-400'],
+                    [plan.loans, 'bg-indigo-400'],
+                    [plan.minimums, 'bg-rose-400']
+                  ] as [number, string][]
+                ).map(([v, c], i) => (
+                  <div key={i} className={c} style={{ width: `${Math.min(100, (v / plan.income) * 100)}%` }} />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[10px] text-neutral-500">
+                <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-sky-500" />Ödendi</span>
+                <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-amber-400" />Sabit</span>
+                <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-indigo-400" />Taksit</span>
+                <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full bg-rose-400" />Kart</span>
+              </div>
+            </div>
+          )}
+        </>
       )}
       {showSuggestion && (
         <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-3 space-y-2">
@@ -210,13 +234,13 @@ export const BudgetPlanCard: React.FC<{ defaultOpen?: boolean }> = ({ defaultOpe
       <>
       <div className="text-xs space-y-1">
         <div className="flex justify-between">
-          <span className="text-neutral-500">{isPast ? 'Gelir' : 'Beklenen gelir'}</span>
+          <span className="text-neutral-500">{isPast ? 'Gelir' : 'Bu ayın geliri (gelen + beklenen)'}</span>
           <span className="font-mono text-sky-700 dark:text-sky-400">+{money(plan.income)}</span>
         </div>
         {rows.map(([label, value]) => (
           <div key={label} className="flex justify-between">
             <span className="text-neutral-500">{label}</span>
-            <span className="font-mono text-rose-600 dark:text-rose-400">−{money(value)}</span>
+            <span className="font-mono text-rose-600 dark:text-rose-400">{value > 0 ? '−' : ''}{money(value)}</span>
           </div>
         ))}
       </div>
