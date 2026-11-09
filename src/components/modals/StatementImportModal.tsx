@@ -104,7 +104,9 @@ export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId
       limit: summary.limit ?? card.limit,
       statementMinimum: summary.minimumPayment,
       // Ekstredeki taksitlerin kalanları (ör. 4/6 → 2 taksit daha) kullanılabilir limitten düşer
-      futureInstallments: Math.round((lines ?? []).reduce((s, l) => s + (l.installment ? l.amount * (l.installment.total - l.installment.current) : 0), 0) * 100) / 100,
+      futureInstallments: Math.round(
+        (lines ?? []).reduce((s, l) => s + (l.remaining ?? (l.installment ? l.amount * (l.installment.total - l.installment.current) : 0)), 0) * 100
+      ) / 100,
       // Güncel borç = ekstreden kalan + kesimden SONRA bu kartla yapılan harcamalar (dönem içi)
       currentDebt: Math.round((remaining + periodAfterCut) * 100) / 100
     });
@@ -113,8 +115,25 @@ export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId
 
   const save = () => {
     const now = new Date().toISOString();
+    // Daha önce ekstreden eklenmiş aynı tarih + tutarlı satır tekrar eklenmez
+    // (okuma kuralları değişip açıklama farklı çıksa bile). Aynı gün aynı tutarlı iki harcama ayrı ayrı sayılır.
+    const existing = new Map<string, number>();
+    for (const t of transactions) {
+      if (!t.id.startsWith('stmt-')) continue;
+      const k = `${t.date}|${t.amount.toFixed(2)}`;
+      existing.set(k, (existing.get(k) ?? 0) + 1);
+    }
+    const fresh = chosen.filter((l) => {
+      const k = `${l.date}|${l.amount.toFixed(2)}`;
+      const n = existing.get(k) ?? 0;
+      if (n > 0) {
+        existing.set(k, n - 1);
+        return false;
+      }
+      return true;
+    });
     const added = importTransactions(
-      chosen.map((l) => ({
+      fresh.map((l) => ({
         id: `stmt-${l.key.replace(/[^a-z0-9çğıöşü]+/gi, '-').slice(0, 90)}`,
         type: 'expense',
         amount: l.amount,
