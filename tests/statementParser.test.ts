@@ -63,3 +63,44 @@ test('kart: ekstredeki asgari ve gelecek taksitler limitten düşer', async () =
   assert.equal(availableLimitOf(card), 854.33);
   assert.equal(availableLimitOf({ ...card, limit: 13000 }), -1145.67);
 });
+
+// Denizbank biçimi (uydurma satırlar): bonus tutarı açıklamada, "1.Tk … kalan/toplam-kaçıncı" taksit, nakit avans bölümü,
+// duyuruda başka banka adı geçiyor
+const DENIZ = [
+  'Kart Limiti 50,000.00',
+  'Hesap Kesim Tarihi 07/11/2026',
+  'Son Ödeme Tarihi 17/11/2026',
+  'Dönem Borcu 10,000.00 TL 1. SOKAK',
+  'Asgari Ödeme Tutarı / Oranı 2,000.00 TL /% 20',
+  'BONUS PROGRAM ORTAKLARINDA YAPTIĞINIZ HARCAMALAR',
+  '28/10/2026 ORNEK MAGAZA BOLU TR 0.27 549.99 TL',
+  '26/10/2026 ORNEK GIYIM İSTANBUL Peş. Taksit 1.Tk Anapara 2,297.26/4-1 1.53 765.76 TL',
+  'FAST-FOOD',
+  '30/10/2026 ORNEK DONERCI BOLU TR 320.00 TL',
+  'NAKİT AVANS BİLGİLERİ',
+  '23/10/2026 Taksit. Nakit ISPARTA MBL 1.Tk Anapara 8,333.33/3-1 4,166.67 TL',
+  '• 6 Aralık itibarıyla Garanti BBVA ile Bonus iş birliğimiz sona erecektir',
+  '• DENİZBANK KREDİ KARTLARI ARTIK MAXİMUM ÖZELLİKLİ! DenizBank kartınız',
+  'www.denizbank.com'
+];
+
+test('Denizbank ekstresi: satırlar, taksit, nakit avans', () => {
+  const rows = parseStatementLines(DENIZ);
+  assert.equal(rows.length, 4);
+  const [shop, inst, food, cash] = rows;
+  assert.deepEqual([shop.description, shop.amount, shop.likelyNotExpense], ['ORNEK MAGAZA BOLU', 549.99, false]);
+  assert.deepEqual([inst.description, inst.amount, inst.remaining], ['ORNEK GIYIM İSTANBUL (1/4 taksit)', 765.76, 2297.26]);
+  assert.deepEqual(inst.installment, { current: 1, total: 4 });
+  assert.notEqual(inst.category, 'Borç & Kredi');
+  assert.equal(food.category, 'Eğlence & Restoran');
+  assert.deepEqual([cash.amount, cash.likelyNotExpense, cash.remaining], [4166.67, true, 8333.33]);
+});
+
+test('Denizbank ekstresi: özet ve banka (duyurudaki Garanti adına kanmaz)', () => {
+  const s = parseStatementSummary(DENIZ);
+  assert.equal(s.bankHint, 'Denizbank');
+  assert.equal(s.statementDebt, 10000);
+  assert.equal(s.minimumPayment, 2000);
+  assert.equal(s.limit, 50000);
+  assert.equal(s.dueDate, '2026-11-17');
+});
