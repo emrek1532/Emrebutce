@@ -7,7 +7,7 @@ import { StatementImportModal } from '../modals/StatementImportModal';
 import { DebtPlanner } from './DebtPlanner';
 import { SubscriptionsCard } from '../common/SubscriptionsCard';
 import { DebtPayoffChart } from '../charts/DebtPayoffChart';
-import { budgetMonthOf } from '../../utils/budgetMonth';
+import { budgetMonthOf, monthKeyOf } from '../../utils/budgetMonth';
 import { availableLimitOf, lastStatementKey, minimumPaymentOf, minimumRateOf, periodSpendOf, statementDebtOf } from '../../utils/cardStatement';
 import { CreditCard, Calendar, CheckCircle2, Plus, Pencil, Trash2, TrendingDown, Repeat, FileText } from 'lucide-react';
 
@@ -89,6 +89,12 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
   const monthlyLoad = activeInstallments.reduce((sum, i) => sum + currentAmount(i), 0);
   // Kira, abonelik gibi her ay tekrarlayan giderler (taksitler hariç)
   const monthlyFixed = recurring.filter((r) => r.active && r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
+  // Bu ay henüz ödenmemiş olanlar: "Bu ayı öde" denmemiş taksitler + günü gelmemiş (işlemi oluşmamış) düzenli giderler
+  const thisMonth = monthKeyOf(new Date());
+  const loadLeft = activeInstallments.filter((i) => !isInstallmentPaidThisMonth(i.id)).reduce((sum, i) => sum + currentAmount(i), 0);
+  const fixedLeft = recurring
+    .filter((r) => r.active && r.type === 'expense' && !r.skipMonths?.includes(thisMonth) && !transactions.some((t) => t.id === `rec-${r.id}-${thisMonth}`))
+    .reduce((sum, r) => sum + r.amount, 0);
   const totalCardDebt = creditCards.reduce((sum, c) => sum + c.currentDebt, 0);
   const totalCardLimit = creditCards.reduce((sum, c) => sum + c.limit, 0);
   // Limit girilmiş kartların kullanılabilir limiti (gelecek taksitler düşülür, eksi olabilir)
@@ -109,15 +115,16 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {(
               [
-                ['Taksit yükü', monthlyLoad, 'from-indigo-500 to-violet-600'],
-                ['Sabit gider', monthlyFixed, 'from-amber-400 to-orange-500'],
-                ['Toplam aylık yük', monthlyFixed + monthlyLoad, 'from-slate-700 to-slate-950']
+                ['Bu ay kalan taksit', loadLeft, `aylık ${money(monthlyLoad)}`, 'from-indigo-500 to-violet-600'],
+                ['Bu ay kalan sabit gider', fixedLeft, `aylık ${money(monthlyFixed)}`, 'from-amber-400 to-orange-500'],
+                ['Bu ay kalan toplam', loadLeft + fixedLeft, `ödenen ${money(Math.max(0, monthlyLoad + monthlyFixed - loadLeft - fixedLeft))}`, 'from-slate-700 to-slate-950']
               ] as const
-            ).map(([label, value, g]) => (
+            ).map(([label, value, sub, g]) => (
               <div key={label} className={`relative overflow-hidden p-3 sm:p-5 rounded-2xl text-white shadow-sm bg-gradient-to-br ${g} min-w-0`}>
                 <div className="absolute -right-8 -bottom-10 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
-                <span className="relative text-[11px] sm:text-xs font-medium text-white/85 block">{label}</span>
+                <span className="relative text-[11px] sm:text-xs font-medium text-white/85 block leading-tight">{label}</span>
                 <span className="relative text-sm sm:text-2xl font-extrabold font-mono block truncate">{money(value)}</span>
+                <span className="relative text-[10px] sm:text-[11px] text-white/75 block truncate">{sub}</span>
               </div>
             ))}
           </div>
