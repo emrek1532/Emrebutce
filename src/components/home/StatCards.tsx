@@ -50,7 +50,7 @@ export const StatCards: React.FC = () => {
         sub: base && Math.abs(diff) >= 1 ? `Geçen aya göre ${diff > 0 ? '+' : '−'}${money(Math.abs(diff))}` : 'Altın, döviz ve TL birikimi',
         icon: <Landmark className="w-5 h-5" />,
         gradient: 'from-sky-500 via-blue-600 to-indigo-700',
-        chart: <Sparkline values={assetHistory.slice(-30).map((s) => s.total)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-14 opacity-90" />
+        chart: <Sparkline values={assetHistory.slice(-30).map((s) => s.total)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-14 opacity-40 sm:opacity-80" />
       };
     } else {
       first = {
@@ -90,7 +90,7 @@ export const StatCards: React.FC = () => {
         sub: 'Gelir − gider − birikim',
         icon: <Wallet className="w-5 h-5" />,
         gradient: 'from-violet-500 to-purple-700',
-        chart: <Sparkline values={series.map((m) => m.balance)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-12 opacity-80" />
+        chart: <Sparkline values={series.map((m) => m.balance)} stroke="#ffffff" className="absolute right-0 bottom-0 w-1/2 h-12 opacity-40 sm:opacity-80" />
       }
     ];
   }, [transactions, selectedMonth, assets, assetHistory]);
@@ -118,7 +118,7 @@ export const StatCards: React.FC = () => {
               {s.sign && s.value > 0 ? '+' : ''}
               {money(s.value)}
             </span>
-            {s.sub && <span className="text-[10px] sm:text-[11px] text-white/80 block truncate max-w-[75%]">{s.sub}</span>}
+            {s.sub && <span className="text-[10px] sm:text-[11px] text-white/80 block sm:truncate sm:max-w-[75%] leading-snug">{s.sub}</span>}
           </div>
         </div>
       ))}
