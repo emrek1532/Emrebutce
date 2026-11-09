@@ -3,6 +3,9 @@
 Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sayfa sonunda) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
 
+## 1.2.5 — 9 Kasım 2026
+- Kart düzenleme: "Bankadaki kullanılabilir limit" artık iki yönde eşitler; uygulama bankadan fazla düşmüşse fark "banka farkı" olarak geri eklenir
+
 ## 1.2.4 — 9 Kasım 2026
 - İşlemler/Raporlar üst şeridi Özet ile aynı: Gelir · Gider (hesaptan) · Kartla (önceden gider kart dahil gösteriliyordu, rakamlar tutmuyor gibiydi)
 - "Geçen aya göre" kartında toplamın kart dahil olduğu yazıyor

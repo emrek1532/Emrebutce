@@ -352,7 +352,8 @@ export const InstallmentsView: React.FC<{ section?: InstallmentsSection }> = ({ 
                         {/* Kalan limit nasıl hesaplandı: bankayla karşılaştırmak için */}
                         <p className="text-[10px] text-white/75 mt-1 font-mono leading-snug">
                           {money(card.limit)} − borç {money(card.currentDebt)}
-                          {(card.futureInstallments ?? 0) > 0 ? ` − gelmemiş taksit ${money(card.futureInstallments!)}` : ''} = {money(availableLimitOf(card))}
+                          {(card.futureInstallments ?? 0) > 0 ? ` − gelmemiş taksit ${money(card.futureInstallments!)}` : ''}
+                          {(card.futureInstallments ?? 0) < 0 ? ` + banka farkı ${money(-card.futureInstallments!)}` : ''} = {money(availableLimitOf(card))}
                         </p>
                       </div>
                     )}
