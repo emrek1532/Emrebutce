@@ -4,6 +4,7 @@ import { Transaction } from '../../types/budget';
 import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
 import { GoalsView } from '../views/GoalsView';
+import { GuideView } from '../views/GuideView';
 import { InstallmentsView } from '../views/InstallmentsView';
 import { OverviewPanel } from '../common/OverviewPanel';
 import { TxHeader } from '../common/TxHeader';
@@ -27,7 +28,8 @@ const TITLES: Record<string, [string, string]> = {
   reports: ['Raporlar', 'Kategoriler, kişiler, sınırlar ve aylık gidişat'],
   cards: ['Kredi Kartları', 'Ekstre borcu, asgari ödeme ve kalan limit'],
   installments: ['Borçlar', 'Taksitler, krediler ve düzenli ödemeler'],
-  goals: ['Birikim & Hedefler', 'Altın, döviz, TL birikimi ve hedefler']
+  goals: ['Birikim & Hedefler', 'Altın, döviz, TL birikimi ve hedefler'],
+  guide: ['Kullanım Kılavuzu', 'Neyi nereye girmeli, rakamlar nasıl hesaplanır']
 };
 
 // Tablet ve bilgisayar düzeni: solda menü, üstte selamlama ve araçlar (telefonda MobileLayout)
@@ -144,6 +146,7 @@ export const DesktopLayout: React.FC<Props> = ({ onOpenSync, onOpenNotifications
           )}
           {activeTab === 'cards' && <InstallmentsView section="cards" />}
           {activeTab === 'goals' && <GoalsView />}
+          {activeTab === 'guide' && <GuideView />}
         </main>
       </div>
 

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { budgetMonthOf, isCashExpense, monthKeyOf } from '../../utils/budgetMonth';
+import { budgetMonthOf, isCardPayment, isCashExpense, monthKeyOf } from '../../utils/budgetMonth';
 import { minimumPaymentOf, statementDebtOf, periodSpendOf } from '../../utils/cardStatement';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { ChevronDown, Wallet } from 'lucide-react';
@@ -19,12 +19,14 @@ export function useBudgetPlan() {
     if (isPast) {
       // Geçmiş ay: tahmin yok, yalnızca gerçekleşenler
       const sumOf = (f: (t: (typeof thisMonth)[number]) => boolean) => thisMonth.filter(f).reduce((s, t) => s + toTry(t), 0);
-      const cashOut = (t: (typeof thisMonth)[number]) => t.type === 'expense' && (t.paymentMethod !== 'Kredi Kartı' || !!t.installmentInfo);
+      // Hesaptan çıkan: kartlı alışveriş (taksitli olsa da) hariç; Borçlar'dan ödenen taksit dahil
+      const cashOut = (t: (typeof thisMonth)[number]) => isCashExpense(t);
+      const isLoan = (t: (typeof thisMonth)[number]) => !!t.installmentInfo?.installmentId;
       const income = sumOf((t) => t.type === 'income');
       const fixed = sumOf((t) => cashOut(t) && t.id.startsWith('rec-'));
-      const loans = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && !!t.installmentInfo);
-      const minimums = sumOf((t) => cashOut(t) && /kart borcu ödemesi/i.test(t.description));
-      const spent = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && !t.installmentInfo && !/kart borcu ödemesi/i.test(t.description));
+      const loans = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && isLoan(t));
+      const minimums = sumOf((t) => cashOut(t) && isCardPayment(t));
+      const spent = sumOf((t) => cashOut(t) && !t.id.startsWith('rec-') && !isLoan(t) && !isCardPayment(t));
       const saved = sumOf((t) => t.type === 'saving');
       const free = income - fixed - loans - minimums - spent - saved;
       const paidOut = fixed + loans + minimums + spent;

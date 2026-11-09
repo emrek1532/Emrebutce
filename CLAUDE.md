@@ -10,6 +10,9 @@ Uygulamaya giren her değişiklikte sürümü artır:
 - Test (`tests/version.test.ts`) ikisinin aynı olduğunu kontrol eder; `npm test` geçmeden PR açma.
 Yalnızca belge/test değişikliğinde sürüm artırılmaz.
 
+## Kullanım kılavuzu
+Uygulama içi kılavuz `src/components/views/GuideView.tsx`. Para akışını (neyin nereye girildiği, hangi rakamın nasıl hesaplandığı) değiştiren her güncellemede kılavuzu da güncelle.
+
 ## Kontroller
 `npm run lint` (tsc) ve `npm test` geçmeli.
 

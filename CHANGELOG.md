@@ -1,7 +1,13 @@
 # Sürüm notları
 
-Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sayfa sonunda) görünür.
+Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sağ üstte) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
+
+## 1.3.0 — 9 Kasım 2026
+- Kullanım Kılavuzu (Diğer menüsü / sol menü): neyi nereye girmeli, rakamlar nasıl hesaplanır, aylık rutin, sık sorulanlar
+- Kart borcu ödemesi harcama dağılımlarında (kategori, kişi, sınır, Akıllı Öneri) artık iki kez sayılmıyor
+- Yeni harcamada kategori varsayılanı "Diğer" (önceden "Konut & Kira" fark edilmeden seçili kalıyordu); açıklamadan kategori tahmini
+- Kartla taksitli alışveriş için "Taksit" seçimi; kart borcunu Yeni İşlem ile girmeye karşı uyarı; geçmiş ay sonucunda taksitli kart harcamaları nakit sayılmıyor
 
 ## 1.2.5 — 9 Kasım 2026
 - Kart düzenleme: "Bankadaki kullanılabilir limit" artık iki yönde eşitler; uygulama bankadan fazla düşmüşse fark "banka farkı" olarak geri eklenir

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { budgetMonthOf, monthKeyOf, shiftMonthKey } from '../../utils/budgetMonth';
+import { budgetMonthOf, monthKeyOf, shiftMonthKey, isSpending } from '../../utils/budgetMonth';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { monthLabel } from './MonthSwitcher';
 import { ArrowDownRight, ArrowUpRight, Scale } from 'lucide-react';
@@ -17,7 +17,7 @@ export const MonthReportCard: React.FC = () => {
     const sum = (month: string, cutDay?: number) => {
       const map = new Map<string, number>();
       for (const t of transactions) {
-        if (t.type !== 'expense' || budgetMonthOf(t) !== month) continue;
+        if (!isSpending(t) || budgetMonthOf(t) !== month) continue;
         if (cutDay && t.date.slice(0, 7) === month && Number(t.date.slice(8, 10)) > cutDay) continue;
         map.set(t.category, (map.get(t.category) ?? 0) + convertCurrency(t.amount, t.currency, currency));
       }

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { Transaction } from '../../types/budget';
-import { budgetMonthOf, monthKeyOf, shiftMonthKey } from '../../utils/budgetMonth';
+import { budgetMonthOf, monthKeyOf, shiftMonthKey, isSpending } from '../../utils/budgetMonth';
 import { lastMonths, monthTotals, pctChange } from '../../utils/monthStats';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { txTone } from '../../utils/txStyle';
@@ -124,7 +124,7 @@ export const SpendingCard: React.FC = () => {
   const { slices, total } = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of transactions) {
-      if (t.type !== 'expense' || budgetMonthOf(t) !== selectedMonth) continue;
+      if (!isSpending(t) || budgetMonthOf(t) !== selectedMonth) continue;
       map.set(t.category, (map.get(t.category) ?? 0) + convertCurrency(t.amount, t.currency, 'TRY'));
     }
     const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]);
@@ -183,7 +183,7 @@ export const SmartTipCard: React.FC = () => {
     const sum = (key: string, c?: number) => {
       const m = new Map<string, number>();
       for (const t of transactions) {
-        if (t.type !== 'expense' || budgetMonthOf(t) !== key) continue;
+        if (!isSpending(t) || budgetMonthOf(t) !== key) continue;
         if (c && t.date.slice(0, 7) === key && Number(t.date.slice(8, 10)) > c) continue;
         m.set(t.category, (m.get(t.category) ?? 0) + convertCurrency(t.amount, t.currency, 'TRY'));
       }

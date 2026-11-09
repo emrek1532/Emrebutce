@@ -10,8 +10,9 @@ import { TxHeader } from '../common/TxHeader';
 import { ChartsPanel } from '../common/ChartsPanel';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
 import { GoalsView } from '../views/GoalsView';
+import { GuideView } from '../views/GuideView';
 import { InstallmentsView } from '../views/InstallmentsView';
-import { Plus, ShieldCheck, Bell, Sun, Moon, Smartphone, Wallet, Home, ArrowLeftRight, BarChart3, CreditCard, Landmark, PiggyBank, LayoutGrid, X, ChevronRight } from 'lucide-react';
+import { Plus, ShieldCheck, Bell, Sun, Moon, Smartphone, Wallet, Home, ArrowLeftRight, BarChart3, CreditCard, Landmark, PiggyBank, LayoutGrid, X, ChevronRight, BookOpen } from 'lucide-react';
 import { ActiveTab } from '../../types/budget';
 
 interface Props {
@@ -111,6 +112,7 @@ export const MobileLayout: React.FC<Props> = ({
 
         {/* TAB 4: GOALS */}
         {activeTab === 'goals' && <GoalsView />}
+        {activeTab === 'guide' && <GuideView />}
 
         {/* TAB: INSTALLMENTS & DEBTS */}
         {activeTab === 'installments' && (
@@ -178,6 +180,10 @@ export const MobileLayout: React.FC<Props> = ({
             <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               <button type="button" className={moreItem} onClick={() => go('goals')}>
                 <PiggyBank className="w-5 h-5 text-amber-500" /> <span className="flex-1 text-left">Birikim & Hedefler</span>
+                <ChevronRight className="w-4 h-4 text-neutral-400" />
+              </button>
+              <button type="button" className={moreItem} onClick={() => go('guide')}>
+                <BookOpen className="w-5 h-5 text-indigo-500" /> <span className="flex-1 text-left">Kullanım Kılavuzu</span>
                 <ChevronRight className="w-4 h-4 text-neutral-400" />
               </button>
               <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onOpenShare(); }}>
