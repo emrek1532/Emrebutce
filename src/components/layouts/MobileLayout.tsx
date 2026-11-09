@@ -6,6 +6,7 @@ import { TransactionTable } from '../common/TransactionTable';
 import { OverviewPanel } from '../common/OverviewPanel';
 import { useActiveTab } from '../../utils/activeTab';
 import { APP_VERSION } from '../../version';
+import { applyUpdate, fetchLiveVersion } from '../../utils/appUpdate';
 import { TxHeader } from '../common/TxHeader';
 import { ChartsPanel } from '../common/ChartsPanel';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
@@ -203,7 +204,20 @@ export const MobileLayout: React.FC<Props> = ({
                 </span>
               </button>
             </div>
-            <p className="py-3 text-center text-[11px] text-neutral-400">Cebim v{APP_VERSION}</p>
+            <button
+              type="button"
+              onClick={async () => {
+                const live = await fetchLiveVersion();
+                if (live && live !== APP_VERSION) {
+                  if (confirm(`Yeni sürüm hazır: v${live}. Şimdi güncellensin mi?`)) applyUpdate();
+                } else if (live) {
+                  alert(`Güncelsin: v${APP_VERSION}`);
+                } else if (confirm('Sürüm kontrol edilemedi. Önbelleği temizleyip yeniden yüklensin mi?')) applyUpdate();
+              }}
+              className="w-full py-3 text-center text-[11px] text-neutral-400"
+            >
+              Cebim v{APP_VERSION} · <span className="text-sky-600 font-semibold">Güncellemeleri denetle</span>
+            </button>
           </div>
         </div>
       )}
