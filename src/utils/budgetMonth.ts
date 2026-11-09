@@ -15,6 +15,14 @@ export const shiftMonthKey = (key: string, delta: number) => {
 export const isCashExpense = (tx: Pick<Transaction, 'type' | 'paymentMethod' | 'installmentInfo'>) =>
   tx.type === 'expense' && (tx.paymentMethod !== 'Kredi Kartı' || !!tx.installmentInfo?.installmentId);
 
+// Kart borcu ödemesi: kartla yapılmış harcamaların parası. Nakit akışında gider sayılır (para o gün hesaptan çıkar),
+// ama "neye harcadım" dağılımlarında sayılmaz; yoksa aynı harcama hem alışverişte hem kart ödemesinde iki kez görünür.
+export const isCardPayment = (tx: Pick<Transaction, 'type' | 'description'>) =>
+  tx.type === 'expense' && /kart borcu ödemesi|kart ödemesi|ekstre ödemesi/i.test(tx.description);
+
+// Harcama dağılımına (kategori, kişi, sınır) giren gider
+export const isSpending = (tx: Pick<Transaction, 'type' | 'description'>) => tx.type === 'expense' && !isCardPayment(tx);
+
 export const budgetMonthOf = (tx: Pick<Transaction, 'date' | 'budgetMonth'>) => tx.budgetMonth || tx.date.slice(0, 7);
 
 // Ayın bu gününden sonra yatan gelir varsayılan olarak sonraki aya sayılır

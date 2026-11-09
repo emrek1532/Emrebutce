@@ -3,7 +3,7 @@ import { useBudget } from '../../context/BudgetContext';
 import { ActiveTab } from '../../types/budget';
 import { TABS, useActiveTab } from '../../utils/activeTab';
 import { APP_VERSION } from '../../version';
-import { ArrowLeftRight, BarChart3, CreditCard, Home, Landmark, PiggyBank, ShieldCheck, Smartphone, Wallet, ArrowRight } from 'lucide-react';
+import { ArrowLeftRight, BarChart3, CreditCard, Home, Landmark, PiggyBank, ShieldCheck, Smartphone, Wallet, ArrowRight, BookOpen } from 'lucide-react';
 
 const ICONS: Record<ActiveTab, React.ElementType> = {
   overview: Home,
@@ -11,7 +11,8 @@ const ICONS: Record<ActiveTab, React.ElementType> = {
   reports: BarChart3,
   cards: CreditCard,
   installments: Landmark,
-  goals: PiggyBank
+  goals: PiggyBank,
+  guide: BookOpen
 };
 
 // Tablet ve bilgisayarda sol menü (tablette yalnızca simgeler)
@@ -55,6 +56,10 @@ export const Sidebar: React.FC<{ onOpenSync: () => void; onOpenShare: () => void
           <span className="hidden xl:inline">
             {syncConfig.status === 'error' ? 'Eşitlenemedi' : syncConfig.status === 'syncing' ? 'Eşitleniyor…' : 'Eşitleme & Yedek'}
           </span>
+        </button>
+        <button type="button" title="Kullanım Kılavuzu" onClick={() => setActiveTab('guide')} className={item(activeTab === 'guide')}>
+          <BookOpen className="w-5 h-5 shrink-0" />
+          <span className="hidden xl:inline">Kullanım Kılavuzu</span>
         </button>
         <button type="button" title="Telefona bağla" onClick={onOpenShare} className={`${item(false)} xl:hidden`}>
           <Smartphone className="w-5 h-5 shrink-0" />

@@ -37,7 +37,7 @@ import {
 } from '../utils/cloudStore';
 import { readShareLinkFromLocation } from '../utils/shareLink';
 import { lastStatementKey } from '../utils/cardStatement';
-import { budgetMonthOf, isCashExpense, monthKeyOf, shiftMonthKey } from '../utils/budgetMonth';
+import { budgetMonthOf, isCashExpense, isSpending, monthKeyOf, shiftMonthKey } from '../utils/budgetMonth';
 import { readXlsx } from '../utils/xlsxReader';
 import { buildImportFromSheets } from '../utils/excelImport';
 
@@ -366,7 +366,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const categorySpendingMap = useMemo(() => {
     const map: Record<string, number> = {};
     transactions.forEach((tx) => {
-      if (tx.type === 'expense' && budgetMonthOf(tx) === currentMonthPrefix) {
+      if (isSpending(tx) && budgetMonthOf(tx) === currentMonthPrefix) {
         const converted = convertCurrency(tx.amount, tx.currency, currency);
         map[tx.category] = (map[tx.category] || 0) + converted;
       }
@@ -408,7 +408,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Calculate spending for each category in current month
       const spending: Record<string, number> = {};
       currentTxList.forEach((tx) => {
-        if (tx.type === 'expense' && budgetMonthOf(tx) === currentYearMonth) {
+        if (isSpending(tx) && budgetMonthOf(tx) === currentYearMonth) {
           const inTRY = convertCurrency(tx.amount, tx.currency, 'TRY');
           spending[tx.category] = (spending[tx.category] || 0) + inTRY;
         }
@@ -853,7 +853,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const expense = list.filter((t) => t.type === 'expense' && isCashExpense(t)).reduce((s, t) => s + toTry(t), 0);
     const saved = list.filter((t) => t.type === 'saving').reduce((s, t) => s + toTry(t), 0);
     const byCat = new Map<string, number>();
-    list.filter((t) => t.type === 'expense').forEach((t) => byCat.set(t.category, (byCat.get(t.category) ?? 0) + toTry(t)));
+    list.filter((t) => isSpending(t)).forEach((t) => byCat.set(t.category, (byCat.get(t.category) ?? 0) + toTry(t)));
     const top = [...byCat.entries()].sort((a, b) => b[1] - a[1])[0];
     const left = income - expense - saved;
     const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];

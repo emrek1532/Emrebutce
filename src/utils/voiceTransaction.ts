@@ -141,7 +141,7 @@ const CATEGORY_KEYWORDS: Array<[string, string[]]> = [
   ['Sigorta & Araç', ['sigorta', 'kasko', 'araç muayene', 'araba muayene', 'oto servis', 'araba', 'lastik']],
   ['Ulaşım & Motor', ['benzin', 'akaryakıt', 'yakıt', 'mazot', 'motorin', 'otobüs', 'taksi', 'metro', 'ulaşım', 'motor', 'otopark', 'köprü', 'otoyol', 'marmaray', 'dolmuş']],
   ['Faturalar & Aidat', ['fatura', 'elektrik', 'doğalgaz', 'doğal gaz', 'su parası', 'internet', 'aidat', 'telefon faturası']],
-  ['Market & Gıda', ['market', 'ekmek', 'gıda', 'manav', 'kasap', 'bakkal', 'migros', 'bim', 'a101', 'şok', 'carrefour', 'süt', 'sebze', 'meyve', 'pazar']],
+  ['Market & Gıda', ['sigara', 'tekel', 'market', 'ekmek', 'gıda', 'manav', 'kasap', 'bakkal', 'migros', 'bim', 'a101', 'şok', 'carrefour', 'süt', 'sebze', 'meyve', 'pazar']],
   ['Eğlence & Restoran', ['restoran', 'kafe', 'kahve', 'yemek', 'sinema', 'dışarıda', 'lokanta', 'döner', 'pizza', 'eğlence', 'tatil', 'netflix', 'spotify', 'youtube', 'disney', 'abonelik']],
   ['Sağlık & Bakım', ['eczane', 'ilaç', 'doktor', 'hastane', 'sağlık', 'kuaför', 'berber', 'diş', 'muayene']],
   ['Giyim & Alışveriş', ['kıyafet', 'giyim', 'ayakkabı', 'alışveriş', 'pantolon', 'mont', 'elbise', 'gömlek', 'çanta']],

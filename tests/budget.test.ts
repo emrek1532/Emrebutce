@@ -64,3 +64,16 @@ test('Bütçene sor: bu ay ödenmiş taksit "bu ay" toplamına girmez', async ()
   assert.equal(ans.total, 500);
   assert.match(ans.note ?? '', /ödendi.*a/);
 });
+
+test('kart borcu ödemesi nakit gider ama harcama dağılımına girmez', async () => {
+  const { isCardPayment, isSpending } = await import('../src/utils/budgetMonth');
+  const pay = { type: 'expense', description: 'Denizbank Bonus kart borcu ödemesi', paymentMethod: 'Havale/EFT' } as any;
+  const shop = { type: 'expense', description: 'Migros', paymentMethod: 'Kredi Kartı' } as any;
+  assert.equal(isCardPayment(pay), true);
+  assert.equal(isSpending(pay), false);
+  assert.equal(isCashExpense(pay), true);
+  assert.equal(isSpending(shop), true);
+  assert.equal(isCashExpense(shop), false);
+  // Kartla taksitli alışveriş (Borçlar'a bağlı değil) nakit sayılmaz
+  assert.equal(isCashExpense({ ...shop, installmentInfo: { current: 1, total: 6 } }), false);
+});

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useBudget } from '../../context/BudgetContext';
-import { budgetMonthOf } from '../../utils/budgetMonth';
+import { budgetMonthOf, isSpending } from '../../utils/budgetMonth';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
 import { Users } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export const MemberSplitCard: React.FC = () => {
   const rows = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of transactions) {
-      if (t.type !== 'expense' || budgetMonthOf(t) !== selectedMonth) continue;
+      if (!isSpending(t) || budgetMonthOf(t) !== selectedMonth) continue;
       map.set(t.member || 'Ortak', (map.get(t.member || 'Ortak') ?? 0) + convertCurrency(t.amount, t.currency, currency));
     }
     const total = [...map.values()].reduce((s, v) => s + v, 0);

@@ -4,6 +4,7 @@ import { Currency, PaymentMethod, Transaction, TransactionType } from '../../typ
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, SAVING_CATEGORIES } from '../../data/initialData';
 import { X, PlusCircle, ArrowDownCircle, ArrowUpCircle, Mic, Square, PiggyBank, MessageSquareText } from 'lucide-react';
 import { parseBankSms } from '../../utils/smsParser';
+import { guessExpenseCategory } from '../../utils/voiceTransaction';
 import { learnedCategory } from '../../utils/categoryMemory';
 import { isVoiceSupported, listenOnce, parseVoiceTransaction, VoiceSession } from '../../utils/voiceTransaction';
 
@@ -16,6 +17,12 @@ interface Props {
   // Paylaşılan SMS gibi dışarıdan gelen hazır alanlar (yeni işlemde)
   prefill?: Partial<Pick<Transaction, 'type' | 'amount' | 'description' | 'date' | 'paymentMethod' | 'cardId'>> | null;
 }
+
+const numAmountPreview = (text: string, n: number) => {
+  const s = text.trim();
+  const v = s.includes(',') ? Number(s.replace(/\./g, '').replace(',', '.')) : Number(s);
+  return v > 0 ? (v / n).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) : '…';
+};
 
 export const AddTransactionModal: React.FC<Props> = ({
   isOpen,
@@ -34,7 +41,7 @@ export const AddTransactionModal: React.FC<Props> = ({
   const [amount, setAmount] = useState<string>(editTransaction ? String(editTransaction.amount) : '');
   const [currency, setCurrency] = useState<Currency>(editTransaction?.currency || activeCurrency);
   const [category, setCategory] = useState<string>(
-    editTransaction?.category || (type === 'expense' ? EXPENSE_CATEGORIES[0] : INCOME_CATEGORIES[0])
+    editTransaction?.category || (type === 'expense' ? 'Diğer Harcamalar' : INCOME_CATEGORIES[0])
   );
   const [member, setMember] = useState<string>(
     editTransaction?.member || (familyMembers[0]?.name || 'Ortak')
@@ -49,9 +56,14 @@ export const AddTransactionModal: React.FC<Props> = ({
   const [isRecurring, setIsRecurring] = useState<boolean>(editTransaction?.isRecurring || false);
   const [goalId, setGoalId] = useState<string>(editTransaction?.goalId || '');
   const [cardId, setCardId] = useState<string>(editTransaction?.cardId || '');
+  // Kartla taksitli alışveriş: tutar TOPLAM fiyattır (banka da limitten tamamını düşer); ekstrede gelen aylık taksitler bununla eşleşir
+  const [cardInstallments, setCardInstallments] = useState(1);
 
   const categoriesFor = (t: TransactionType) =>
     t === 'income' ? INCOME_CATEGORIES : t === 'saving' ? SAVING_CATEGORIES : EXPENSE_CATEGORIES;
+  // Varsayılan kategori: giderde "Diğer Harcamalar" (listenin ilki "Konut & Kira" fark edilmeden seçili kalıyordu);
+  // açıklama yazılınca uygun kategori kendiliğinden önerilir
+  const defaultCategory = (t: TransactionType) => (t === 'expense' ? 'Diğer Harcamalar' : categoriesFor(t)[0]);
 
   // Pencere her açıldığında alanları düzenlenen işleme (ya da boş forma) göre doldur
   useEffect(() => {
@@ -60,7 +72,7 @@ export const AddTransactionModal: React.FC<Props> = ({
     setType(t);
     setAmount(editTransaction ? String(editTransaction.amount) : '');
     setCurrency(editTransaction?.currency || activeCurrency);
-    setCategory(editTransaction?.category || categoriesFor(t)[0]);
+    setCategory(editTransaction?.category || defaultCategory(t));
     setMember(editTransaction?.member || familyMembers[0]?.name || 'Ortak');
     setDate(editTransaction?.date || new Date().toISOString().split('T')[0]);
     setDescription(editTransaction?.description || '');
@@ -73,6 +85,7 @@ export const AddTransactionModal: React.FC<Props> = ({
       .sort((a, b) => (b.createdAt ?? b.date).localeCompare(a.createdAt ?? a.date))[0]?.cardId;
     setCardId(editTransaction ? editTransaction.cardId || '' : lastCardId || creditCards[0]?.id || '');
     setCategoryTouched(!!editTransaction);
+    setCardInstallments(editTransaction?.installmentInfo && !editTransaction.installmentInfo.installmentId ? editTransaction.installmentInfo.total : 1);
     setSmsOpen(false);
     setSmsText('');
     setSmsNote(null);
@@ -84,12 +97,17 @@ export const AddTransactionModal: React.FC<Props> = ({
   const suggestCategory = (desc: string, t: TransactionType) => {
     const learned = learnedCategory(desc, transactions, t, categoriesFor(t));
     if (learned) setCategory(learned);
+    // Geçmişte yoksa açıklamadaki kelimelerden tahmin (ör. "mont" → Giyim, "benzin" → Ulaşım)
+    else if (t === 'expense' && desc.trim()) {
+      const guess = guessExpenseCategory(desc);
+      if (EXPENSE_CATEGORIES.includes(guess)) setCategory(guess);
+    }
   };
 
   const applyDraft = (d: NonNullable<Props['prefill']>) => {
     const t = d.type || 'expense';
     setType(t);
-    setCategory(categoriesFor(t)[0]);
+    setCategory(defaultCategory(t));
     setCategoryTouched(false);
     if (d.amount != null) setAmount(String(d.amount));
     if (d.date) setDate(d.date);
@@ -117,7 +135,7 @@ export const AddTransactionModal: React.FC<Props> = ({
 
   const selectType = (t: TransactionType) => {
     setType(t);
-    setCategory(categoriesFor(t)[0]);
+    setCategory(defaultCategory(t));
   };
 
   const [isListening, setIsListening] = useState(false);
@@ -189,7 +207,13 @@ export const AddTransactionModal: React.FC<Props> = ({
         paymentMethod: type === 'expense' ? paymentMethod : 'Havale/EFT',
         isRecurring,
         goalId: type === 'saving' && goalId ? goalId : undefined,
-        cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined
+        cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined,
+        installmentInfo:
+          type === 'expense' && paymentMethod === 'Kredi Kartı' && cardInstallments > 1
+            ? { current: 1, total: cardInstallments }
+            : editTransaction?.installmentInfo?.installmentId
+            ? editTransaction.installmentInfo
+            : undefined
       });
     } else {
       addTransaction({
@@ -203,7 +227,11 @@ export const AddTransactionModal: React.FC<Props> = ({
         paymentMethod: type === 'expense' ? paymentMethod : 'Havale/EFT',
         isRecurring,
         goalId: type === 'saving' && goalId ? goalId : undefined,
-        cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined
+        cardId: type === 'expense' && paymentMethod === 'Kredi Kartı' && cardId ? cardId : undefined,
+        installmentInfo:
+          type === 'expense' && paymentMethod === 'Kredi Kartı' && cardInstallments > 1
+            ? { current: 1, total: cardInstallments }
+            : undefined
       });
     }
 
@@ -464,6 +492,13 @@ export const AddTransactionModal: React.FC<Props> = ({
             )}
           </div>
 
+          {type === 'expense' && !editTransaction && /kart.*(borc|borç|ödeme|odeme)|ekstre/i.test(description) && (
+            <p className="text-[11px] rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 p-2">
+              Kart borcunu ödediysen buradan değil, <b>Kartlar → ilgili kart → Borç Öde</b> ile gir. Böylece kartın borcu da düşer ve harcama iki
+              kez sayılmaz.
+            </p>
+          )}
+
           {type === 'expense' && paymentMethod === 'Kredi Kartı' && creditCards.length > 0 && (
             <div>
               <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
@@ -481,6 +516,27 @@ export const AddTransactionModal: React.FC<Props> = ({
                 ))}
                 <option value="">Kart belirtme (borca ekleme)</option>
               </select>
+              <div className="mt-2 flex items-center gap-2">
+                <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Taksit</label>
+                <select
+                  value={cardInstallments}
+                  onChange={(e) => setCardInstallments(Number(e.target.value))}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                >
+                  <option value={1}>Peşin</option>
+                  {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
+                    <option key={n} value={n}>
+                      {n} taksit
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {cardInstallments > 1 && (
+                <p className="mt-1 text-[11px] text-neutral-500">
+                  Tutara <b>toplam fiyatı</b> yazın (aylık taksiti değil). Banka da limitten tamamını düşer; aylık{' '}
+                  {numAmountPreview(amount, cardInstallments)} ₺ ekstrelere gelir, ekstre yüklenince tekrar eklenmez.
+                </p>
+              )}
             </div>
           )}
 

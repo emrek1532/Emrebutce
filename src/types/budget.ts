@@ -196,4 +196,4 @@ export interface EncryptedSyncData {
   clientInfo?: string;
 }
 
-export type ActiveTab = 'overview' | 'transactions' | 'reports' | 'installments' | 'cards' | 'goals';
+export type ActiveTab = 'overview' | 'transactions' | 'reports' | 'installments' | 'cards' | 'goals' | 'guide';
