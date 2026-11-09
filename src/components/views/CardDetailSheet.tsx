@@ -37,7 +37,7 @@ export const CardDetailSheet: React.FC<{
   })();
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center pb-[env(safe-area-inset-bottom)] sm:pb-0" onClick={onClose}>
       <div
         className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-neutral-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}

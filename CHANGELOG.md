@@ -3,6 +3,9 @@
 Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sağ üstte) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
 
+## 1.4.2 — 9 Kasım 2026
+- iPhone: alt menü ve açılan pencereler ana ekran çubuğunun üstünde kalır (viewport-fit=cover + güvenli alan boşlukları); üst çubuk çentiğe göre ayarlı
+
 ## 1.4.1 — 9 Kasım 2026
 - Yeni sürüm yayındaysa üstte "Yeni sürüm hazır → Güncelle" çıkar; Diğer menüsünde (bilgisayarda sürüm yazısında) "Güncellemeleri denetle"
 - Güncelle: önbelleği temizler ve uygulamayı yeniden yükler (veriler korunur)

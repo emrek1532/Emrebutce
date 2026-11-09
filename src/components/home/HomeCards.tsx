@@ -237,7 +237,7 @@ export const SmartTipCard: React.FC = () => {
         </button>
       </div>
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 pb-[env(safe-area-inset-bottom)] sm:p-4" onClick={() => setOpen(false)}>
           <div className="w-full sm:max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-end mb-2 px-2 sm:px-0">
               <button type="button" onClick={() => setOpen(false)} className="p-2 rounded-full bg-white dark:bg-neutral-800 shadow" title="Kapat">
