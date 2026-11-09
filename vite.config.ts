@@ -9,7 +9,17 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      // Yayındaki sürümü uygulama kontrol edebilsin diye dist/version.json yazılır (yeni sürüm varsa "Güncelle" çıkar)
+      {
+        name: 'cebim-version-json',
+        generateBundle() {
+          this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: pkg.version }) });
+        },
+      },
+    ],
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
     },

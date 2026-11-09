@@ -3,6 +3,10 @@
 Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sağ üstte) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
 
+## 1.4.1 — 9 Kasım 2026
+- Yeni sürüm yayındaysa üstte "Yeni sürüm hazır → Güncelle" çıkar; Diğer menüsünde (bilgisayarda sürüm yazısında) "Güncellemeleri denetle"
+- Güncelle: önbelleği temizler ve uygulamayı yeniden yükler (veriler korunur)
+
 ## 1.4.0 — 9 Kasım 2026
 - Dokunulabilir arayüz: Özet kutuları, kategori/kişi satırları ve "geçen aya göre" ilgili işlemleri filtreli açar; Yaklaşan Ödemeler'de taksit için "Öde"
 - Kredi kartına dokununca detay penceresi: borç, limit, asgari, hızlı ödeme (asgari / ekstrenin tamamı / başka tutar), ekstre yükleme, düzenleme, son harcamalar

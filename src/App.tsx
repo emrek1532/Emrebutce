@@ -9,6 +9,7 @@ import { SharePhoneModal } from './components/modals/SharePhoneModal';
 import { VaultSetupModal } from './components/modals/VaultSetupModal';
 import { AddTransactionModal } from './components/modals/AddTransactionModal';
 import { parseBankSms } from './utils/smsParser';
+import { applyUpdate, useUpdateAvailable } from './utils/appUpdate';
 
 // Telefonda bir SMS "Paylaş → Cebim" ile gönderilince adres /?text=... olarak açılır
 const readSharedText = () => {
@@ -38,6 +39,7 @@ const useReminderSync = () => {
 
 const AppContent: React.FC = () => {
   const { effectiveDevice } = useBudget();
+  const liveVersion = useUpdateAvailable();
   useReminderSync();
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -73,6 +75,18 @@ const AppContent: React.FC = () => {
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           onOpenShare={() => setIsShareModalOpen(true)}
         />
+      )}
+
+      {/* Yeni sürüm yayındaysa güncelleme şeridi */}
+      {liveVersion && (
+        <div className="fixed top-2 inset-x-2 z-[80] mx-auto max-w-md flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-neutral-900 text-white shadow-2xl">
+          <span className="flex-1 text-xs">
+            Yeni sürüm hazır: <b>v{liveVersion}</b>
+          </span>
+          <button type="button" onClick={applyUpdate} className="px-3 py-1.5 rounded-full bg-sky-500 text-xs font-semibold">
+            Güncelle
+          </button>
+        </div>
       )}
 
       {/* Global Modals */}

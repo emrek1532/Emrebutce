@@ -3,6 +3,7 @@ import { useBudget } from '../../context/BudgetContext';
 import { ActiveTab } from '../../types/budget';
 import { TABS, useActiveTab } from '../../utils/activeTab';
 import { APP_VERSION } from '../../version';
+import { applyUpdate, fetchLiveVersion } from '../../utils/appUpdate';
 import { ArrowLeftRight, BarChart3, CreditCard, Home, Landmark, PiggyBank, ShieldCheck, Smartphone, Wallet, ArrowRight, BookOpen } from 'lucide-react';
 
 const ICONS: Record<ActiveTab, React.ElementType> = {
@@ -79,9 +80,20 @@ export const Sidebar: React.FC<{ onOpenSync: () => void; onOpenShare: () => void
           Bağla <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
-      <p className="mt-auto xl:mt-3 text-center text-[10px] font-medium text-neutral-400" title="Uygulama sürümü">
+      <button
+        type="button"
+        onClick={async () => {
+          const live = await fetchLiveVersion();
+          if (live && live !== APP_VERSION) {
+            if (confirm(`Yeni sürüm hazır: v${live}. Şimdi güncellensin mi?`)) applyUpdate();
+          } else if (live) alert(`Güncelsin: v${APP_VERSION}`);
+          else if (confirm('Sürüm kontrol edilemedi. Önbelleği temizleyip yeniden yüklensin mi?')) applyUpdate();
+        }}
+        className="mt-auto xl:mt-3 text-center text-[10px] font-medium text-neutral-400 hover:text-sky-600"
+        title="Güncellemeleri denetle"
+      >
         <span className="hidden xl:inline">Cebim </span>v{APP_VERSION}
-      </p>
+      </button>
     </aside>
   );
 };
