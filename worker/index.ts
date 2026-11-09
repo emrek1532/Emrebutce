@@ -29,7 +29,7 @@ Kalem türleri (tur): "taksit" (kredi, Eminevim, arkadaş kartı taksiti vb.), "
 Alanlar: ad, alacakli (borcun kime/hangi bankaya/kimin kartına olduğu), not, kimin, kategori, tarih, yontem.
 Görevin HESAP YAPMAK DEĞİL: soruyla ilgili kalemlerin id'lerini ve hangi ölçünün istendiğini seçmek. Toplamı uygulama hesaplar.
 Ölçüler (metric):
-- buAy: bu ay ödenecek tutar (taksitin bu ayki taksiti, kartın ekstreden kalan borcu, düzenli giderin aylık tutarı)
+- buAy: bu ay ödenecek tutar (taksitin bu ayki taksiti, kartın ekstreden kalan borcu, düzenli giderin aylık tutarı); kalemde buAyOdendi=true ise bu ayki ödeme yapılmıştır (uygulama 0 sayar), yine de soruyla ilgiliyse seç
 - gelecekAy: gelecek ay ödenecek taksit
 - kalanToplam: kalan toplam borç (taksitin bitene kadarki toplamı, kartın tüm borcu)
 - asgari: kartın kalan asgari ödemesi

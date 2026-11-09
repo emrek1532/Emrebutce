@@ -46,3 +46,21 @@ test('borç planı: faizli kredide erken kapatma faiz kazandırır', () => {
   assert.ok(Math.abs(base.totalPaid - 24000) < 1);
   assert.ok(plan.totalPaid < base.totalPaid - 1000);
 });
+
+test('Bütçene sor: bu ay ödenmiş taksit "bu ay" toplamına girmez', async () => {
+  const { buildAskItems, computeAnswer } = await import('../src/utils/askBudget');
+  const now = new Date().toISOString().slice(0, 7);
+  const inst = (id: string, amount: number) => ({
+    id, title: id, creditor: 'Arkadaş Kartı', monthlyAmount: amount, totalInstallments: 6, paidInstallments: 1, remainingInstallments: 5,
+    startDate: `${now}-01`, endDate: '2099-01-01', paymentDayOfMonth: 10, member: 'Emre', category: 'Borç & Kredi'
+  });
+  const items = buildAskItems('Bu ay arkadaş kartlarına ne kadar ödeyeceğim?', {
+    installments: [inst('a', 1000), inst('b', 500)] as any,
+    creditCards: [],
+    recurring: [],
+    transactions: [{ id: 'x', type: 'expense', amount: 1000, currency: 'TRY', date: `${now}-05`, installmentInfo: { current: 2, total: 6, installmentId: 'a' } }] as any
+  });
+  const ans = computeAnswer(items, { ids: ['t:a', 't:b'], metric: 'buAy', intro: 'Bu ay' });
+  assert.equal(ans.total, 500);
+  assert.match(ans.note ?? '', /ödendi.*a/);
+});

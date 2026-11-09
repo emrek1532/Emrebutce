@@ -16,6 +16,8 @@ export interface AskItem {
   kategori?: string;
   tarih?: string;
   yontem?: string;
+  // Bu ayın ödemesi yapıldı ("Bu ayı öde" / düzenli giderin işlemi oluştu): "bu ay" tutarı 0 sayılır
+  buAyOdendi?: boolean;
   // Hesap için (sunucuya gitmez)
   values: Partial<Record<Exclude<AskMetric, 'yok' | 'bitis'>, number>> & { bitis?: string };
 }
@@ -44,6 +46,7 @@ export function buildAskItems(
   const next = shiftMonthKey(now, 1);
   const items: AskItem[] = [];
   for (const i of data.installments) {
+    const paid = data.transactions.some((t) => t.installmentInfo?.installmentId === i.id && budgetMonthOf(t) === now);
     items.push({
       id: `t:${i.id}`,
       tur: 'taksit',
@@ -51,7 +54,9 @@ export function buildAskItems(
       alacakli: i.creditor || undefined,
       not: i.notes || undefined,
       kimin: i.member,
-      values: { buAy: monthAmountOf(i, now), gelecekAy: monthAmountOf(i, next), kalanToplam: remainingOf(i), bitis: i.endDate }
+      buAyOdendi: paid || undefined,
+      // "Bu ay" = bu ay daha ödenecek tutar: ödendiyse 0
+      values: { buAy: paid ? 0 : monthAmountOf(i, now), gelecekAy: monthAmountOf(i, next), kalanToplam: remainingOf(i), bitis: i.endDate }
     });
   }
   for (const c of data.creditCards) {
@@ -70,13 +75,15 @@ export function buildAskItems(
     });
   }
   for (const r of data.recurring.filter((x) => x.active)) {
+    const paid = data.transactions.some((t) => t.id === `rec-${r.id}-${now}`);
     items.push({
       id: `d:${r.id}`,
       tur: r.type === 'income' ? 'duzenli-gelir' : 'duzenli-gider',
       ad: r.title,
       kimin: r.member,
       kategori: r.category,
-      values: { buAy: r.amount, tutar: r.amount, gelecekAy: r.amount }
+      buAyOdendi: (r.type === 'expense' && paid) || undefined,
+      values: { buAy: r.type === 'expense' && paid ? 0 : r.amount, tutar: r.amount, gelecekAy: r.amount }
     });
   }
   // İşlemler yalnızca soru harcama/gelir hakkındaysa gönderilir (son 3 ay, en fazla 250)
@@ -131,5 +138,8 @@ export function computeAnswer(items: AskItem[], res: { ids: string[]; metric: As
     .map((c) => ({ label: c.ad, value: Math.round(((c.values as any)[metric] ?? 0) * 100) / 100 }))
     .filter((r) => r.value !== 0 || chosen.length === 1);
   const total = Math.round(rows.reduce((s, r) => s + (r.value as number), 0) * 100) / 100;
-  return { intro: res.intro, note: res.note, metric, total, rows };
+  // Bu ay ödenmiş kalemler toplama girmez; hangileri olduğu ayrıca yazılır
+  const paid = metric === 'buAy' ? chosen.filter((c) => c.buAyOdendi).map((c) => c.ad) : [];
+  const note = paid.length ? [res.note, `Bu ay ödendi (toplama dahil değil): ${paid.join(', ')}.`].filter(Boolean).join(' ') : res.note;
+  return { intro: res.intro, note, metric, total, rows };
 }
