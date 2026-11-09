@@ -67,7 +67,11 @@ export const AddTransactionModal: React.FC<Props> = ({
     setPaymentMethod(editTransaction?.paymentMethod || 'Kredi Kartı');
     setIsRecurring(editTransaction?.isRecurring || false);
     setGoalId(editTransaction?.goalId || '');
-    setCardId(editTransaction ? editTransaction.cardId || '' : creditCards[0]?.id || '');
+    // Yeni harcamada en son kartla girilen harcamanın kartı seçili gelir (yoksa ilk kart)
+    const lastCardId = [...transactions]
+      .filter((t) => t.cardId && creditCards.some((c) => c.id === t.cardId))
+      .sort((a, b) => (b.createdAt ?? b.date).localeCompare(a.createdAt ?? a.date))[0]?.cardId;
+    setCardId(editTransaction ? editTransaction.cardId || '' : lastCardId || creditCards[0]?.id || '');
     setCategoryTouched(!!editTransaction);
     setSmsOpen(false);
     setSmsText('');

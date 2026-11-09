@@ -78,9 +78,12 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
   const [statementDay, setStatementDay] = useState('1');
   const [dueDay, setDueDay] = useState('10');
   const [notes, setNotes] = useState('');
+  // Bankanın gösterdiği kullanılabilir limit (isteğe bağlı): girilirse uygulama birebir eşitlenir
+  const [available, setAvailable] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
+    setAvailable('');
     setBank(editCard?.bank ?? '');
     setName(editCard?.name ?? '');
     setMember(editCard?.member ?? familyMembers[0]?.name ?? 'Ortak');
@@ -118,7 +121,11 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
     card.statementTotal =
       editCard && editCard.statementDebt === card.statementDebt ? editCard.statementTotal ?? card.statementDebt : card.statementDebt;
     const sameStatement = !!editCard && editCard.statementDebt === card.statementDebt;
-    if (editCard) updateCreditCard({ ...editCard, ...card, statementMinimum: sameStatement ? editCard.statementMinimum : undefined });
+    // Bankadaki kullanılabilir limit girildiyse aradaki fark henüz ekstreye girmemiş taksitlerdir
+    const futureInstallments = available.trim()
+      ? Math.max(0, Math.round((card.limit - card.currentDebt - toNumber(available)) * 100) / 100)
+      : editCard?.futureInstallments;
+    if (editCard) updateCreditCard({ ...editCard, ...card, futureInstallments, statementMinimum: sameStatement ? editCard.statementMinimum : undefined });
     else addCreditCard(card);
     onClose();
   };
@@ -145,6 +152,14 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
             <label className={labelClass}>Güncel toplam borç (₺)</label>
             <input className={inputClass} inputMode="decimal" value={currentDebt} onChange={(e) => setCurrentDebt(e.target.value)} placeholder="0" />
           </div>
+        </div>
+        <div>
+          <label className={labelClass}>Bankadaki kullanılabilir limit (₺) — isteğe bağlı</label>
+          <input className={inputClass} inputMode="decimal" value={available} onChange={(e) => setAvailable(e.target.value)} placeholder="ör. 4.121,05 (eksi ise -681,37)" />
+          <p className="text-[11px] text-neutral-500 mt-1">
+            Banka uygulamasındaki tutarı yazarsanız kalan limit birebir eşitlenir (aradaki fark gelmemiş taksit sayılır).
+            {editCard?.futureInstallments ? ` Şu an kayıtlı gelmemiş taksit: ${editCard.futureInstallments.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺.` : ''}
+          </p>
         </div>
         <div>
           <label className={labelClass}>Son ekstre borcu (₺) — son ödeme gününe kadar ödenecek</label>
