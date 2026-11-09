@@ -123,11 +123,29 @@ export const StatementImportModal: React.FC<{ onClose: () => void; initialCardId
       const k = `${t.date}|${t.amount.toFixed(2)}`;
       existing.set(k, (existing.get(k) ?? 0) + 1);
     }
+    // Taksitli alışveriş elle tamamı girilmiş olabilir (ör. 3.504,99 ₺, 6 taksit); ekstrede aynı gün
+    // tarihli "1/6 taksit 584,17 ₺" satırı o kaydın taksitidir, yeni harcama değildir.
+    const usedWhole = new Set<string>();
+    const wholeMatch = (l: StatementLine) =>
+      l.installment
+        ? transactions.find(
+            (t) =>
+              !usedWhole.has(t.id) &&
+              t.type === 'expense' &&
+              t.date === l.date &&
+              Math.abs(t.amount - l.amount * l.installment!.total) <= l.installment!.total * 0.02
+          )
+        : undefined;
     const fresh = chosen.filter((l) => {
       const k = `${l.date}|${l.amount.toFixed(2)}`;
       const n = existing.get(k) ?? 0;
       if (n > 0) {
         existing.set(k, n - 1);
+        return false;
+      }
+      const whole = wholeMatch(l);
+      if (whole) {
+        usedWhole.add(whole.id);
         return false;
       }
       return true;
