@@ -122,8 +122,9 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
       editCard && editCard.statementDebt === card.statementDebt ? editCard.statementTotal ?? card.statementDebt : card.statementDebt;
     const sameStatement = !!editCard && editCard.statementDebt === card.statementDebt;
     // Bankadaki kullanılabilir limit girildiyse aradaki fark henüz ekstreye girmemiş taksitlerdir
+    // Eksi çıkabilir: uygulama bankadan fazla düşmüşse fark geri eklenir (kalan limit her durumda bankayla aynı olur)
     const futureInstallments = available.trim()
-      ? Math.max(0, Math.round((card.limit - card.currentDebt - toNumber(available)) * 100) / 100)
+      ? Math.round((card.limit - card.currentDebt - toNumber(available)) * 100) / 100
       : editCard?.futureInstallments;
     if (editCard) updateCreditCard({ ...editCard, ...card, futureInstallments, statementMinimum: sameStatement ? editCard.statementMinimum : undefined });
     else addCreditCard(card);
@@ -158,7 +159,11 @@ export const CreditCardModal: React.FC<CardModalProps> = ({ isOpen, onClose, edi
           <input className={inputClass} inputMode="decimal" value={available} onChange={(e) => setAvailable(e.target.value)} placeholder="ör. 4.121,05 (eksi ise -681,37)" />
           <p className="text-[11px] text-neutral-500 mt-1">
             Banka uygulamasındaki tutarı yazarsanız kalan limit birebir eşitlenir (aradaki fark gelmemiş taksit sayılır).
-            {editCard?.futureInstallments ? ` Şu an kayıtlı gelmemiş taksit: ${editCard.futureInstallments.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺.` : ''}
+            {editCard?.futureInstallments
+              ? editCard.futureInstallments > 0
+                ? ` Şu an kayıtlı gelmemiş taksit: ${editCard.futureInstallments.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺.`
+                : ` Şu an kayıtlı banka farkı: +${(-editCard.futureInstallments).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺.`
+              : ''}
           </p>
         </div>
         <div>
