@@ -1,3 +1,4 @@
+import { useDrill } from '../../utils/drill';
 import React, { useMemo } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { budgetMonthOf, monthKeyOf, shiftMonthKey, isSpending } from '../../utils/budgetMonth';
@@ -9,6 +10,7 @@ import { ArrowDownRight, ArrowUpRight, Scale } from 'lucide-react';
 // İçinde bulunulan ay için önceki ayın da aynı gününe kadarki kısmı alınır (adil karşılaştırma).
 export const MonthReportCard: React.FC = () => {
   const { transactions, selectedMonth, currency } = useBudget();
+  const drill = useDrill();
 
   const report = useMemo(() => {
     const prev = shiftMonthKey(selectedMonth, -1);
@@ -59,7 +61,12 @@ export const MonthReportCard: React.FC = () => {
           </p>
           <ul className="text-xs divide-y divide-neutral-100 dark:divide-neutral-800">
             {report.rows.map((r) => (
-              <li key={r.category} className="py-1.5 flex items-center justify-between gap-2">
+              <li
+                key={r.category}
+                className="py-1.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/60 -mx-1.5 px-1.5 rounded-lg"
+                onClick={() => drill({ type: 'expense', category: r.category })}
+                title={`${r.category} harcamalarını gör`}
+              >
                 <span className="text-neutral-700 dark:text-neutral-300 truncate">{r.category}</span>
                 <span className={`flex items-center gap-0.5 font-mono shrink-0 ${r.diff > 0 ? 'text-rose-600' : 'text-sky-600'}`}>
                   {r.diff > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}

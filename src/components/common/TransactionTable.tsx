@@ -107,7 +107,8 @@ export const TransactionTable: React.FC<Props> = ({
               return (
                 <tr
                   key={tx.id}
-                  className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 transition-colors group"
+                  onClick={() => onEdit(tx)}
+                  className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 transition-colors group cursor-pointer"
                 >
                   {/* Tarih */}
                   <td className="py-3 px-4 font-mono text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
@@ -162,14 +163,18 @@ export const TransactionTable: React.FC<Props> = ({
                   <td className="py-3 px-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => onEdit(tx)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(tx);
+                        }}
                         className="p-1 rounded text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         title="Düzenle"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (confirm(`"${tx.description}" işlemini silmek istediğinize emin misiniz?`)) {
                             deleteTransaction(tx.id);
                           }

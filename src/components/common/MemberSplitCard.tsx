@@ -1,3 +1,4 @@
+import { useDrill } from '../../utils/drill';
 import React, { useMemo } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { budgetMonthOf, isSpending } from '../../utils/budgetMonth';
@@ -7,6 +8,7 @@ import { Users } from 'lucide-react';
 // Seçili ayın harcamaları kişi kişi (kartla yapılanlar dahil); "Ortak" ayrı satır
 export const MemberSplitCard: React.FC = () => {
   const { transactions, selectedMonth, currency, familyMembers } = useBudget();
+  const drill = useDrill();
   const rows = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of transactions) {
@@ -28,7 +30,12 @@ export const MemberSplitCard: React.FC = () => {
       ) : (
         <ul className="space-y-2.5">
           {rows.list.map(([name, value]) => (
-            <li key={name} className="text-xs">
+            <li
+              key={name}
+              className="text-xs cursor-pointer rounded-lg -mx-1.5 px-1.5 py-1 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 active:scale-[0.99]"
+              onClick={() => drill({ type: 'expense', member: name })}
+              title={`${name} harcamalarını gör`}
+            >
               <div className="flex justify-between mb-1">
                 <span className="font-medium text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color(name) }} />
