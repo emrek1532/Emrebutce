@@ -5,6 +5,7 @@ import { FilterBar } from '../common/FilterBar';
 import { TransactionTable } from '../common/TransactionTable';
 import { OverviewPanel } from '../common/OverviewPanel';
 import { TABS, useActiveTab } from '../../utils/activeTab';
+import { APP_VERSION } from '../../version';
 import { TxHeader } from '../common/TxHeader';
 import { ChartsPanel } from '../common/ChartsPanel';
 import { AddTransactionModal } from '../modals/AddTransactionModal';
@@ -155,6 +156,8 @@ export const MobileLayout: React.FC<Props> = ({
           </div>
         )}
         {activeTab === 'cards' && <InstallmentsView section="cards" />}
+
+        <p className="pt-4 text-center text-[10px] font-medium text-neutral-400">Cebim v{APP_VERSION}</p>
 
         {/* TAB: SIMULATOR */}
       </main>
