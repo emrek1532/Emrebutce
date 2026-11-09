@@ -1,7 +1,7 @@
 import React from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { convertCurrency, formatCurrency } from '../../utils/currencies';
-import { monthKeyOf, shiftMonthKey } from '../../utils/budgetMonth';
+import { isCashExpense, monthKeyOf, shiftMonthKey } from '../../utils/budgetMonth';
 import { monthLabel } from './MonthSwitcher';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -13,7 +13,10 @@ export const TxHeader: React.FC<{ cards?: boolean }> = ({ cards }) => {
   const sum = (type: string) =>
     filteredTransactions.filter((t) => t.type === type).reduce((s, t) => s + convertCurrency(t.amount, t.currency, currency), 0);
   const income = sum('income');
-  const expense = sum('expense');
+  // Özet'teki gibi: hesaptan çıkan gider ve kartla yapılan harcama ayrı (ikisinin toplamı = tüm giderler)
+  const val = (t: (typeof filteredTransactions)[number]) => convertCurrency(t.amount, t.currency, currency);
+  const expense = filteredTransactions.filter((t) => isCashExpense(t)).reduce((s, t) => s + val(t), 0);
+  const card = filteredTransactions.filter((t) => t.type === 'expense' && !isCashExpense(t)).reduce((s, t) => s + val(t), 0);
   const money = (v: number) => formatCurrency(v, currency);
   if (cards) {
     // Bilgisayar: ay üst çubuktan seçilir; burada yalnızca filtredeki toplamlar
@@ -22,8 +25,8 @@ export const TxHeader: React.FC<{ cards?: boolean }> = ({ cards }) => {
         {(
           [
             ['Gelir', money(income), 'from-emerald-400 to-teal-600'],
-            ['Gider (kart dahil)', money(expense), 'from-rose-400 to-pink-600'],
-            ['Kayıt', String(filteredTransactions.length), 'from-sky-500 to-indigo-700']
+            ['Gider (hesaptan)', money(expense), 'from-rose-400 to-pink-600'],
+            ['Kartla harcanan', money(card), 'from-sky-500 to-indigo-700']
           ] as const
         ).map(([label, value, g]) => (
           <div key={label} className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-sm bg-gradient-to-br ${g}`}>
@@ -43,7 +46,10 @@ export const TxHeader: React.FC<{ cards?: boolean }> = ({ cards }) => {
         <button type="button" className={nav} onClick={() => setSelectedMonth(shiftMonthKey(selectedMonth, -1))} title="Önceki ay">
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-base font-bold min-w-[8rem] text-center">{monthLabel(selectedMonth)}</span>
+        <span className="min-w-[8rem] text-center leading-tight">
+          <span className="text-base font-bold block">{monthLabel(selectedMonth)}</span>
+          <span className="text-[10px] text-white/75">{filteredTransactions.length} kayıt</span>
+        </span>
         <button type="button" className={nav} disabled={isCurrent} onClick={() => setSelectedMonth(shiftMonthKey(selectedMonth, 1))} title="Sonraki ay">
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -53,20 +59,24 @@ export const TxHeader: React.FC<{ cards?: boolean }> = ({ cards }) => {
           </button>
         )}
       </div>
-      <div className="relative grid grid-cols-[1fr_1fr_auto] gap-2 w-full sm:w-auto">
+      <div className="relative grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto">
         {(
           [
             ['Gelir', money(income), 'bg-emerald-300'],
             ['Gider', money(expense), 'bg-rose-300'],
-            ['Kayıt', String(filteredTransactions.length), 'bg-white']
+            ['Kartla', money(card), 'bg-sky-200']
           ] as const
         ).map(([label, value, dot]) => (
-          <div key={label} className="rounded-xl bg-white/15 px-2.5 py-2 min-w-0 sm:min-w-[7.5rem]" title={label === 'Gider' ? 'Kartla yapılanlar dahil' : undefined}>
+          <div
+            key={label}
+            className="rounded-xl bg-white/15 px-2 py-2 min-w-0 sm:min-w-[7.5rem]"
+            title={label === 'Gider' ? 'Hesaptan çıkan (Özet ile aynı)' : label === 'Kartla' ? 'Kartla yapılan harcama; kart borcu ödenince gidere girer' : undefined}
+          >
             <span className="text-[11px] text-white/80 flex items-center gap-1.5">
               <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
               {label}
             </span>
-            <span className="text-[13px] sm:text-sm font-bold font-mono block whitespace-nowrap">{value}</span>
+            <span className="text-[12px] sm:text-sm font-bold font-mono block whitespace-nowrap tracking-tight">{value}</span>
           </div>
         ))}
       </div>

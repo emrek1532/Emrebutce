@@ -3,6 +3,10 @@
 Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sayfa sonunda) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
 
+## 1.2.4 — 9 Kasım 2026
+- İşlemler/Raporlar üst şeridi Özet ile aynı: Gelir · Gider (hesaptan) · Kartla (önceden gider kart dahil gösteriliyordu, rakamlar tutmuyor gibiydi)
+- "Geçen aya göre" kartında toplamın kart dahil olduğu yazıyor
+
 ## 1.2.3 — 9 Kasım 2026
 - "Bu ay harcayabileceğin" artık elindeki para + gelecek gelir − bekleyen ödemeler olarak hesaplanır
 - Ödeme yapınca (ör. "Bu ayı öde") elindeki para ve bekleyen ödemeler birlikte azalır; kartla eşleşen taksitlerin nakit ödemesi de düşer

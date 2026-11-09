@@ -50,7 +50,7 @@ export const MonthReportCard: React.FC = () => {
       {(
         <>
           <p className="text-xs text-neutral-600 dark:text-neutral-300">
-            Toplam harcama {monthLabel(report.prev)}
+            Kart dahil toplam harcama {monthLabel(report.prev)}
             {report.isCurrent ? ' ayının aynı gününe' : ''} göre{' '}
             <b className={diff > 0 ? 'text-rose-600' : 'text-sky-600'}>
               {money(diff)} {diff > 0 ? 'fazla' : 'az'}
