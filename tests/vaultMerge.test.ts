@@ -25,6 +25,6 @@ test('kasa birleştirme: varlık ve geçmiş kayıtları korunur', () => {
   const local = { ...empty, assets: [{ id: 'local' }], assetHistory: [{ id: 'local-snapshot' }] };
   const remote = { ...empty, assets: [{ id: 'remote' }], assetHistory: [{ id: 'remote-snapshot' }] };
   const merged = mergeVault(empty, local, remote);
-  assert.deepEqual(merged.assets.map((a: any) => a.id).sort(), ['local', 'remote']);
-  assert.deepEqual(merged.assetHistory.map((a: any) => a.id).sort(), ['local-snapshot', 'remote-snapshot']);
+  assert.deepEqual((merged.assets ?? []).map((a: any) => a.id).sort(), ['local', 'remote']);
+  assert.deepEqual((merged.assetHistory ?? []).map((a: any) => a.id).sort(), ['local-snapshot', 'remote-snapshot']);
 });
