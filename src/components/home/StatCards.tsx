@@ -112,35 +112,38 @@ export const StatCards: React.FC = () => {
   }, [transactions, selectedMonth, assets, assetHistory]);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-      {stats.map((s) => (
-        <button
-          type="button"
-          key={s.label}
-          onClick={s.tap}
-          title={s.hint}
-          className={`relative overflow-hidden text-left rounded-2xl p-3.5 sm:p-5 text-white shadow-sm bg-gradient-to-br ${s.gradient} min-h-[7.5rem] sm:min-h-[8.5rem] transition-transform hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]`}
-        >
-          <div className="absolute -right-10 -top-12 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
-          {s.chart}
-          <div className="relative flex items-start justify-between gap-2">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">{s.icon}</div>
-            {s.change !== null && s.change !== 0 && Math.abs(s.change) < 1000 && (
-              <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/20 whitespace-nowrap" title="Geçen aya göre">
-                {s.change >= 0 ? '↑' : '↓'} %{Math.abs(s.change)}
+    <section aria-label="Finansal özet" className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      {stats.map((s, index) => {
+        const featured = index === 0;
+        const accents = ['text-white', 'text-emerald-700 dark:text-emerald-300', 'text-rose-700 dark:text-rose-300', 'text-sky-700 dark:text-sky-300'];
+        const surfaces = ['bg-gradient-to-br from-[#07549c] via-[#086bb8] to-[#073d76]', 'bg-white dark:bg-neutral-900', 'bg-white dark:bg-neutral-900', 'bg-white dark:bg-neutral-900'];
+        return (
+          <button
+            type="button"
+            key={s.label}
+            onClick={s.tap}
+            title={s.hint}
+            className={`group relative flex flex-col justify-between overflow-hidden text-left rounded-[1.35rem] p-3.5 sm:p-5 border min-h-[8.5rem] sm:min-h-[10rem] transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] ${surfaces[index]} ${featured ? 'border-blue-700 shadow-lg shadow-blue-900/15' : 'border-neutral-200 dark:border-neutral-800 shadow-sm'}`}
+          >
+            {featured && <div className="absolute -right-12 -top-16 h-40 w-40 rounded-full border-[24px] border-white/10 pointer-events-none" />}
+            <div className="relative flex items-start justify-between gap-2">
+              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${featured ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-neutral-800 ' + accents[index]}`}>{s.icon}</span>
+              {s.change !== null && s.change !== 0 && Math.abs(s.change) < 1000 && (
+                <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${featured ? 'bg-white/15 text-white' : 'bg-neutral-100 dark:bg-neutral-800 ' + accents[index]}`} title="Geçen aya göre">
+                  {s.change >= 0 ? '↑' : '↓'} %{Math.abs(s.change)}
+                </span>
+              )}
+            </div>
+            <div className="relative mt-4 min-w-0">
+              <span className={`block text-[11px] sm:text-xs font-semibold ${featured ? 'text-blue-100' : 'text-neutral-500 dark:text-neutral-400'}`}>{s.label}</span>
+              <span className={`block mt-1 text-[clamp(0.95rem,1.7vw,1.5rem)] font-extrabold tracking-tight tabular-nums break-words leading-tight ${featured ? 'text-white' : 'text-neutral-900 dark:text-white'}`}>
+                {s.sign && s.value > 0 ? '+' : ''}{money(s.value)}
               </span>
-            )}
-          </div>
-          <div className="relative mt-2 sm:mt-3">
-            <span className="text-[11px] sm:text-xs font-medium text-white/85 block">{s.label}</span>
-            <span className="text-lg sm:text-2xl lg:text-xl 2xl:text-2xl font-extrabold font-mono tracking-tight block truncate">
-              {s.sign && s.value > 0 ? '+' : ''}
-              {money(s.value)}
-            </span>
-            {s.sub && <span className="text-[10px] sm:text-[11px] text-white/80 block sm:truncate sm:max-w-[75%] leading-snug">{s.sub}</span>}
-          </div>
-        </button>
-      ))}
-    </div>
+              {s.sub && <span className={`mt-1.5 block text-[10px] sm:text-xs leading-snug ${featured ? 'text-blue-100/85' : 'text-neutral-500 dark:text-neutral-400'}`}>{s.sub}</span>}
+            </div>
+          </button>
+        );
+      })}
+    </section>
   );
 };
