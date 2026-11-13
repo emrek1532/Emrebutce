@@ -23,7 +23,8 @@ test('bütçe ayı ve nakit gider kuralı', () => {
   assert.equal(shiftMonthKey('2026-01', -1), '2025-12');
   assert.equal(budgetMonthOf({ date: '2026-10-30', budgetMonth: '2026-11' }), '2026-11');
   assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Kredi Kartı' } as any), false);
-  assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Kredi Kartı', installmentInfo: { installmentId: 'x' } } as any), false);
+  // Borçlar'dan "Bu ayı öde" ile ödenen taksit, yöntemi Kredi Kartı görünse de hesaptan çıkan paradır
+  assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Kredi Kartı', installmentInfo: { installmentId: 'x' } } as any), true);
   assert.equal(isCashExpense({ type: 'expense', paymentMethod: 'Nakit' } as any), true);
 });
 
@@ -80,7 +81,8 @@ test('kart borcu ödemesi nakit gider ama harcama dağılımına girmez', async 
 
 
 test('nakit akışı: kart taksiti alışverişte değil ekstre ödemesinde sayılır', () => {
-  const purchase = { type: 'expense', paymentMethod: 'Kredi Kartı', installmentInfo: { installmentId: 'loan-1' } } as any;
+  // Kartla taksitli alışveriş: taksit bilgisi var ama Borçlar'a bağlı değil (installmentId yok)
+  const purchase = { type: 'expense', paymentMethod: 'Kredi Kartı', installmentInfo: { current: 1, total: 6 } } as any;
   const settlement = { type: 'expense', paymentMethod: 'Havale/EFT', description: 'Kart borcu ödemesi' } as any;
   assert.equal(isCashExpense(purchase), false);
   assert.equal(isCashExpense(settlement), true);
