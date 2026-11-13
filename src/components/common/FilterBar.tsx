@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useBudget } from '../../context/BudgetContext';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../data/initialData';
 import { Search, Filter, RotateCcw } from 'lucide-react';
@@ -19,6 +19,7 @@ export const FilterBar: React.FC = () => {
     filteredTransactions
   } = useBudget();
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const allCategories = Array.from(new Set([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]));
 
   const hasActiveFilters =
@@ -48,7 +49,7 @@ export const FilterBar: React.FC = () => {
             placeholder="Açıklama, kategori, aile üyesi veya ödeme şekli ara..."
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-sky-500"
           />
         </div>
 
@@ -73,8 +74,11 @@ export const FilterBar: React.FC = () => {
         </div>
       </div>
 
+      <button type="button" onClick={() => setFiltersOpen((open) => !open)} aria-expanded={filtersOpen} className="sm:hidden w-full flex items-center justify-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 py-2.5 text-sm font-semibold text-sky-700 dark:text-sky-300">
+        <Filter className="w-4 h-4" /> {filtersOpen ? 'Filtreleri gizle' : 'Filtreleri göster'}
+      </button>
       {/* Filter Selectors Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-800">
+      <div className={`${filtersOpen ? 'grid' : 'hidden'} sm:grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800`}>
         {/* Date Range */}
         <div>
           <label className="block text-[10px] font-semibold uppercase tracking-wider text-neutral-400 mb-1">
