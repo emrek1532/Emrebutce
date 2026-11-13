@@ -34,22 +34,20 @@ export const OverviewPanel: React.FC<{ onEditTx: (tx: Transaction) => void }> = 
         </button>
       )}
       <StatCards />
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-5 items-start">
-        <div className={isCurrent ? 'xl:col-span-7' : 'xl:col-span-12'}>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 items-stretch">
+        <div className="min-w-0">
           <MonthSummaryCard />
         </div>
-        {isCurrent && (
-          <div className="xl:col-span-5">
-            <UpcomingPayments />
-          </div>
-        )}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
-        <SpendingCard />
-        <SmartTipCard />
-        <div className="md:col-span-2 xl:col-span-1">
-          <RecentCard onEditTx={onEditTx} />
+        <div className="min-w-0">
+          <SpendingCard />
         </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 items-stretch">
+        {isCurrent ? <UpcomingPayments /> : <SmartTipCard />}
+        <RecentCard onEditTx={onEditTx} />
+      </div>
+      <div className="hidden lg:block">
+        <SmartTipCard />
       </div>
       <GoalBanner />
       {isCurrent && (
