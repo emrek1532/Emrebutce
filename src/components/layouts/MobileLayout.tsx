@@ -56,7 +56,7 @@ export const MobileLayout: React.FC<Props> = ({
       {/* Üst çubuk: logo, sürüm, bildirim */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] flex items-center justify-between">
         <button type="button" className="flex items-center gap-2" onClick={() => go('overview')}>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center">
             <Wallet className="w-4 h-4" />
           </div>
           <span className="text-base font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">Cebim</span>
@@ -81,7 +81,7 @@ export const MobileLayout: React.FC<Props> = ({
       </header>
 
       {/* Main Scrollable Content */}
-      <main className="flex-1 p-4 pb-[calc(9rem+env(safe-area-inset-bottom))] space-y-4 max-w-lg mx-auto w-full">
+      <main className="flex-1 px-3 pt-4 pb-[calc(9rem+env(safe-area-inset-bottom))] space-y-4 max-w-2xl mx-auto w-full sm:px-5">
 
         {activeTab === 'overview' && (
           <OverviewPanel onEditTx={(tx) => { setEditingTx(tx); setIsAddTxOpen(true); }} />
@@ -133,7 +133,7 @@ export const MobileLayout: React.FC<Props> = ({
           setEditingTx(null);
           setIsAddTxOpen(true);
         }}
-        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-2xl shadow-sky-600/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-4 z-40 w-14 h-14 rounded-2xl bg-sky-600 text-white shadow-xl shadow-sky-600/25 flex items-center justify-center hover:bg-sky-700 active:scale-95 transition-transform"
         title="Yeni İşlem Ekle"
       >
         <Plus className="w-6 h-6" />
@@ -142,7 +142,7 @@ export const MobileLayout: React.FC<Props> = ({
 
       {/* Alt menü */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 pb-[max(env(safe-area-inset-bottom),0.25rem)]">
-        <div className="max-w-lg mx-auto grid grid-cols-6">
+        <div className="max-w-lg mx-auto grid grid-cols-6 px-1">
           {[...NAV, { id: 'more' as const, label: 'Diğer', icon: LayoutGrid }].map((n) => {
             const active = n.id === 'more' ? inMore || moreOpen : activeTab === n.id && !moreOpen;
             const Icon = n.icon;
@@ -151,7 +151,7 @@ export const MobileLayout: React.FC<Props> = ({
                 key={n.id}
                 type="button"
                 onClick={() => (n.id === 'more' ? setMoreOpen(!moreOpen) : go(n.id))}
-                className={`flex flex-col items-center gap-0.5 pt-2 pb-1.5 text-[10px] font-semibold ${
+                className={`min-h-14 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1.5 text-[10px] font-semibold transition-colors ${
                   active ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-500 dark:text-neutral-400'
                 }`}
               >
