@@ -16,7 +16,7 @@ export const OverviewPanel: React.FC<{ onEditTx: (tx: Transaction) => void }> = 
   const isCurrent = selectedMonth === monthKeyOf(new Date());
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-3 sm:space-y-5">
       <div className="sm:hidden flex">
         <MonthSelect />
       </div>
@@ -34,7 +34,7 @@ export const OverviewPanel: React.FC<{ onEditTx: (tx: Transaction) => void }> = 
         </button>
       )}
       <StatCards />
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-5 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-5 items-start">
         <div className={isCurrent ? 'xl:col-span-7' : 'xl:col-span-12'}>
           <MonthSummaryCard />
         </div>
@@ -44,7 +44,7 @@ export const OverviewPanel: React.FC<{ onEditTx: (tx: Transaction) => void }> = 
           </div>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
         <SpendingCard />
         <SmartTipCard />
         <div className="md:col-span-2 xl:col-span-1">

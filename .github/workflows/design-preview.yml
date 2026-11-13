@@ -1,0 +1,31 @@
+name: Design preview screenshots
+on:
+  push:
+    branches: [design/ux-refresh-preview-20261113]
+  workflow_dispatch:
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run lint && npm test && npm run build
+      - run: npx --yes playwright install --with-deps chromium
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 > /tmp/preview.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ > /dev/null && break; sleep 1; done
+      - name: Capture actual UI screenshots (demo/empty local data)
+        run: |
+          mkdir -p screenshots
+          npx --yes playwright screenshot --browser chromium --viewport-size "1440,900" --wait-for-timeout 2000 --full-page http://127.0.0.1:4173/ screenshots/desktop-home.png
+          npx --yes playwright screenshot --browser chromium --viewport-size "390,844" --wait-for-timeout 2000 --full-page http://127.0.0.1:4173/ screenshots/mobile-home.png
+          npx --yes playwright screenshot --browser chromium --viewport-size "768,1024" --wait-for-timeout 2000 --full-page http://127.0.0.1:4173/ screenshots/tablet-home.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: design-preview-screenshots
+          path: screenshots/
