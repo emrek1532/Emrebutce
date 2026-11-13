@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - 'fix/budget-integrity-security-20261113'
 
 jobs:
   checks:
