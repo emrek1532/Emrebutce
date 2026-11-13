@@ -3,6 +3,12 @@
 Sürüm numarası `package.json` → `"version"` alanındadır ve uygulamada sol menünün altında (telefonda sağ üstte) görünür.
 Yeni sürümde bu alanı ve aşağıdaki listeyi güncelleyin: hata düzeltmesi → 1.1.**1**, yeni özellik → 1.**2**.0, büyük değişiklik → **2**.0.0.
 
+## 1.6.0 — 14 Kasım 2026
+- Referans tasarıma uygun lacivert masaüstü menüsü ve açık renkli ana sayfa
+- Ana sayfa grafikleri yan yana, yaklaşan ödemeler ve son işlemler alt sırada
+- Masaüstü başlıkları, mobil menü ve işlem düğmesi görsel olarak yenilendi
+- Mevcut bütçe verileri ve hesaplamaları değiştirilmedi
+
 ## 1.5.0 — 14 Kasım 2026
 - Ana sayfa finansal özet kartları baştan tasarlandı: mavi ana kart, açık renkli gelir/gider/bakiye kartları
 - Mobil ve masaüstünde daha belirgin tutarlar, yeni kart boşlukları ve dokunmatik etkileşimler
