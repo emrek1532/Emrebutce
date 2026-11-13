@@ -46,7 +46,7 @@ export const DesktopLayout: React.FC<Props> = ({ onOpenSync, onOpenNotifications
   const name = familyMembers.find((m) => m.name !== 'Ortak')?.name ?? '';
   const [title, subtitle] =
     activeTab === 'overview'
-      ? [`Merhaba${name ? ` ${name}` : ''} 👋`, 'Finansal durumunu birlikte inceleyelim.']
+      ? [`Genel Bakış`, 'Bütçenin genel durumunu buradan takip edebilirsin.']
       : TITLES[activeTab] ?? [TABS.find((t) => t.id === activeTab)?.label ?? '', ''];
   const showMonth = activeTab === 'overview' || activeTab === 'transactions' || activeTab === 'reports';
   const iconBtn =
@@ -57,10 +57,10 @@ export const DesktopLayout: React.FC<Props> = ({ onOpenSync, onOpenNotifications
       <Sidebar onOpenSync={onOpenSync} onOpenShare={onOpenShare} />
 
       <div className="flex-1 min-w-0">
-        <header className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 flex flex-wrap items-center justify-between gap-4">
+        <header className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {activeTab === 'overview' && (
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-100 to-indigo-200 dark:from-sky-900 dark:to-indigo-900 text-sky-700 dark:text-sky-200 flex items-center justify-center text-lg font-extrabold shrink-0">
+              <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950 text-sky-700 dark:text-sky-200 flex items-center justify-center text-lg font-extrabold shrink-0">
                 {(name || 'C').charAt(0)}
               </div>
             )}
@@ -101,7 +101,7 @@ export const DesktopLayout: React.FC<Props> = ({ onOpenSync, onOpenNotifications
                 setEditingTx(null);
                 setIsAddTxOpen(true);
               }}
-              className="h-10 flex items-center gap-2 px-4 rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-sm font-semibold shadow-sm"
+              className="h-10 flex items-center gap-2 px-4 rounded-xl bg-gradient-to-r from-[#096ac7] to-[#147ee5] hover:from-[#0758a6] hover:to-[#096ac7] text-white text-sm font-semibold shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden md:inline">Yeni İşlem</span>
@@ -120,7 +120,7 @@ export const DesktopLayout: React.FC<Props> = ({ onOpenSync, onOpenNotifications
           </div>
         </header>
 
-        <main className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+        <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
           {activeTab === 'overview' && <OverviewPanel onEditTx={edit} />}
 
           {activeTab === 'transactions' && (
