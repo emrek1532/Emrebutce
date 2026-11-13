@@ -547,7 +547,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (err instanceof VaultNotFoundError) return false;
       throw err;
     }
-    if (!isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) return false;
+    if (dirtyRef.current || !isNewer(remote.updatedAt, remoteUpdatedAtRef.current)) return false;
 
     try {
       await applyRemoteVault(remote, syncConfig.passphrase);
@@ -704,6 +704,10 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       try {
         const data = await loadVault(vId);
         // Decrypt payload with passphrase
+        // A manual pull must not silently discard edits pending on this device.
+        if (dirtyRef.current) {
+          throw new Error('Bu cihazda henüz buluta gönderilmemiş değişiklikler var. Önce buluta eşitleyin; aksi halde yerel veriler kaybolabilir.');
+        }
         const decrypted = await applyRemoteVault(data, pass);
 
         if (decrypted) {
@@ -1148,7 +1152,12 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (decrypted.savingsGoals) setSavingsGoals(decrypted.savingsGoals);
           if (decrypted.familyMembers) setFamilyMembers(decrypted.familyMembers);
           if (decrypted.installments) setInstallments(decrypted.installments); if (decrypted.creditCards) setCreditCards(decrypted.creditCards); if (decrypted.recurring) setRecurring(decrypted.recurring);
+          if (decrypted.assets) setAssets(decrypted.assets);
+          if (decrypted.assetHistory) setAssetHistory(decrypted.assetHistory);
           if (decrypted.currency) setCurrencyState(decrypted.currency);
+          // Restored data must be uploaded on the next sync, not treated as a remote pull.
+          skipNextAutoPushRef.current = false;
+          setDirty(true);
 
           setNotifications((prev) => [
             {

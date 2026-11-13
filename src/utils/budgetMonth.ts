@@ -13,7 +13,7 @@ export const shiftMonthKey = (key: string, delta: number) => {
 // Hesaptan para çıkışı sayılan gider: kartla yapılan alışveriş değil (o, kart borcu ödenince çıkar);
 // ama Borçlar'dan ödenen kredi/taksit her zaman gerçek ödemedir (yöntemi yanlışlıkla kart görünse de).
 export const isCashExpense = (tx: Pick<Transaction, 'type' | 'paymentMethod' | 'installmentInfo'>) =>
-  tx.type === 'expense' && (tx.paymentMethod !== 'Kredi Kartı' || !!tx.installmentInfo?.installmentId);
+  tx.type === 'expense' && tx.paymentMethod !== 'Kredi Kartı';
 
 // Kart borcu ödemesi: kartla yapılmış harcamaların parası. Nakit akışında gider sayılır (para o gün hesaptan çıkar),
 // ama "neye harcadım" dağılımlarında sayılmaz; yoksa aynı harcama hem alışverişte hem kart ödemesinde iki kez görünür.

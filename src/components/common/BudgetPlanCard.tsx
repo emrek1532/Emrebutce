@@ -44,7 +44,7 @@ export function useBudgetPlan() {
         (t) =>
           t.type === 'income' &&
           !t.id.startsWith('rec-') &&
-          !recurringIncomes.some((r) => Math.abs(t.amount - r.amount) <= Math.max(1, r.amount * 0.02))
+          !recurringIncomes.some((r) => r.member === t.member && r.category === t.category && Math.abs(toTry(t) - r.amount) <= Math.max(1, r.amount * 0.02))
       )
       .reduce((s, t) => s + toTry(t), 0);
     const income = recurringIncome + otherIncome;

@@ -69,6 +69,11 @@ app.get('/api/sync/:vaultId', (req, res) => {
 
 // POST /api/sync/:vaultId - Save encrypted vault data
 app.post('/api/sync/:vaultId', (req, res) => {
+  // The legacy Express endpoint has no authenticated write-token protocol.
+  // Disable it by default to prevent anyone knowing a vault ID from overwriting data.
+  if (process.env.ENABLE_INSECURE_LEGACY_VAULT_WRITES !== 'true') {
+    return res.status(403).json({ error: 'Legacy vault writes disabled; use authenticated Supabase vault storage.' });
+  }
   const { vaultId } = req.params;
   const { ciphertext, iv, salt, version, updatedAt, clientInfo } = req.body;
 
